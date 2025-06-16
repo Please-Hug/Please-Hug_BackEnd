@@ -9,8 +9,6 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
 public interface MissionGroupMapper {
-    MissionGroupMapper INSTANCE = Mappers.getMapper(MissionGroupMapper.class);
-
     MissionGroupResponse toMissionGroupResponse(MissionGroup missionGroup);
     @Mapping(target = "id", ignore = true)
     MissionGroup toEntity(MissionGroupRequest missionGroup);
