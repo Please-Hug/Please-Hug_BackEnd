@@ -1,7 +1,0 @@
-spring:
-  application:
-    name:
-      - hugmeEXP
-  profiles:
-    active:
-      - dev
