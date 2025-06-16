@@ -37,4 +37,4 @@ out/
 .vscode/
 
 ### others
-.yml
+*.yml
