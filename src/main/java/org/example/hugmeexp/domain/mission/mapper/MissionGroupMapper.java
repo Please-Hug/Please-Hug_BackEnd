@@ -5,7 +5,6 @@ import org.example.hugmeexp.domain.mission.dto.MissionGroupResponse;
 import org.example.hugmeexp.domain.mission.entity.MissionGroup;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
 public interface MissionGroupMapper {
