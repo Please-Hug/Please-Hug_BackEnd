@@ -1,11 +1,15 @@
 package org.example.hugmeexp.domain.mission.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class MissionGroupRequest {
-    public Long teacherId;
-    public String name;
+    private Long teacherId;
+    private String name;
 }
