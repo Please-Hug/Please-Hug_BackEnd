@@ -95,7 +95,7 @@ public class ExceptionController {
 
         return ResponseEntity.internalServerError()
                 .body(ErrorResponse.builder()
-                        .code(9999)
+                        .code(500)
                         .message("일시적으로 접속이 원활하지 않습니다.")
                         .build());
     }
