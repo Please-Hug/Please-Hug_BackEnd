@@ -32,7 +32,7 @@ public class LoginController {
 
 
     @PostMapping("/api/logout")
-    public ResponseEntity<Response<Void>> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+    public ResponseEntity<Response<Void>> logout(@RequestHeader(value = "Authorization") String authHeader) {
         // 토큰 추출
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String accessToken = authHeader.substring(7);
