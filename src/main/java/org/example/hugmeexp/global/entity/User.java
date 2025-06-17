@@ -1,0 +1,118 @@
+package org.example.hugmeexp.global.entity;
+
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.example.hugmeexp.global.entity.enumeration.UserRole;
+
+@Getter
+@Entity
+@Table(name = "users")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class User extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // User와 ProfileImage는 1:1 관계, User -> ProfileImage 단방향 매핑
+    @OneToOne(cascade = CascadeType.PERSIST) // user 객체 저장시, ProfileImage도 같이 저장
+    @JoinColumn(name = "profile_image_id", nullable = true)
+    private ProfileImage profileImage;
+
+    @Column(nullable = false, length = 32, unique = true) // 32글자, 유니크 제약조건
+    private String username;
+
+    @Column(nullable = false, length = 60) // bcrypt 암호화 위해서 비밀번호 60글자
+    private String password;
+
+    @Column(nullable = false, length = 32)
+    private String name;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
+
+    @Column(nullable = false)
+    private Integer point;
+
+    @Column(nullable = false)
+    private Integer exp;
+
+    @Column(nullable = true)
+    private String description;
+
+    @Column(nullable = false, length = 13)
+    private String phoneNumber;
+
+    @Builder
+    private User(String username, String password, String name, String phoneNumber) {
+        this.username = username;
+        this.password = password;
+        this.name = name;
+        this.role = UserRole.USER; // role은 기본으로 USER
+        this.point = 0;
+        this.exp = 0;
+        this.phoneNumber = phoneNumber;
+    }
+
+    // 정적 팩터리
+    public static User createUser(String username, String encodedPassword, String name, String phoneNumber) {
+        return User.builder()
+                .username(username)
+                .password(encodedPassword)
+                .name(name)
+                .phoneNumber(phoneNumber)
+                .build();
+    }
+
+    // UserRole 변경
+    public void changeRole(UserRole role) {
+        this.role = role;
+    }
+
+    // 구름조각 증가
+    public void increasePoint(int value) {
+        this.point += value;
+    }
+
+    // 경험치 증가
+    public void increaseExp(int value) {
+        this.exp += value;
+    }
+
+    // 비밀번호 변경(서비스 계층에서 암호화된 패스워드가 넘어와야 함)
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
+    // 소개글 변경
+    public void changeDescription(String description) {
+        this.description = description;
+    }
+
+    // 전화번호 변경
+    public void changePhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    /*
+        1. 이미 프로필 이미지가 있는 경우
+        - 서비스 계층에서 기존 이미지를 스토리지에서 삭제
+        - 기존 ProfileImage 엔티티도 삭제
+        - registerProfileImage 호출
+
+        2. 기존에 프로필 이미지가 없는 경우
+        - registerProfileImage 호출
+    */
+    public void registerProfileImage(String path, String extension) {
+        this.profileImage = ProfileImage.registerProfileImage(path, extension);
+    }
+
+    // 프로필 이미지가 이미 등록되어있는지 확인하는 메서드
+    public boolean isRegisterProfileImage() {
+        return this.profileImage != null;
+    }
+}

@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.example.hugmeexp.global.BaseEntity;
+import org.example.hugmeexp.global.entity.BaseEntity;
 
 @Entity
 @Getter

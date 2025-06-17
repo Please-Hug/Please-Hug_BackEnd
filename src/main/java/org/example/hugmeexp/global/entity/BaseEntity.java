@@ -1,4 +1,4 @@
-package org.example.hugmeexp.global;
+package org.example.hugmeexp.global.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
@@ -8,20 +8,18 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.sql.Timestamp;
-
-
-//@TODO 추후 수정 필
+import java.time.LocalDateTime;
 
 @Getter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 public class BaseEntity {
+
     @CreatedDate
-    @Column(name = "created_date", updatable = false)
-    private Timestamp createdDate;
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
     @LastModifiedDate
-    @Column(name = "modified_date")
-    private Timestamp modifiedDate;
+    @Column(name = "modified_at")
+    private LocalDateTime modifiedAt;
 }
