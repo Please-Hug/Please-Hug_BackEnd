@@ -1,5 +1,6 @@
 package org.example.hugmeexp.global.infra.auth.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.global.common.response.Response;
@@ -19,7 +20,7 @@ public class RegisterController
     private final AuthService authService;
 
     @PostMapping("/api/register")
-    public ResponseEntity<Response<AuthResponse>> register(@RequestBody RegisterRequest request)
+    public ResponseEntity<Response<AuthResponse>> register(@Valid @RequestBody RegisterRequest request)
     {
         // 회원가입 및 인증 로직을 서비스에 위임
         AuthResponse result = authService.registerAndAuthenticate(request);

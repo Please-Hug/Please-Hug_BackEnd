@@ -1,5 +1,6 @@
 package org.example.hugmeexp.global.infra.auth.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.global.common.response.Response;
@@ -19,7 +20,7 @@ public class LoginController {
     private final AuthService authService;
 
     @PostMapping("/api/login")
-    public ResponseEntity<Response<AuthResponse>> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<Response<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         // 서비스에 비즈니스 로직 위임
         AuthResponse result = authService.login(request);
 

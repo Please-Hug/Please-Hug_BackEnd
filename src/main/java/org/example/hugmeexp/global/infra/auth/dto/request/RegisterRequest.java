@@ -12,18 +12,18 @@ import lombok.Setter;
 @NoArgsConstructor
 public class RegisterRequest {
     @NotBlank
-    @Size(min = 4, max = 32, message = "아이디가 너무 길거나 짧습니다.")
+    @Size(min = 4, max = 32)
     private String username;
 
     @NotBlank
-    @Size(min = 8, max = 60, message = "비밀번호가 너무 길거나 짧습니다.")
+    @Size(min = 8, max = 60)
     private String password;
 
     @NotBlank
-    @Size(min = 4, max = 32, message = "이름이 너무 길거나 짧습니다.")
+    @Size(min = 2, max = 32)
     private String name;
 
     @NotBlank
-    @Pattern(regexp = "^01[0-9]-\\d{4}-\\d{4}$", message = "휴대폰 번호 형식이 올바르지 않습니다.")
+    @Pattern(regexp = "^01[0-9]-\\d{4}-\\d{4}$")
     private String phoneNumber;
 }
