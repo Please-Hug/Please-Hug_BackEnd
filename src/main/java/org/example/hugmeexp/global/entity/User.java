@@ -44,7 +44,7 @@ public class User extends BaseEntity {
     @Column(nullable = true)
     private String description;
 
-    @Column(nullable = false, length = 13)
+    @Column(nullable = false, length = 13, unique = true)
     private String phoneNumber;
 
     @Builder
