@@ -26,11 +26,6 @@ public class TokenService
         redisTemplate.opsForValue().set("refresh:" + username, refreshToken, Duration.ofMillis(refreshTokenValidityMs));
     }
 
-    // 리프레시 토큰 조회
-    public String getRefreshToken(String username) {
-        return redisTemplate.opsForValue().get("refresh:" + username);
-    }
-
     // 리프레시 토큰 삭제
     public void deleteRefreshToken(String username) {
         redisTemplate.delete("refresh:" + username);
@@ -51,6 +46,16 @@ public class TokenService
         return jwtTokenProvider.getTokenRemainingTimeMillis(token);
     }
 
+    // 리프레시 토큰 무효화
+    public void revokeRefreshToken(String refreshToken){
+        jwtTokenProvider.revokeRefreshToken(refreshToken);
+    }
+
+    // 리프레시 토큰 조회
+    public String getRefreshToken(String username) {
+        return redisTemplate.opsForValue().get("refresh:" + username);
+    }
+
     // 토큰 검증
     public boolean validateToken(String token) {
         return jwtTokenProvider.validate(token);
@@ -61,10 +66,35 @@ public class TokenService
         return jwtTokenProvider.getUsername(token);
     }
 
-    // 액세스 토큰 블랙리스트 추가
-    public void blacklistAccessToken(String accessToken) {
-        long remainingTime = jwtTokenProvider.getTokenRemainingTimeMillis(accessToken);
-        if (remainingTime > 0) redisSessionService.blacklistAccessToken(accessToken, remainingTime);
+    // 리프레시 토큰 재발급
+    public AuthResponse refreshTokens(String accessToken, String refreshToken) {
+
+        // 1. 액세스 토큰, 리프레시 토큰 유효성 검사
+        validateTokens(accessToken, refreshToken);
+
+        // 2. 재사용 여부 검사
+        if (jwtTokenProvider.isRefreshTokenRevoked(refreshToken)) {
+            String username = jwtTokenProvider.getUsername(refreshToken);
+            deleteRefreshToken(username); // 저장된 refresh 토큰 삭제
+            log.warn("Detected reuse of an already invalidated refresh token - Username: {} / refreshToken: {}...", username, refreshToken.substring(0, 10));
+            throw new TokenReuseDetectedException();
+        }
+
+        // 3. 사용자 정보 추출
+        String username = jwtTokenProvider.getUsername(refreshToken);
+        String role = jwtTokenProvider.getRole(refreshToken);
+
+        // 4. 기존 리프레시 토큰 무효화 처리
+        jwtTokenProvider.revokeRefreshToken(refreshToken);
+
+        // 5. 새 토큰 발급
+        String newAccessToken = jwtTokenProvider.createAccessToken(username, role);
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(username, UserRole.valueOf(role.replace("ROLE_", "")));
+
+        // 6. 저장
+        saveRefreshToken(username, newRefreshToken, jwtTokenProvider.getTokenRemainingTimeMillis(newRefreshToken));
+        log.info("Refresh token reissued successfully - username: {}", username);
+        return new AuthResponse(newAccessToken, newRefreshToken);
     }
 
     // 로그아웃
@@ -77,10 +107,6 @@ public class TokenService
             }
 
             String username = jwtTokenProvider.getUsername(accessToken);
-            if (username == null) {
-                log.warn("Failed to extract username during logout - accessToken: {}", accessToken.substring(0, 10) + "...");
-                return false;
-            }
 
             // 리프레시 토큰 삭제
             deleteRefreshToken(username);
@@ -98,35 +124,16 @@ public class TokenService
         }
     }
 
-    // 리프레시 토큰 재발급
-    public AuthResponse refreshTokens(String refreshToken) {
+    // 액세스 토큰과 리프레시 토큰의 유효성 검사
+    private void validateTokens(String accessToken, String refreshToken) {
 
-        if(!jwtTokenProvider.validate(refreshToken)) throw new InvalidRefreshTokenException();
+        // 액세스 토큰 유효성 검사
+        jwtTokenProvider.validateAccessTokenForReissue(accessToken);
 
-        // 2. 재사용 여부 검사
-        if (jwtTokenProvider.isRefreshTokenRevoked(refreshToken)) {
-            String username = jwtTokenProvider.getUsername(refreshToken);
-            if (username != null) deleteRefreshToken(username); // 저장된 refresh 토큰 삭제
-            throw new TokenReuseDetectedException();
+        // 리프레시 토큰 유효성 검사, 유효하지 않다면 예외를 던짐
+        if (!jwtTokenProvider.validate(refreshToken)) {
+            log.warn("Failed to validate refresh token while issuing refresh token - refreshToken: {}...", refreshToken.substring(0, 10));
+            throw new InvalidRefreshTokenException();
         }
-
-        // 3. 사용자 정보 추출
-        String username = jwtTokenProvider.getUsername(refreshToken);
-        if (username == null) throw new InvalidRefreshTokenException();
-
-        String role = jwtTokenProvider.getRole(refreshToken);
-        if (role == null) throw new InvalidRefreshTokenException();
-
-        // 4. 기존 리프레시 토큰 무효화 처리
-        jwtTokenProvider.revokeRefreshToken(refreshToken);
-
-        // 5. 새 토큰 발급
-        String newAccessToken = jwtTokenProvider.createAccessToken(username, role);
-        String newRefreshToken = jwtTokenProvider.createRefreshToken(username, UserRole.valueOf(role.replace("ROLE_", "")));
-
-        // 6. 저장
-        saveRefreshToken(username, newRefreshToken, jwtTokenProvider.getTokenRemainingTimeMillis(newRefreshToken));
-        log.info("Refresh token reissued successfully - username: {}", username);
-        return new AuthResponse(newAccessToken, newRefreshToken);
     }
 }

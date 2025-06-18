@@ -6,6 +6,7 @@ import org.example.hugmeexp.global.common.service.UserService;
 import org.example.hugmeexp.global.entity.User;
 import org.example.hugmeexp.global.infra.auth.dto.request.LoginRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RegisterRequest;
+import org.example.hugmeexp.global.infra.auth.dto.request.RefreshRequest;
 import org.example.hugmeexp.global.infra.auth.dto.response.*;
 import org.example.hugmeexp.global.infra.auth.exception.InvalidAccessTokenException;
 import org.springframework.stereotype.Service;
@@ -47,7 +48,13 @@ public class AuthService
         // 1. 사용자 검증
         User user = userService.login(request);
 
-        // 2. 토큰 생성 및 저장
+        // 2. 기존 리프레시 토큰이 있다면 무효화
+        String oldRefreshToken = tokenService.getRefreshToken(user.getUsername());
+        if (oldRefreshToken != null) {
+            tokenService.revokeRefreshToken(oldRefreshToken);
+        }
+
+        // 3. 토큰 생성 및 저장
         String accessToken = tokenService.createAccessToken(user.getUsername(), user.getRole());
         String refreshToken = tokenService.createRefreshToken(user.getUsername(), user.getRole());
         tokenService.saveRefreshToken(user.getUsername(), refreshToken, tokenService.getTokenRemainingTimeMillis(refreshToken));
@@ -58,23 +65,12 @@ public class AuthService
     }
 
     // 리프레시 토큰 재발급
-    public AuthResponse refreshTokens(String refreshToken) {
-        return tokenService.refreshTokens(refreshToken);
+    public AuthResponse refreshTokens(RefreshRequest request) {
+        return tokenService.refreshTokens(request.getAccessToken(), request.getRefreshToken());
     }
 
     // 로그아웃 처리
     public boolean logout(String accessToken) {
         return tokenService.logout(accessToken);
-    }
-
-    // 액세스 토큰 무효화 처리 (관리자용)
-    public void revokeAccessToken(String accessToken) {
-        if (!tokenService.validateToken(accessToken)) throw new InvalidAccessTokenException();
-
-        // 토큰 블랙리스트 추가 및 리프레시 토큰 삭제
-        String username = tokenService.getUsernameFromToken(accessToken);
-        if (username != null) tokenService.deleteRefreshToken(username);
-
-        tokenService.blacklistAccessToken(accessToken);
     }
 }

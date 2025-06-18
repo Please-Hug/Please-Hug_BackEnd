@@ -20,9 +20,9 @@ public class RefreshController
 
     @PostMapping("/api/refresh")
     public ResponseEntity<Response<AuthResponse>> refresh(@RequestBody RefreshRequest request) {
-        AuthResponse result = authService.refreshTokens(request.getRefreshToken());
+        AuthResponse result = authService.refreshTokens(request);
         return ResponseEntity.ok(Response.<AuthResponse>builder()
-                .message("토큰이 갱신되었습니다")
+                .message("리프레시 토큰이 갱신되었습니다")
                 .data(result)
                 .build());
     }

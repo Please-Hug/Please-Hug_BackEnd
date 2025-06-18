@@ -1,5 +1,6 @@
 package org.example.hugmeexp.global.infra.auth.jwt;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -8,6 +9,8 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.global.entity.enumeration.UserRole;
+import org.example.hugmeexp.global.infra.auth.exception.AccessTokenStillValidException;
+import org.example.hugmeexp.global.infra.auth.exception.InvalidAccessTokenException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -73,6 +76,7 @@ public class JwtTokenProvider {
                 .signWith(key)
                 .compact();
 
+        // USED_TOKEN_PREFIX + jti를 false로 설명(지금 발급한 refresh token은 사용되지 않았음을 표시)
         redisTemplate.opsForValue().set(USED_TOKEN_PREFIX + jti, "false", Duration.ofMillis(refreshTokenExpiration));
         return refreshToken;
     }
@@ -87,6 +91,7 @@ public class JwtTokenProvider {
                     .getBody()
                     .getId();
 
+            // USED_TOKEN_PREFIX + jti 값이 true인지 검사
             String value = redisTemplate.opsForValue().get(USED_TOKEN_PREFIX + jti);
             return value == null || "true".equals(value);
         } catch (Exception e) {
@@ -106,8 +111,9 @@ public class JwtTokenProvider {
                     .getId();
 
             long remaining = getTokenRemainingTimeMillis(refreshToken);
-            redisTemplate.opsForValue()
-                    .set(USED_TOKEN_PREFIX + jti, "true", Duration.ofMillis(remaining));
+
+            // USED_TOKEN_PREFIX + jti 값을 true로 변경(기존 refresh token은 이미 한 번 사용되었음을 표시)
+            redisTemplate.opsForValue().set(USED_TOKEN_PREFIX + jti, "true", Duration.ofMillis(remaining));
         } catch (Exception e) {
             log.error("Failed to revoke the refresh token: {}", e.getMessage(), e);
         }
@@ -160,6 +166,28 @@ public class JwtTokenProvider {
         } catch (Exception e) {
             log.warn("Failed to extract expiration from token: {}", e.getMessage(), e);
             return 0;
+        }
+    }
+
+    // 리프레시 토큰을 재발급 받을때 액세스 토큰을 검증하는 메서드
+    public void validateAccessTokenForReissue(String accessToken) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(accessToken);
+
+            // 액세스 토큰이 여전히 유효하다면 예외를 던짐
+            log.warn("Access token is still valid. Rejecting issuing refresh token - accessToken: {}...", accessToken.substring(0, 10));
+            throw new AccessTokenStillValidException();
+        }
+        catch (ExpiredJwtException e) {
+            // 액세스 토큰이 지났다면 pass
+        }
+        catch (JwtException e) {
+            // 형식 오류, 서명 오류, 위조라면 예외를 던짐
+            log.warn("Failed to validate access token while issuing refresh token - accessToken: {}...", accessToken.substring(0, 10));
+            throw new InvalidAccessTokenException();
         }
     }
 }
