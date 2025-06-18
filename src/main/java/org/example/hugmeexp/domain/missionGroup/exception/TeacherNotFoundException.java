@@ -5,6 +5,6 @@ import org.springframework.http.HttpStatus;
 
 public class TeacherNotFoundException extends BaseCustomException {
     public TeacherNotFoundException() {
-        super(HttpStatus.NOT_FOUND, "해당 선생님을 찾을 수 없습니다.");
+        super(HttpStatus.NOT_FOUND, "해당 강사를 찾을 수 없습니다.");
     }
 }
