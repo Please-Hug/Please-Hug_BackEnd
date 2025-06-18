@@ -18,7 +18,7 @@ public interface PraiseMapper {
                 .content(praiseRequestDTO.getContent())
                 .praiseType(praiseRequestDTO.getType())
                 .build();
-    };
+    }
 
 //    Praise toEntity(PraiseRequestDTO praiseRequestDTO);
 //
