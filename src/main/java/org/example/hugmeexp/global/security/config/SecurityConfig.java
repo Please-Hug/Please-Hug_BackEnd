@@ -47,8 +47,8 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/login", "/api/register", "/api/refresh", "/api/logout", "/h2-console/**","/api/v1/praises",
-                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**"
+                                "/api/login", "/api/register", "/api/refresh", "/api/logout",
+                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**", "/h2-console/**"
                         )
                         .permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
