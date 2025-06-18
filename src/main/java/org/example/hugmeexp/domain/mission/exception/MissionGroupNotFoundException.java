@@ -1,8 +1,11 @@
 package org.example.hugmeexp.domain.mission.exception;
 
-public class MissionGroupNotFoundException extends RuntimeException {
+import org.example.hugmeexp.global.common.exception.BaseCustomException;
+import org.springframework.http.HttpStatus;
+
+public class MissionGroupNotFoundException extends BaseCustomException {
 
     public MissionGroupNotFoundException() {
-        super("미션 그룹을 찾을 수 없습니다.");
+        super(HttpStatus.NOT_FOUND, "미션 그룹을 찾을 수 없습니다.");
     }
 }
