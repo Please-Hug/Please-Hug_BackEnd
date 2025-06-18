@@ -15,12 +15,12 @@ public class AttendanceController {
     private AttendanceService attendanceService;
 
     @GetMapping
-    public AttendanceStatusResponse getAttendanceStatus() {
-        return attendacneService.getAttendanceStatus();
+    public AttendanceStatusResponse getAttendanceStatus(@RequestParam Long userId) {
+        return attendanceService.getAttendanceStatus(userId);
     }
 
     @PostMapping("/check")
-    public AttendanceCheckResponse checkAttendance(@RequestBody AttendanceCheckRequest request) {
-        return attendacneService.checkAttendance(request);
+    public AttendanceCheckResponse checkAttendance(@RequestParam Long userId, @RequestBody AttendanceCheckRequest request) {
+        return attendanceService.checkAttendance(userId, request);
     }
 }

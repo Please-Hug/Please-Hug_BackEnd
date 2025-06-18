@@ -48,7 +48,7 @@ public class AttendanceService {
 
         if (alreadyChecked) {
             return AttendanceCheckResponse.builder()
-                    .isAttend(false)
+                    .attend(false)
                     .exp(0)
                     .point(0)
                     .build();
@@ -58,7 +58,7 @@ public class AttendanceService {
         userAttendance.add(today);
 
         return AttendanceCheckResponse.builder()
-                .isAttend(true)
+                .attend(true)
                 .exp(31)
                 .point(1)
                 .build();
