@@ -1,4 +1,4 @@
-package org.example.hugmeexp.domain.mission.dto;
+package org.example.hugmeexp.domain.missionGroup.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 public class MissionGroupResponse {
     private Long id;
-    private Long teacherId;
+    private String teacherUsername;
     private String name;
 }

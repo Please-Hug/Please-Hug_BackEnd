@@ -1,12 +1,11 @@
-package org.example.hugmeexp.domain.mission.controller;
+package org.example.hugmeexp.domain.missionGroup.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.hugmeexp.domain.mission.dto.MissionGroupRequest;
-import org.example.hugmeexp.domain.mission.dto.MissionGroupResponse;
-import org.example.hugmeexp.domain.mission.dto.MissionGroupUpdateRequest;
-import org.example.hugmeexp.domain.mission.exception.MissionGroupNotFoundException;
-import org.example.hugmeexp.domain.mission.service.MissionGroupService;
-import org.example.hugmeexp.global.exception.GlobalExceptionHandler;
+import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
+import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
+import org.example.hugmeexp.domain.missionGroup.service.MissionGroupService;
+import org.example.hugmeexp.global.common.exception.ExceptionController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,7 +44,7 @@ class MissionGroupControllerTest {
     @BeforeEach
     void setup() {
         mockMvc = MockMvcBuilders.standaloneSetup(missionGroupController)
-                .setControllerAdvice(new GlobalExceptionHandler())
+                .setControllerAdvice(new ExceptionController())
                 .build();
     }
 
@@ -57,15 +56,15 @@ class MissionGroupControllerTest {
                 .builder()
                 .id(TEST_ID)
                 .name("Test Group")
-                .teacherId(100L)
+                .teacherUsername("teacher1")
                 .build();
         given(missionGroupService.getAllMissionGroups())
                 .willReturn(List.of(missionGroupResponse));
         // When & Test
         mockMvc.perform(get(BASE_URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(TEST_ID))
-                .andExpect(jsonPath("$[0].name").value("Test Group"));
+                .andExpect(jsonPath("$.data[0].id").value(TEST_ID))
+                .andExpect(jsonPath("$.data[0].name").value("Test Group"));
     }
 
     @Test
@@ -75,13 +74,13 @@ class MissionGroupControllerTest {
         MissionGroupRequest request = MissionGroupRequest
                 .builder()
                 .name("New Group")
-                .teacherId(100L)
+                .teacherUsername("teacher1")
                 .build();
         MissionGroupResponse response = MissionGroupResponse
                 .builder()
                 .id(TEST_ID)
                 .name("New Group")
-                .teacherId(100L)
+                .teacherUsername("teacher1")
                 .build();
 
         given(missionGroupService.createMissionGroup(request))
@@ -91,8 +90,8 @@ class MissionGroupControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(TEST_ID))
-                .andExpect(jsonPath("$.name").value("New Group"));
+                .andExpect(jsonPath("$.data.id").value(TEST_ID))
+                .andExpect(jsonPath("$.data.name").value("New Group"));
     }
 
     @Test
@@ -103,15 +102,15 @@ class MissionGroupControllerTest {
                 .builder()
                 .id(TEST_ID)
                 .name("Test Group")
-                .teacherId(100L)
+                .teacherUsername("teacher1")
                 .build();
         given(missionGroupService.getMissionById(TEST_ID))
                 .willReturn(response);
         // When && Then
         mockMvc.perform(get(BASE_URL + "/{id}", TEST_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(TEST_ID))
-                .andExpect(jsonPath("$.name").value("Test Group"));
+                .andExpect(jsonPath("$.data.id").value(TEST_ID))
+                .andExpect(jsonPath("$.data.name").value("Test Group"));
     }
 
     @Test
@@ -136,20 +135,19 @@ class MissionGroupControllerTest {
     @DisplayName("미션 그룹 수정 - 성공")
     void updateMissionGroup_ShouldReturnOk() throws Exception {
         // Given
-        MissionGroupUpdateRequest request = MissionGroupUpdateRequest
+        MissionGroupRequest request = MissionGroupRequest
                 .builder()
-                .id(TEST_ID)
                 .name("Updated Group")
-                .teacherId(200L)
+                .teacherUsername("teacher2")
                 .build();
         MissionGroupResponse response = MissionGroupResponse
                 .builder()
                 .id(TEST_ID)
                 .name("Updated Group")
-                .teacherId(200L)
+                .teacherUsername("teacher2")
                 .build();
 
-        given(missionGroupService.updateMissionGroup(any(MissionGroupUpdateRequest.class)))
+        given(missionGroupService.updateMissionGroup(eq(TEST_ID), any(MissionGroupRequest.class)))
                 .willReturn(response);
 
         // When & Then
@@ -157,9 +155,9 @@ class MissionGroupControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(TEST_ID))
-                .andExpect(jsonPath("$.name").value("Updated Group"))
-                .andExpect(jsonPath("$.teacherId").value(200L));
+                .andExpect(jsonPath("$.data.id").value(TEST_ID))
+                .andExpect(jsonPath("$.data.name").value("Updated Group"))
+                .andExpect(jsonPath("$.data.teacherUsername").value("teacher2"));
     }
 
     @Test
@@ -167,14 +165,13 @@ class MissionGroupControllerTest {
     void updateMissionGroup_ShouldReturnNotFound() throws Exception {
         // Given
         long nonExistentId = 999L;
-        MissionGroupUpdateRequest request = MissionGroupUpdateRequest
+        MissionGroupRequest request = MissionGroupRequest
                 .builder()
-                .id(nonExistentId)
                 .name("Updated Group")
-                .teacherId(200L)
+                .teacherUsername("teacher2")
                 .build();
 
-        given(missionGroupService.updateMissionGroup(request))
+        given(missionGroupService.updateMissionGroup(nonExistentId, request))
                 .willThrow(new MissionGroupNotFoundException());
 
         // When & Then
