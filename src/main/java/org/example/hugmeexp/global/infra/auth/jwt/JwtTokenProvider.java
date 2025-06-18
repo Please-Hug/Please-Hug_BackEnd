@@ -142,7 +142,7 @@ public class JwtTokenProvider {
         }
     }
 
-    // 토큰의 만료시간을 조회하는 메섣,(액세스, 리프레시 둘다 사용 가능)
+    // 토큰의 만료시간을 조회하는 메서드,(액세스, 리프레시 둘다 사용 가능)
     public long getTokenRemainingTimeMillis(String token) {
         try {
             Date expiration = Jwts.parserBuilder()

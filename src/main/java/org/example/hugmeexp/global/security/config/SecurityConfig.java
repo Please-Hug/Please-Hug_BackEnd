@@ -1,11 +1,13 @@
 package org.example.hugmeexp.global.security.config;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.global.infra.auth.jwt.JwtAuthenticationEntryPoint;
 import org.example.hugmeexp.global.infra.auth.jwt.JwtAuthenticationFilter;
 import org.example.hugmeexp.global.infra.auth.jwt.JwtTokenProvider;
 import org.example.hugmeexp.global.infra.auth.service.RedisSessionService;
+import org.example.hugmeexp.global.security.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,6 +29,8 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtProvider;
     private final RedisSessionService redisSessionService;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final ObjectMapper objectMapper;
+    private final CustomUserDetailsService customUserDetailsService;
 
     /*
         /api/login, /api/register, /api/refresh, 스웨거 경로 -> 인증 불필요
@@ -46,12 +50,12 @@ public class SecurityConfig {
                         )
                         .permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/**", "/api/logout").hasAnyRole("ADMIN", "USER", "LECTURER")
+                        .requestMatchers("/api/v1/**").hasAnyRole("ADMIN", "USER", "LECTURER")
                         .anyRequest().authenticated()
                 )
                 .httpBasic(AbstractHttpConfigurer::disable) // httpBasic 제거 또는 비활성화
                 .logout(AbstractHttpConfigurer::disable)
-                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, redisSessionService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, redisSessionService, objectMapper, customUserDetailsService), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .build();
     }
@@ -59,14 +63,5 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    /**
-     * AuthenticationManager Bean 제공
-     * UserDetailsService 없이도 경고 메시지 해결
-     */
-    @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http) {
-        return http.getSharedObject(AuthenticationManager.class);
     }
 }

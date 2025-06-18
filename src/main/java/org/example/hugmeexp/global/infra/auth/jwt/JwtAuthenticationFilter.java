@@ -1,15 +1,19 @@
 package org.example.hugmeexp.global.infra.auth.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.example.hugmeexp.global.common.exception.response.ErrorResponse;
 import org.example.hugmeexp.global.infra.auth.service.RedisSessionService;
+import org.example.hugmeexp.global.security.CustomUserDetailsService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -20,6 +24,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtProvider;
     private final RedisSessionService redisService;
+    private final ObjectMapper objectMapper;
+    private final CustomUserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
@@ -33,20 +39,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (redisService.isAccessTokenBlacklisted(token)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write("{\"error\": \"Revoked token\"}");
+
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                        .code(401)
+                        .message("Revoked token")
+                        .build();
+
+                String json = objectMapper.writeValueAsString(errorResponse);
+                response.getWriter().write(json);
                 return;
             }
 
             if (jwtProvider.validate(token)) {
-                // JWT 토큰에서 직접 정보 추출 (Redis에서 조회하지 않음)
                 String username = jwtProvider.getUsername(token);
-                String role = jwtProvider.getRole(token);
 
-                if (username != null && role != null) {
-                    SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
-                    Authentication auth = new UsernamePasswordAuthenticationToken(username, null, Collections.singletonList(authority));
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                }
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                Authentication auth = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+
+                SecurityContextHolder.getContext().setAuthentication(auth);
             }
         }
 

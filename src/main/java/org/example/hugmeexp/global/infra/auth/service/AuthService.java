@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /*
-    AuthService는 중재자 패턴(Mediator Pattern)을 구현한 서비스 클래스로, 인증 관련 모든 비즈니스 로직을 통합 관리한다.
+    AuthService는 중재자 패턴(Mediator Pattern)을 구현한 서비스 클래스로, 인증 관련 모든 비즈니스 로직을 통합 관리
     세부 구현은 UserService와 TokenService에 위임
 */
 @Slf4j
