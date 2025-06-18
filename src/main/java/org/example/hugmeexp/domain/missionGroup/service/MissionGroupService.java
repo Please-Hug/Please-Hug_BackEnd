@@ -1,7 +1,7 @@
-package org.example.hugmeexp.domain.mission.service;
+package org.example.hugmeexp.domain.missionGroup.service;
 
-import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
-import org.example.hugmeexp.domain.mission.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
+import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
 import java.util.List;
 
 public interface MissionGroupService {

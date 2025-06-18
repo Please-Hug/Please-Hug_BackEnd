@@ -1,8 +1,8 @@
-package org.example.hugmeexp.domain.mission.mapper;
+package org.example.hugmeexp.domain.missionGroup.mapper;
 
-import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
-import org.example.hugmeexp.domain.mission.dto.response.MissionGroupResponse;
-import org.example.hugmeexp.domain.mission.entity.MissionGroup;
+import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
+import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

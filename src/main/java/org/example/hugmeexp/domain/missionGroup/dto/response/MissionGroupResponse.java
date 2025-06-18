@@ -1,4 +1,4 @@
-package org.example.hugmeexp.domain.mission.dto.response;
+package org.example.hugmeexp.domain.missionGroup.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

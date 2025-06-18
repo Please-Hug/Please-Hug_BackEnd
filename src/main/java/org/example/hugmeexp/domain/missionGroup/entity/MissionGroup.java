@@ -1,4 +1,4 @@
-package org.example.hugmeexp.domain.mission.entity;
+package org.example.hugmeexp.domain.missionGroup.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

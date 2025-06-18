@@ -1,11 +1,11 @@
-package org.example.hugmeexp.domain.mission.service;
+package org.example.hugmeexp.domain.missionGroup.service;
 
-import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
-import org.example.hugmeexp.domain.mission.dto.response.MissionGroupResponse;
-import org.example.hugmeexp.domain.mission.entity.MissionGroup;
-import org.example.hugmeexp.domain.mission.exception.MissionGroupNotFoundException;
-import org.example.hugmeexp.domain.mission.mapper.MissionGroupMapper;
-import org.example.hugmeexp.domain.mission.repository.MissionGroupRepository;
+import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
+import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
+import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
+import org.example.hugmeexp.domain.missionGroup.mapper.MissionGroupMapper;
+import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepository;
 import org.example.hugmeexp.global.common.repository.UserRepository;
 import org.example.hugmeexp.global.entity.User;
 import org.junit.jupiter.api.DisplayName;

@@ -1,4 +1,4 @@
-package org.example.hugmeexp.domain.mission.dto.request;
+package org.example.hugmeexp.domain.missionGroup.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

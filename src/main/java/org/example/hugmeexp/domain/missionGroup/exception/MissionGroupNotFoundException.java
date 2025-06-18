@@ -1,4 +1,4 @@
-package org.example.hugmeexp.domain.mission.exception;
+package org.example.hugmeexp.domain.missionGroup.exception;
 
 import org.example.hugmeexp.global.common.exception.BaseCustomException;
 import org.springframework.http.HttpStatus;

@@ -1,10 +1,10 @@
-package org.example.hugmeexp.domain.mission.controller;
+package org.example.hugmeexp.domain.missionGroup.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
-import org.example.hugmeexp.domain.mission.dto.response.MissionGroupResponse;
-import org.example.hugmeexp.domain.mission.exception.MissionGroupNotFoundException;
-import org.example.hugmeexp.domain.mission.service.MissionGroupService;
+import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
+import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
+import org.example.hugmeexp.domain.missionGroup.service.MissionGroupService;
 import org.example.hugmeexp.global.common.exception.ExceptionController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
