@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.example.hugmeexp.global.BaseEntity;
+import org.example.hugmeexp.global.entity.BaseEntity;
+import org.example.hugmeexp.global.entity.User;
 
 import java.time.LocalDate;
 
@@ -23,6 +24,10 @@ public class Attendance extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // JPA에서 관리하는 id, 이거 생성 안 해두면 나중에 jpa 에서 엔티티 저장/조회 시 에러 난다고 함
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     private final Long userName;
     private final LocalDate attendanceDate;
