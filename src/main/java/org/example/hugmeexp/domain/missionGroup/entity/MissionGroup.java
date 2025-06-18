@@ -14,7 +14,7 @@ public class MissionGroup extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "teacher_id")
     private User teacher;
     @Column(nullable = false, length = 127)
