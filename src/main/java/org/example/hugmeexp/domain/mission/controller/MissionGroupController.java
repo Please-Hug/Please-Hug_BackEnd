@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.mission.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionGroupResponse;
@@ -23,7 +24,7 @@ public class MissionGroupController {
     }
 
     @PostMapping
-    public ResponseEntity<Response<?>> createMissionGroup(@RequestBody MissionGroupRequest request) {
+    public ResponseEntity<Response<?>> createMissionGroup(@Valid @RequestBody MissionGroupRequest request) {
         return ResponseEntity.status(201).body(Response.builder().data(missionGroupService.createMissionGroup(request)).message("미션 그룹을 생성하였습니다.").build());
     }
 
@@ -33,7 +34,7 @@ public class MissionGroupController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Response<?>> updateMissionGroup(@PathVariable Long id, @RequestBody MissionGroupRequest request) {
+    public ResponseEntity<Response<?>> updateMissionGroup(@PathVariable Long id, @Valid @RequestBody MissionGroupRequest request) {
         return ResponseEntity.ok().body(Response.builder().data(missionGroupService.updateMissionGroup(id, request.toBuilder().build())).message("미션그룹 " + id + "를 업데이트 하였습니다.").build());
     }
 

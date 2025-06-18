@@ -55,10 +55,10 @@ class MissionGroupServiceTest {
                 .name("Group2")
                 .teacherUsername("teacher2")
                 .build();
-
         when(missionGroupRepository.findAll()).thenReturn(List.of(group1, group2));
         when(missionGroupMapper.toMissionGroupResponse(group1)).thenReturn(response1);
         when(missionGroupMapper.toMissionGroupResponse(group2)).thenReturn(response2);
+
         // When
         List<MissionGroupResponse> result = missionGroupService.getAllMissionGroups();
 
@@ -73,29 +73,34 @@ class MissionGroupServiceTest {
     @DisplayName("새로운 미션 그룹을 생성한다 - 성공")
     void createMissionGroup() {
         // Given
+        User user1 = User.createUser("teacher1", "password", "Teacher One", "1234");
+
         MissionGroupRequest request = MissionGroupRequest
                 .builder()
                 .name("New Group")
                 .teacherUsername("teacher1")
                 .build();
-        MissionGroup newGroup = mock(MissionGroup.class);
-        MissionGroup savedGroup = mock(MissionGroup.class);
+        MissionGroup savedGroup = MissionGroup.builder()
+                .id(3L)
+                .name("New Group")
+                .teacher(user1)
+                .build();
         MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
                 .id(3L)
                 .name("New Group")
                 .teacherUsername("teacher1")
                 .build();
 
-        when(missionGroupMapper.toEntity(request)).thenReturn(newGroup);
-        when(missionGroupRepository.save(newGroup)).thenReturn(savedGroup);
+        when(missionGroupRepository.save(any(MissionGroup.class))).thenReturn(savedGroup);
         when(missionGroupMapper.toMissionGroupResponse(savedGroup)).thenReturn(expectedResponse);
+        when(userRepository.findByUsername("teacher1")).thenReturn(Optional.of(user1));
         // When
         MissionGroupResponse result = missionGroupService.createMissionGroup(request);
 
         // Then
         assertEquals("New Group", result.getName());
         assertEquals("teacher1", result.getTeacherUsername());
-        verify(missionGroupRepository, times(1)).save(newGroup);
+        verify(missionGroupRepository, times(1)).save(any(MissionGroup.class));
     }
 
     @Test

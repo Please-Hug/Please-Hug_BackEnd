@@ -33,7 +33,12 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     @Override
     @Transactional
     public MissionGroupResponse createMissionGroup(MissionGroupRequest request) {
-        MissionGroup missionGroup = missionGroupMapper.toEntity(request);
+        User teacher = userRepository.findByUsername(request.getTeacherUsername())
+                .orElseThrow(TeacherNotFoundException::new);
+        MissionGroup missionGroup = MissionGroup.builder()
+                .teacher(teacher)
+                .name(request.getName())
+                .build();
         var savedMissionGroup = missionGroupRepository.save(missionGroup);
         return missionGroupMapper.toMissionGroupResponse(savedMissionGroup);
     }
