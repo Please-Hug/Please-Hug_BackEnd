@@ -31,13 +31,15 @@ public class LoginController {
     }
 
 
+
     @PostMapping("/api/logout")
     public ResponseEntity<Response<Void>> logout(@RequestHeader(value = "Authorization") String authHeader) {
+        // 로그아웃 요청이 성공했는지 실패했는지를 클라이언트에게 상세히 알려주지 않는 것이 좋음
+
         // 토큰 추출
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String accessToken = authHeader.substring(7);
-            if(authService.logout(accessToken)) log.info("로그아웃 성공");
-
+            authService.logout(accessToken);
         }
 
         return ResponseEntity.ok(Response.<Void>builder()

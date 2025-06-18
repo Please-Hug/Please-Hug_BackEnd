@@ -67,14 +67,20 @@ public class TokenService
         if (remainingTime > 0) redisSessionService.blacklistAccessToken(accessToken, remainingTime);
     }
 
-    // 로그아웃(로그아웃시 액세스 토큰이 유효한지 여부는 중요하지 않음)
+    // 로그아웃
     public boolean logout(String accessToken) {
         try {
             // 토큰 검증 및 username 추출
-            if (!jwtTokenProvider.validate(accessToken)) return false;
+            if (!jwtTokenProvider.validate(accessToken)) {
+                log.warn("Failed to validate token during logout - accessToken: {}", accessToken.substring(0, 10) + "...");
+                return false;
+            }
 
             String username = jwtTokenProvider.getUsername(accessToken);
-            if (username == null) return false;
+            if (username == null) {
+                log.warn("Failed to extract username during logout - accessToken: {}", accessToken.substring(0, 10) + "...");
+                return false;
+            }
 
             // 리프레시 토큰 삭제
             deleteRefreshToken(username);
@@ -83,10 +89,11 @@ public class TokenService
             long remainingTime = jwtTokenProvider.getTokenRemainingTimeMillis(accessToken);
             if (remainingTime > 0) redisSessionService.blacklistAccessToken(accessToken, remainingTime);
 
+            log.info("Logout successful - username: {}", username);
             return true;
         }
         catch (Exception e) {
-            log.error("로그아웃 처리 중 오류 발생: {}", e.getMessage(), e);
+            log.error("Logout process failed: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -119,8 +126,7 @@ public class TokenService
 
         // 6. 저장
         saveRefreshToken(username, newRefreshToken, jwtTokenProvider.getTokenRemainingTimeMillis(newRefreshToken));
-
+        log.info("Refresh token reissued successfully - username: {}", username);
         return new AuthResponse(newAccessToken, newRefreshToken);
     }
-
 }

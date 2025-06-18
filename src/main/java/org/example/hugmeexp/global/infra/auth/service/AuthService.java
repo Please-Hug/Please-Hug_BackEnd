@@ -38,6 +38,7 @@ public class AuthService
         tokenService.saveRefreshToken(user.getUsername(), refreshToken, tokenService.getTokenRemainingTimeMillis(refreshToken));
 
         // 4. 액세스 토큰, 리프레시 토큰 리턴
+        log.info("Sign-up successful - user: {}({})", user.getUsername(), user.getName());
         return new AuthResponse(accessToken, refreshToken);
     }
 
@@ -52,6 +53,7 @@ public class AuthService
         tokenService.saveRefreshToken(user.getUsername(), refreshToken, tokenService.getTokenRemainingTimeMillis(refreshToken));
 
         // 4. 액세스 토큰, 리프레시 토큰 리턴
+        log.info("Login successful - user: {}({})", user.getUsername(), user.getName());
         return new AuthResponse(accessToken, refreshToken);
     }
 

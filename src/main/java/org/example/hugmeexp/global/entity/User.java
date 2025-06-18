@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.hugmeexp.global.entity.enumeration.UserRole;
 
+import static jakarta.persistence.CascadeType.*;
+
 @Getter
 @Entity
 @Table(name = "users")
@@ -17,8 +19,14 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // User와 ProfileImage는 1:1 관계, User -> ProfileImage 단방향 매핑
-    @OneToOne(cascade = CascadeType.PERSIST) // user 객체 저장시, ProfileImage도 같이 저장
+    /*
+        User와 ProfileImage는 1:1 관계, User -> ProfileImage 단방향 매핑
+        PERSIST: user 객체 저장 시, ProfileImage도 같이 저장
+        REMOVE: user 객체 삭제 시, profileImage도 같이 삭제
+        orphanRemoval = true: User.profileImage = null와 같이 참조가 끊기면 ProfileImage 삭제
+        FetchType.LAZY: 지연로딩
+    */
+    @OneToOne(cascade = {PERSIST, REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_image_id", nullable = true)
     private ProfileImage profileImage;
 
@@ -101,7 +109,6 @@ public class User extends BaseEntity {
     /*
         1. 이미 프로필 이미지가 있는 경우
         - 서비스 계층에서 기존 이미지를 스토리지에서 삭제
-        - 기존 ProfileImage 엔티티도 삭제
         - registerProfileImage 호출
 
         2. 기존에 프로필 이미지가 없는 경우

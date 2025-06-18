@@ -6,6 +6,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.global.entity.enumeration.UserRole;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -16,6 +17,7 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.UUID;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
@@ -61,7 +63,7 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + refreshTokenExpiration);
 
-        String token = Jwts.builder()
+        String refreshToken = Jwts.builder()
                 .setId(jti)
                 .setSubject(username) // 유저네임
                 .claim("role", role)  // 권한
@@ -71,9 +73,8 @@ public class JwtTokenProvider {
                 .signWith(key)
                 .compact();
 
-        redisTemplate.opsForValue()
-                .set(USED_TOKEN_PREFIX + jti, "false", Duration.ofMillis(refreshTokenExpiration));
-        return token;
+        redisTemplate.opsForValue().set(USED_TOKEN_PREFIX + jti, "false", Duration.ofMillis(refreshTokenExpiration));
+        return refreshToken;
     }
 
     // 사용되지 않는 리프레시 토큰인지 확인
@@ -89,6 +90,7 @@ public class JwtTokenProvider {
             String value = redisTemplate.opsForValue().get(USED_TOKEN_PREFIX + jti);
             return value == null || "true".equals(value);
         } catch (Exception e) {
+            log.warn("An exception occurred while verifying the refresh token: {}", e.getMessage(), e);
             return true;
         }
     }
@@ -106,7 +108,9 @@ public class JwtTokenProvider {
             long remaining = getTokenRemainingTimeMillis(refreshToken);
             redisTemplate.opsForValue()
                     .set(USED_TOKEN_PREFIX + jti, "true", Duration.ofMillis(remaining));
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            log.error("Failed to revoke the refresh token: {}", e.getMessage(), e);
+        }
     }
 
     // 토큰을 통해 username을 가져오는 메서드(액세스, 리프레시 둘다 사용 가능)
@@ -154,6 +158,7 @@ public class JwtTokenProvider {
 
             return Math.max(0, expiration.getTime() - System.currentTimeMillis());
         } catch (Exception e) {
+            log.warn("Failed to extract expiration from token: {}", e.getMessage(), e);
             return 0;
         }
     }
