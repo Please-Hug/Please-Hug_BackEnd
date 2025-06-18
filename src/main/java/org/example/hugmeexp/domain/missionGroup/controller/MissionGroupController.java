@@ -35,7 +35,7 @@ public class MissionGroupController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Response<?>> updateMissionGroup(@PathVariable Long id, @Valid @RequestBody MissionGroupRequest request) {
-        return ResponseEntity.ok().body(Response.builder().data(missionGroupService.updateMissionGroup(id, request.toBuilder().build())).message("미션그룹 " + id + "를 업데이트 하였습니다.").build());
+        return ResponseEntity.ok().body(Response.builder().data(missionGroupService.updateMissionGroup(id, request)).message("미션그룹 " + id + "를 업데이트 하였습니다.").build());
     }
 
     @DeleteMapping("/{id}")
