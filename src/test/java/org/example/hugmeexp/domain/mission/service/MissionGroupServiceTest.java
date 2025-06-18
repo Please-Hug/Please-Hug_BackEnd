@@ -1,8 +1,8 @@
 package org.example.hugmeexp.domain.mission.service;
 
-import org.example.hugmeexp.domain.mission.dto.MissionGroupRequest;
-import org.example.hugmeexp.domain.mission.dto.MissionGroupResponse;
-import org.example.hugmeexp.domain.mission.dto.MissionGroupUpdateRequest;
+import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
+import org.example.hugmeexp.domain.mission.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.domain.mission.dto.request.MissionGroupUpdateRequest;
 import org.example.hugmeexp.domain.mission.entity.MissionGroup;
 import org.example.hugmeexp.domain.mission.exception.MissionGroupNotFoundException;
 import org.example.hugmeexp.domain.mission.mapper.MissionGroupMapper;
