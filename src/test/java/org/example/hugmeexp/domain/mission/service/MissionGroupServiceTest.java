@@ -2,7 +2,7 @@ package org.example.hugmeexp.domain.mission.service;
 
 import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionGroupResponse;
-import org.example.hugmeexp.domain.mission.dto.request.MissionGroupUpdateRequest;
+import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.mission.entity.MissionGroup;
 import org.example.hugmeexp.domain.mission.exception.MissionGroupNotFoundException;
 import org.example.hugmeexp.domain.mission.mapper.MissionGroupMapper;
@@ -137,33 +137,33 @@ class MissionGroupServiceTest {
     @Test
     @DisplayName("미션 그룹을 업데이트한다 - 성공")
     void updateMissionGroup_success() {
+        Long id = 1L;
         // Given
-        MissionGroupUpdateRequest request = MissionGroupUpdateRequest
+        MissionGroupRequest request = MissionGroupRequest
                 .builder()
-                .id(1L)
                 .name("Updated Group")
                 .teacherId(500L)
                 .build();
 
         MissionGroup existingGroup = MissionGroup.builder()
-                .id(1L)
+                .id(id)
                 .teacherId(100L)
                 .name("Original Group")
                 .build();
 
         MissionGroupResponse expectedResponse = MissionGroupResponse
                 .builder()
-                .id(1L)
+                .id(id)
                 .name("Updated Group")
                 .teacherId(500L)
                 .build();
 
-        when(missionGroupRepository.findById(request.getId())).thenReturn(Optional.of(existingGroup));
+        when(missionGroupRepository.findById(id)).thenReturn(Optional.of(existingGroup));
         when(missionGroupRepository.save(any())).thenReturn(existingGroup);
         when(missionGroupMapper.toMissionGroupResponse(any())).thenReturn(expectedResponse);
 
         // When
-        MissionGroupResponse result = missionGroupService.updateMissionGroup(request);
+        MissionGroupResponse result = missionGroupService.updateMissionGroup(id, request);
 
         // Then
         assertEquals("Updated Group", result.getName());
@@ -177,17 +177,17 @@ class MissionGroupServiceTest {
     @Test
     @DisplayName("미션 그룹을 업데이트한다 - 실패 (존재X)")
     void updateMissionGroup_notFound() {
+        Long nonExistentId = 999L;
         // Given
-        MissionGroupUpdateRequest request = MissionGroupUpdateRequest
+        MissionGroupRequest request = MissionGroupRequest
                 .builder()
-                .id(999L)
                 .name("Invalid Group")
                 .teacherId(500L)
                 .build();
-        when(missionGroupRepository.findById(request.getId())).thenReturn(Optional.empty());
+        when(missionGroupRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThrows(MissionGroupNotFoundException.class, () -> missionGroupService.updateMissionGroup(request));
+        assertThrows(MissionGroupNotFoundException.class, () -> missionGroupService.updateMissionGroup(nonExistentId, request));
     }
 
     @Test
