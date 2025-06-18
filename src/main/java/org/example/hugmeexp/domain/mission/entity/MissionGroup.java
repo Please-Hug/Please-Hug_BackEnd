@@ -18,7 +18,7 @@ import org.example.hugmeexp.global.entity.BaseEntity;
 public class MissionGroup extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
-    public Long teacherId;
-    public String name;
+    private Long id;
+    private Long teacherId;
+    private String name;
 }

@@ -119,12 +119,12 @@ class MissionGroupControllerTest {
     void getMissionGroupById_ShouldReturnNotFound() throws Exception {
         // Given
         long nonExistentId = 999L;
-        MissionGroupResponse response = MissionGroupResponse
-                .builder()
-                .id(nonExistentId)
-                .name("Test Group")
-                .teacherId(100L)
-                .build();
+//        MissionGroupResponse response = MissionGroupResponse
+//                .builder()
+//                .id(nonExistentId)
+//                .name("Test Group")
+//                .teacherId(100L)
+//                .build();
         given(missionGroupService.getMissionById(nonExistentId))
                 .willThrow(new MissionGroupNotFoundException());
         // When && Then
@@ -136,8 +136,9 @@ class MissionGroupControllerTest {
     @DisplayName("미션 그룹 수정 - 성공")
     void updateMissionGroup_ShouldReturnOk() throws Exception {
         // Given
-        MissionGroupRequest request = MissionGroupRequest
+        MissionGroupUpdateRequest request = MissionGroupUpdateRequest
                 .builder()
+                .id(TEST_ID)
                 .name("Updated Group")
                 .teacherId(200L)
                 .build();
