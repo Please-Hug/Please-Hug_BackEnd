@@ -2,7 +2,7 @@ package org.example.hugmeexp.domain.mission.service;
 
 import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionGroupResponse;
-import org.example.hugmeexp.domain.mission.dto.request.MissionGroupUpdateRequest;
+import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
 import java.util.List;
 
 public interface MissionGroupService {
@@ -12,7 +12,7 @@ public interface MissionGroupService {
 
     MissionGroupResponse getMissionById(Long id);
 
-    MissionGroupResponse updateMissionGroup(MissionGroupUpdateRequest request);
+    MissionGroupResponse updateMissionGroup(Long id, MissionGroupRequest request);
 
     void deleteMissionGroup(Long id);
 }

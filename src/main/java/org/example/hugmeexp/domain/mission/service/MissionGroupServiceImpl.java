@@ -5,7 +5,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionGroupResponse;
-import org.example.hugmeexp.domain.mission.dto.request.MissionGroupUpdateRequest;
+import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.mission.entity.MissionGroup;
 import org.example.hugmeexp.domain.mission.exception.MissionGroupNotFoundException;
 import org.example.hugmeexp.domain.mission.mapper.MissionGroupMapper;
@@ -44,8 +44,8 @@ public class MissionGroupServiceImpl implements MissionGroupService {
 
     @Override
     @Transactional
-    public MissionGroupResponse updateMissionGroup(MissionGroupUpdateRequest request) {
-        MissionGroup missionGroup = missionGroupRepository.findById(request.getId())
+    public MissionGroupResponse updateMissionGroup(Long id, MissionGroupRequest request) {
+        MissionGroup missionGroup = missionGroupRepository.findById(id)
                 .orElseThrow(MissionGroupNotFoundException::new);
 
         missionGroup = missionGroup.toBuilder()

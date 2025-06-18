@@ -3,7 +3,7 @@ package org.example.hugmeexp.domain.mission.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionGroupResponse;
-import org.example.hugmeexp.domain.mission.dto.request.MissionGroupUpdateRequest;
+import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.mission.service.MissionGroupService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.ResponseEntity;
@@ -34,8 +34,8 @@ public class MissionGroupController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Response<?>> updateMissionGroup(@PathVariable Long id, @RequestBody MissionGroupUpdateRequest request) {
-        return ResponseEntity.ok().body(Response.builder().data(missionGroupService.updateMissionGroup(request.toBuilder().id(id).build())).message("미션그룹 " + id + "를 업데이트 하였습니다.").build());
+    public ResponseEntity<Response<?>> updateMissionGroup(@PathVariable Long id, @RequestBody MissionGroupRequest request) {
+        return ResponseEntity.ok().body(Response.builder().data(missionGroupService.updateMissionGroup(id, request.toBuilder().build())).message("미션그룹 " + id + "를 업데이트 하였습니다.").build());
     }
 
     @DeleteMapping("/{id}")
