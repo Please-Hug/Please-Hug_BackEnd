@@ -5,7 +5,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionGroupResponse;
-import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.mission.entity.MissionGroup;
 import org.example.hugmeexp.domain.mission.exception.MissionGroupNotFoundException;
 import org.example.hugmeexp.domain.mission.mapper.MissionGroupMapper;

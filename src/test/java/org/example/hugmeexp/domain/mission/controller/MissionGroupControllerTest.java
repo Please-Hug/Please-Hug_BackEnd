@@ -3,7 +3,6 @@ package org.example.hugmeexp.domain.mission.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionGroupResponse;
-import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.mission.exception.MissionGroupNotFoundException;
 import org.example.hugmeexp.domain.mission.service.MissionGroupService;
 import org.example.hugmeexp.global.common.exception.ExceptionController;
