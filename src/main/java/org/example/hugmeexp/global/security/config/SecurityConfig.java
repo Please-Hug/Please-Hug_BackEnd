@@ -43,10 +43,11 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults()) // CORS 활성화 (WebMvcConfigurer의 설정 사용)
                 .csrf(AbstractHttpConfigurer::disable) // JWT 기반 인증은 브라우저 세션을 사용하지 않으므로 CSRF 불필요
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // STATELESS
+                .headers(headers -> headers.frameOptions().disable()) // H2 콘솔 사용을 위해 프레임 옵션 비활성화
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/login", "/api/register", "/api/refresh", "/api/logout",
-                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**"
+                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**", "/h2-console/**"
                         )
                         .permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
