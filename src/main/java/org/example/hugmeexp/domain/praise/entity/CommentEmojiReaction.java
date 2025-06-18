@@ -19,11 +19,11 @@ public class CommentEmojiReaction extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;    // PK
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comment_id", nullable = false)
     private PraiseComment commentId;    // 댓글에 반응하기
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reaction_writer_id", nullable = false)
     private User reactorWriterId;    // 반응한 사람 이름
 

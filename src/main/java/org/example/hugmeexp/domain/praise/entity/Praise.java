@@ -19,11 +19,11 @@ public class Praise extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;    // PK
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;    // 칭찬 보낸 사람 이름
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "receiver_id", nullable = false)
     private User receiver;    // 칭찬 받은 사람 이름
 

@@ -48,9 +48,9 @@ public class PraiseService {
 
             // Entity -> DTO
             return praiseMapper.toDTO(saved);
-        } catch (Exception e){
-            log.error("칭찬 생성 중 예외 발생: {}", e.getMessage(),e);
-            throw new UserNotFoundInPraiseException();
+        } catch (UserNotFoundInPraiseException e){
+
+            throw e;
         }
 
     }

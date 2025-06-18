@@ -16,11 +16,11 @@ public class PraiseComment extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;    // PK
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "praise_id", nullable = false)
     private Praise praise;    // 어떤 칭찬글에 달린 댓글인지
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comment_writer_id", nullable = false)
     private User commentWriter;    // 댓글 작성자 이름
 
