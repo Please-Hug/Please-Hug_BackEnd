@@ -56,12 +56,21 @@ public class PraiseService {
     }
 
     /* 기본 - 날짜 조회 */
-    public List<PraiseResponseDTO> findByDateRange(LocalDate startDate, LocalDate endDate) {
+    public List<PraiseResponseDTO> findByDateRange(LocalDate startDate, LocalDate endDate, User currentUser, boolean me) {
 
         LocalDateTime startDateTime = startDate.atStartOfDay();    // 2025-06-01 00:00:00
         LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);    // 2025-06-18 23:59:59.999
 
-        List<Praise> praiseList = praiseRepository.findByCreatedAtBetween(startDateTime, endDateTime);
+        List<Praise> praiseList;
+
+        if(me){
+            // 나와 관련된 칭찬만
+            praiseList = praiseRepository.findByDateRangeAndUser(startDateTime,endDateTime,currentUser);
+        }else {
+            // 전체 칭찬 조회
+            praiseList = praiseRepository.findByCreatedAtBetween(startDateTime, endDateTime);
+        }
+
 
         return praiseList.stream()
                 .map(praise -> {

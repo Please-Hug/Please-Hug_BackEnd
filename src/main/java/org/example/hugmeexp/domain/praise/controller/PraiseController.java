@@ -56,11 +56,13 @@ public class PraiseController {
 
     /* 기본 - 날짜 조회 */
     // /api/v1/praises/search?startDate=OOOO-OO-OO&endDate=OOOO-OO-OO
-    @Operation(summary = "날짜 기준 칭찬 게시물 조회", description = "날짜를 기준으로 칭찬을 받거나 보낸 게시물들이 조회됩니다")
+    @Operation(summary = "날짜 기준 칭찬 게시물 조회", description = "날짜를 기준으로 칭찬을 받거나 보낸 게시물들이 조회됩니다, 'me=true'를 주면 나와 관련된 칭찬만 조회합니다.")
     @GetMapping("/search")
     public ResponseEntity<Response<List<PraiseResponseDTO>>> getDatePraises(
             @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate startDate,
-            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate endDate){
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate endDate,
+            @RequestParam(name = "me", required = false, defaultValue = "false")boolean me,
+            @AuthenticationPrincipal CustomUserDetails userDetails){
 
         log.info("Received praise search request: startDate={}, endDate={}", startDate, endDate);
 
@@ -74,7 +76,10 @@ public class PraiseController {
                             .build());
         }
 
-        List<PraiseResponseDTO> result = praiseService.findByDateRange(startDate,endDate);
+        // 나에게 관련관 것만 보기 위한 조건 유저
+        User currentUser = userDetails.getUser();
+
+        List<PraiseResponseDTO> result = praiseService.findByDateRange(startDate,endDate,currentUser,me);
 
         log.info("Total praises found in date range: {} entries", result.size());
 
