@@ -7,8 +7,11 @@ import org.example.hugmeexp.domain.mission.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionGroupResponse;
 import org.example.hugmeexp.domain.mission.entity.MissionGroup;
 import org.example.hugmeexp.domain.mission.exception.MissionGroupNotFoundException;
+import org.example.hugmeexp.domain.mission.exception.TeacherNotFoundException;
 import org.example.hugmeexp.domain.mission.mapper.MissionGroupMapper;
 import org.example.hugmeexp.domain.mission.repository.MissionGroupRepository;
+import org.example.hugmeexp.global.common.repository.UserRepository;
+import org.example.hugmeexp.global.entity.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MissionGroupServiceImpl implements MissionGroupService {
     private final MissionGroupRepository missionGroupRepository;
+    private final UserRepository userRepository;
     private final MissionGroupMapper missionGroupMapper;
     @Override
     public List<MissionGroupResponse> getAllMissionGroups() {
@@ -47,8 +51,11 @@ public class MissionGroupServiceImpl implements MissionGroupService {
         MissionGroup missionGroup = missionGroupRepository.findById(id)
                 .orElseThrow(MissionGroupNotFoundException::new);
 
+        User teacher = userRepository.findByUsername(request.getTeacherUsername())
+                .orElseThrow(TeacherNotFoundException::new);
+
         missionGroup = missionGroup.toBuilder()
-                .teacherId(request.getTeacherId())
+                .teacher(teacher)
                 .name(request.getName())
                 .build();
         var updatedMissionGroup = missionGroupRepository.save(missionGroup);

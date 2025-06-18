@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 public class MissionGroupResponse {
     private Long id;
-    private Long teacherId;
+    private String teacherUsername;
     private String name;
 }

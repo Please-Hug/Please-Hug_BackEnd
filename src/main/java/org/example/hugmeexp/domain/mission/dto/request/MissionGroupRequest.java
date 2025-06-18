@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class MissionGroupRequest {
-    private Long teacherId;
+    private String teacherUsername;
     private String name;
 }

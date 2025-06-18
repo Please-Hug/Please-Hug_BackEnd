@@ -56,7 +56,7 @@ class MissionGroupControllerTest {
                 .builder()
                 .id(TEST_ID)
                 .name("Test Group")
-                .teacherId(100L)
+                .teacherUsername("teacher1")
                 .build();
         given(missionGroupService.getAllMissionGroups())
                 .willReturn(List.of(missionGroupResponse));
@@ -74,13 +74,13 @@ class MissionGroupControllerTest {
         MissionGroupRequest request = MissionGroupRequest
                 .builder()
                 .name("New Group")
-                .teacherId(100L)
+                .teacherUsername("teacher1")
                 .build();
         MissionGroupResponse response = MissionGroupResponse
                 .builder()
                 .id(TEST_ID)
                 .name("New Group")
-                .teacherId(100L)
+                .teacherUsername("teacher1")
                 .build();
 
         given(missionGroupService.createMissionGroup(request))
@@ -102,7 +102,7 @@ class MissionGroupControllerTest {
                 .builder()
                 .id(TEST_ID)
                 .name("Test Group")
-                .teacherId(100L)
+                .teacherUsername("teacher1")
                 .build();
         given(missionGroupService.getMissionById(TEST_ID))
                 .willReturn(response);
@@ -138,13 +138,13 @@ class MissionGroupControllerTest {
         MissionGroupRequest request = MissionGroupRequest
                 .builder()
                 .name("Updated Group")
-                .teacherId(200L)
+                .teacherUsername("teacher2")
                 .build();
         MissionGroupResponse response = MissionGroupResponse
                 .builder()
                 .id(TEST_ID)
                 .name("Updated Group")
-                .teacherId(200L)
+                .teacherUsername("teacher2")
                 .build();
 
         given(missionGroupService.updateMissionGroup(eq(TEST_ID), any(MissionGroupRequest.class)))
@@ -157,7 +157,7 @@ class MissionGroupControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(TEST_ID))
                 .andExpect(jsonPath("$.data.name").value("Updated Group"))
-                .andExpect(jsonPath("$.data.teacherId").value(200L));
+                .andExpect(jsonPath("$.data.teacherUsername").value("teacher2"));
     }
 
     @Test
@@ -168,7 +168,7 @@ class MissionGroupControllerTest {
         MissionGroupRequest request = MissionGroupRequest
                 .builder()
                 .name("Updated Group")
-                .teacherId(200L)
+                .teacherUsername("teacher2")
                 .build();
 
         given(missionGroupService.updateMissionGroup(nonExistentId, request))
