@@ -21,11 +21,11 @@ public class Praise extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "sender_id", nullable = false)
-    private User senderId;    // 칭찬 보낸 사람 이름
+    private User sender;    // 칭찬 보낸 사람 이름
 
     @ManyToOne
     @JoinColumn(name = "receiver_id", nullable = false)
-    private User receiverId;    // 칭찬 받은 사람 이름
+    private User receiver;    // 칭찬 받은 사람 이름
 
     @Column(nullable = false)
     private String content;    // 칭찬 내용

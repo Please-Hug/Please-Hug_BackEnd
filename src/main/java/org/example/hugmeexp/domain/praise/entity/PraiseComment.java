@@ -22,7 +22,7 @@ public class PraiseComment extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "comment_writer_id", nullable = false)
-    private User commentWriterId;    // 댓글 작성자 이름
+    private User commentWriter;    // 댓글 작성자 이름
 
     @Column(nullable = false)
     private String content;    // 댓글 내용

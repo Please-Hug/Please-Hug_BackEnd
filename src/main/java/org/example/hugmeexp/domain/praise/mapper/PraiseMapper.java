@@ -13,22 +13,19 @@ public interface PraiseMapper {
 
     default Praise toEntity(PraiseRequestDTO praiseRequestDTO, User senderId, User receiverId){
         return Praise.builder()
-                .senderId(senderId)
-                .receiverId(receiverId)
+                .sender(senderId)
+                .receiver(receiverId)
                 .content(praiseRequestDTO.getContent())
                 .praiseType(praiseRequestDTO.getType())
                 .build();
     }
 
-//    Praise toEntity(PraiseRequestDTO praiseRequestDTO);
-//
-//    PraiseResponseDTO toDTO(Praise praise);
 
     default PraiseResponseDTO toDTO(Praise praise){
         return PraiseResponseDTO.builder()
                 .id(praise.getId())
-                .senderName(praise.getSenderId().getName())
-                .receiverName(List.of(praise.getReceiverId().getName()))
+                .senderName(praise.getSender().getName())
+                .receiverName(List.of(praise.getReceiver().getName()))
                 .content(praise.getContent())
                 .type(praise.getPraiseType())
                 .commentCount(0)

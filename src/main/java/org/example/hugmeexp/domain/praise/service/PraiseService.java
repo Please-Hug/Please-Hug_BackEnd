@@ -5,12 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.praise.dto.PraiseRequestDTO;
 import org.example.hugmeexp.domain.praise.dto.PraiseResponseDTO;
 import org.example.hugmeexp.domain.praise.entity.Praise;
-import org.example.hugmeexp.domain.praise.exception.PraiseNotFoundException;
+import org.example.hugmeexp.domain.praise.exception.UserNotFoundInPraiseException;
 import org.example.hugmeexp.domain.praise.mapper.PraiseMapper;
 import org.example.hugmeexp.domain.praise.repository.CommentRepository;
 import org.example.hugmeexp.domain.praise.repository.PraiseEmojiReactionRepository;
 import org.example.hugmeexp.domain.praise.repository.PraiseRepository;
-import org.example.hugmeexp.global.common.exception.BaseCustomException;
 import org.example.hugmeexp.global.common.repository.UserRepository;
 import org.example.hugmeexp.global.entity.User;
 import org.springframework.stereotype.Service;
@@ -39,7 +38,7 @@ public class PraiseService {
         try {
 
             User receiverId = userRepository.findByName(praiseRequestDTO.getReceiverName()).
-                    orElseThrow(() -> new PraiseNotFoundException());
+                    orElseThrow(() -> new UserNotFoundInPraiseException());
 
             // DTO -> Entity
              Praise praise = praiseMapper.toEntity(praiseRequestDTO, senderId, receiverId);
@@ -51,7 +50,7 @@ public class PraiseService {
             return praiseMapper.toDTO(saved);
         } catch (Exception e){
             log.error("칭찬 생성 중 예외 발생: {}", e.getMessage(),e);
-            throw new PraiseNotFoundException();
+            throw new UserNotFoundInPraiseException();
         }
 
     }
@@ -66,20 +65,16 @@ public class PraiseService {
 
         return praiseList.stream()
                 .map(praise -> {
-                    int commentCount = commentRepository.countByPraise(praise);
+                    long commentCount = commentRepository.countByPraise(praise);
                     Map<String, Integer> emojiCount = praiseEmojiReactionRepository.countGroupedMapByPraise(praise);
                     return PraiseResponseDTO.from(praise,commentCount,emojiCount);
                 }).collect(Collectors.toList());
     }
 
-
-//    /* 칭찬 필터링 검색 조회 */
-//    public List<PraiseResponseDTO> searchByKeyword(String keyword) {
-//
-//        return praiseRepository.findBySenderIdContainingOrReceiverIdContaining(keyword, keyword).stream()
-//                .map(praise -> praiseMapper.toDTO(praise))
-//                .collect(Collectors.toList());
+    /* 칭찬 필터링 검색 조회 */
+//    public List<PraiseResponseDTO> searchByKeywordAndDate(LocalDate startDate, LocalDate endDate, String keyword) {
 //    }
+
 
 
 }

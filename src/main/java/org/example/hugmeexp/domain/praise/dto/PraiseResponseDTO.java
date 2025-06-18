@@ -22,15 +22,15 @@ public class PraiseResponseDTO {
     private List<String> receiverName;    // 칭찬 받은 사람 이름
     private String content;    // 칭찬 내용
     private PraiseType type;    // 칭찬 타입
-    private int commentCount;    // 댓글 개수
+    private long commentCount;    // 댓글 개수
     private Map<String, Integer> emojiReactionCount;    // 이모지별 반응 수
     private LocalDateTime createdAt;    // 작성 시간
 
-    public static PraiseResponseDTO from(Praise praise, int commentCount, Map<String, Integer> emojiReactionCount){
+    public static PraiseResponseDTO from(Praise praise, long commentCount, Map<String, Integer> emojiReactionCount){
         return PraiseResponseDTO.builder()
                 .id(praise.getId())
-                .senderName(praise.getSenderId().getName())
-                .receiverName(List.of(praise.getReceiverId().getName()))
+                .senderName(praise.getSender().getName())
+                .receiverName(List.of(praise.getReceiver().getName()))
                 .content(praise.getContent())
                 .type(praise.getPraiseType())
                 .commentCount(commentCount)

@@ -37,7 +37,7 @@ public class PraiseController {
             @AuthenticationPrincipal CustomUserDetails userDetails){
 
         log.info("Praise creation request : {} ", praiseRequestDTO);
-        log.info("현재 로그인 유저: {}", userDetails.getUser().getUsername());
+        log.debug("Current logged-in user : {}", userDetails.getUser().getUsername());
 
         // 로그인된 사용자 정보에서 User 꺼낸다
         User senderId = userDetails.getUser();
@@ -64,6 +64,16 @@ public class PraiseController {
 
         log.info("Received praise search request: startDate={}, endDate={}", startDate, endDate);
 
+        if (startDate.isAfter(endDate)) {
+            log.warn("Invalid date range: startDate is after endDate");
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Response.<List<PraiseResponseDTO>>builder()
+                            .message("startDate 은 endDate 보다 이후일 수 없습니다.")
+                            .data(List.of())
+                            .build());
+        }
+
         List<PraiseResponseDTO> result = praiseService.findByDateRange(startDate,endDate);
 
         log.info("Total praises found in date range: {} entries", result.size());
@@ -77,17 +87,22 @@ public class PraiseController {
     }
 
 
-//    /* 날짜 조회 + 키워드 포함 검색 조회 */
+    /* 날짜 조회 + 키워드 포함 검색 조회 */
 //    @GetMapping("/search")
-//    public ResponseEntity<ApiResponse<List<PraiseResponseDTO>>> searchPraises(@RequestParam("keyword") String keyword){
+//    @Operation(summary = "날짜 기준 유저 키워드 검색 조회", description = "날짜를 기준으로 자신이 칭찬을 보내거나 칭찬을 받은 유저의 이름을 검색하면 키워드 포함 조회가 된다.")
+//    public ResponseEntity<Response<List<PraiseResponseDTO>>> searchPraises(
+//            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate startDate,
+//            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate endDate,
+//            @RequestParam("keyword") String keyword){
 //
+//        log.info("Received praise search request, and keyword : startDate={}, endDate={}", startDate, endDate);
 //        log.info("칭찬 검색 keyword : {} " , keyword);
 //
-//        List<PraiseResponseDTO> filteringResult = praiseService.searchByKeyword(keyword);
+//        List<PraiseResponseDTO> filteringResult = praiseService.searchByKeywordAndDate(startDate,endDate,keyword);
 //
 //        log.info("검색 필터링 결과 보이는 건수 : {} " , filteringResult.size());
 //
-//        ApiResponse<List<PraiseResponseDTO>> response = ApiResponse.<List<PraiseResponseDTO>>builder()
+//        Response<List<PraiseResponseDTO>> response = Response.<List<PraiseResponseDTO>>builder()
 //                .message("보낸 사람 / 받은 사람 필터링 성공")
 //                .data(filteringResult)
 //                .build();
