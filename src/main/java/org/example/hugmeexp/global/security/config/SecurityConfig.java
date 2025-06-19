@@ -10,7 +10,6 @@ import org.example.hugmeexp.global.infra.auth.service.RedisSessionService;
 import org.example.hugmeexp.global.security.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -36,7 +35,7 @@ public class SecurityConfig {
     /*
         /api/login, /api/register, /api/refresh, 스웨거 경로 -> 인증 불필요
         /api/v1/admin/** -> 관리자만 접근 가능
-        /api/v1/**, /api/logout -> 로그인했다면 접근 가능
+        /api/v1/** -> 로그인했다면 접근 가능
     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -47,12 +46,12 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/login", "/api/register", "/api/refresh", "/api/logout",
+                                "/api/login", "/api/register", "/api/refresh",
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**", "/h2-console/**"
                         )
                         .permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/**").hasAnyRole("ADMIN", "USER", "LECTURER")
+                        .requestMatchers("/api/v1/**", "/api/logout").hasAnyRole("ADMIN", "USER", "LECTURER")
                         .anyRequest().authenticated()
                 )
                 .httpBasic(AbstractHttpConfigurer::disable) // httpBasic 제거 또는 비활성화
