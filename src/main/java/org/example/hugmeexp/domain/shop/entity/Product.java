@@ -38,6 +38,10 @@ public class Product {
     @Column(nullable = false)
     private Integer price;
 
+    // 논리 삭제
+    @Column(nullable = false)
+    private boolean isDeleted = false;
+
     @Builder
     private Product(String name, String brand, Integer quantity, Integer price) {
         this.name = name;
@@ -79,5 +83,13 @@ public class Product {
         this.brand = dto.getBrand();
         this.quantity = dto.getQuantity();
         this.price = dto.getPrice();
+    }
+
+    public void decreaseQuantity() {
+        this.quantity -= 1;
+    }
+
+    public void delete() {
+        this.isDeleted = true;
     }
 }
