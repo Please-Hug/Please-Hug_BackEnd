@@ -14,7 +14,7 @@ public interface MissionService {
 
     MissionResponse updateMission(Long id, MissionRequest missionRequest);
 
-    MissionResponse deleteMission(Long id);
+    void deleteMission(Long id);
 
     MissionResponse chaageMissionGroup(Long id, Long missionGroupId);
 

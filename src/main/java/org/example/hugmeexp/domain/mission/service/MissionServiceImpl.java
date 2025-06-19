@@ -74,12 +74,11 @@ public class MissionServiceImpl implements MissionService {
 
     @Override
     @Transactional
-    public MissionResponse deleteMission(Long id) {
+    public void deleteMission(Long id) {
         Mission mission = missionRepository.findById(id)
                 .orElseThrow(MissionNotFoundException::new);
 
         missionRepository.delete(mission);
-        return missionMapper.toMissionResponse(mission);
     }
 
     @Override

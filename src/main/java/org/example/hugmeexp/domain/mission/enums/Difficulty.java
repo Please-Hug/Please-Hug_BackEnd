@@ -1,5 +1,9 @@
 package org.example.hugmeexp.domain.mission.enums;
 
+
+import lombok.Getter;
+
+@Getter
 public enum Difficulty {
     EASY("쉬움"),
     NORMAL("보통"),
@@ -11,7 +15,4 @@ public enum Difficulty {
         this.label = label;
     }
 
-    public String getLabel() {
-        return label;
-    }
 }

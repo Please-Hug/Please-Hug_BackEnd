@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
-import org.example.hugmeexp.domain.missionGroup.mapper.MissionGroupMapper;
 import org.example.hugmeexp.domain.missionGroup.service.MissionGroupService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.ResponseEntity;
