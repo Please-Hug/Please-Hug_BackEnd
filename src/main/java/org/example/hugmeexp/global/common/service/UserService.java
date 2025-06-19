@@ -8,8 +8,13 @@ import org.example.hugmeexp.global.infra.auth.dto.request.RegisterRequest;
 import org.example.hugmeexp.global.infra.auth.exception.LoginFailedException;
 import org.example.hugmeexp.global.infra.auth.exception.PhoneNumberDuplicatedException;
 import org.example.hugmeexp.global.infra.auth.exception.UsernameDuplicatedException;
+import org.example.hugmeexp.global.infra.auth.exception.UsernameNotfoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +23,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     // 회원가입
+    @Transactional
     public User registerNewUser(RegisterRequest request) {
 
         // 중복 예외 처리
@@ -33,6 +39,7 @@ public class UserService {
         return user;
     }
 
+    // 로그인(username과 password 매칭)
     public User login(LoginRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(LoginFailedException::new); // 아이디를 DB에서 찾을 수 없다면 예외를 던짐
@@ -44,6 +51,38 @@ public class UserService {
         return user;
     }
 
+    // username을 바탕으로 삭제
+    @Transactional
+    public void deleteByUsername(String username){
+        if(userRepository.existsByUsername(username)){
+            userRepository.deleteByUsername(username);
+        }
+        else {
+            throw new UsernameNotfoundException();
+        }
+    }
+
+    // userId를 바탕으로 유저 리턴
+    public Optional<User> findById(long userId){
+        return userRepository.findById(userId);
+    }
+
+    // name을 바탕으로 모든 User 리턴
+    public List<User> findByNameContaining(String name){
+        return userRepository.findByNameContaining(name);
+    }
+
+    // username을 바탕으로 User 리턴
+    public Optional<User> findByUsername(String username){
+        return userRepository.findByUsername(username);
+    }
+
+    // phoneNumber를 바탕으로 User 리턴
+    public Optional<User> findByPhoneNumber(String phoneNumber){
+        return userRepository.findByPhoneNumber(phoneNumber);
+    }
+
+    // username과 phoneNumber가 중복되는지 검사
     private void validateDuplicateUser(String username, String phoneNumber) {
         if (userRepository.existsByUsername(username)) {
             throw new UsernameDuplicatedException();
@@ -53,5 +92,4 @@ public class UserService {
             throw new PhoneNumberDuplicatedException();
         }
     }
-
 }
