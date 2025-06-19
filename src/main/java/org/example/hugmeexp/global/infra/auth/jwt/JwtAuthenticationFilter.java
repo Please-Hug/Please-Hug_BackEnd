@@ -35,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
 
         // 액세스 토큰 추출
-        if (header != null && header.startsWith("Bearer ")) {
+        if (header != null && header.startsWith("Bearer ") && header.length() > 10) {
             String accessToken = header.substring(7);
 
             /*

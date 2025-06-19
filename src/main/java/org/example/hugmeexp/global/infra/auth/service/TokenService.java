@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.global.entity.enumeration.UserRole;
 import org.example.hugmeexp.global.infra.auth.dto.response.AuthResponse;
+import org.example.hugmeexp.global.infra.auth.exception.InvalidAccessTokenException;
 import org.example.hugmeexp.global.infra.auth.exception.InvalidRefreshTokenException;
 import org.example.hugmeexp.global.infra.auth.exception.TokenReuseDetectedException;
 import org.example.hugmeexp.global.infra.auth.jwt.JwtTokenProvider;
@@ -98,30 +99,17 @@ public class TokenService
     }
 
     // 로그아웃
-    public boolean logout(String accessToken) {
-        try {
-            // 토큰 검증 및 username 추출
-            if (!jwtTokenProvider.validate(accessToken)) {
-                log.warn("Failed to validate token during logout - accessToken: {}", accessToken.substring(0, 10) + "...");
-                return false;
-            }
+    public void logout(String accessToken) {
+        String username = jwtTokenProvider.getUsername(accessToken);
 
-            String username = jwtTokenProvider.getUsername(accessToken);
+        // 리프레시 토큰 삭제
+        deleteRefreshToken(username);
 
-            // 리프레시 토큰 삭제
-            deleteRefreshToken(username);
+        // 액세스 토큰 블랙리스트 추가
+        long remainingTime = jwtTokenProvider.getTokenRemainingTimeMillis(accessToken);
+        if (remainingTime > 0) redisSessionService.blacklistAccessToken(accessToken, remainingTime);
 
-            // 액세스 토큰 블랙리스트 추가
-            long remainingTime = jwtTokenProvider.getTokenRemainingTimeMillis(accessToken);
-            if (remainingTime > 0) redisSessionService.blacklistAccessToken(accessToken, remainingTime);
-
-            log.info("Logout successful - username: {}", username);
-            return true;
-        }
-        catch (Exception e) {
-            log.error("Logout process failed: {}", e.getMessage(), e);
-            return false;
-        }
+        log.info("Logout successful - username: {}", username);
     }
 
     // 액세스 토큰과 리프레시 토큰의 유효성 검사

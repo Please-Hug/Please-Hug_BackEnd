@@ -1,5 +1,6 @@
 package org.example.hugmeexp.global.infra.auth.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.global.common.response.Response;
@@ -19,8 +20,10 @@ public class RefreshController
     private final AuthService authService;
 
     @PostMapping("/api/refresh")
-    public ResponseEntity<Response<AuthResponse>> refresh(@RequestBody RefreshRequest request) {
+    public ResponseEntity<Response<AuthResponse>> refresh(@Valid @RequestBody RefreshRequest request) {
+        // 서비스에 비즈니스 로직 위임
         AuthResponse result = authService.refreshTokens(request);
+
         return ResponseEntity.ok(Response.<AuthResponse>builder()
                 .message("리프레시 토큰이 갱신되었습니다")
                 .data(result)
