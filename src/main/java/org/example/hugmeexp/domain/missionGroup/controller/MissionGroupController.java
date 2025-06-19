@@ -2,8 +2,10 @@ package org.example.hugmeexp.domain.missionGroup.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.domain.missionGroup.mapper.MissionGroupMapper;
 import org.example.hugmeexp.domain.missionGroup.service.MissionGroupService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MissionGroupController {
     private final MissionGroupService missionGroupService;
+    private final MissionService missionService;
 
     @GetMapping
     public ResponseEntity<Response<?>> getMissionGroups() {
@@ -42,5 +45,13 @@ public class MissionGroupController {
     public ResponseEntity<Response<?>> deleteMissionGroup(@PathVariable Long id) {
         missionGroupService.deleteMissionGroup(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/missions")
+    public ResponseEntity<Response<?>> getMissionsByMissionGroupId(@PathVariable Long id) {
+        return ResponseEntity.ok().body(Response.builder()
+                .data(missionService.getMissionsByMissionGroupId(id))
+                .message("미션 그룹 " + id + "의 미션 목록을 가져왔습니다.")
+                .build());
     }
 }
