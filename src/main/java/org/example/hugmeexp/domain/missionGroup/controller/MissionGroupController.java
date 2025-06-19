@@ -53,4 +53,19 @@ public class MissionGroupController {
                 .message("미션 그룹 " + id + "의 미션 목록을 가져왔습니다.")
                 .build());
     }
+
+    @PostMapping("/{missionGroupId}/users/{userId}")
+    public ResponseEntity<Response<?>> addUserToMissionGroup(@PathVariable Long missionGroupId,
+                                                             @PathVariable Long userId) {
+        missionGroupService.addUserToMissionGroup(userId, missionGroupId);
+        return ResponseEntity.ok().body(Response.builder().message("사용자 " + userId + "를 미션 그룹 " + missionGroupId + "에 추가하였습니다.").build());
+    }
+
+    @DeleteMapping("/{missionGroupId}/users/{userId}")
+    public ResponseEntity<Response<?>> removeUserFromMissionGroup(@PathVariable Long missionGroupId,
+                                                                  @PathVariable Long userId) {
+        missionGroupService.removeUserFromMissionGroup(userId, missionGroupId);
+        return ResponseEntity.ok().body(Response.builder().message("사용자 " + userId + "를 미션 그룹 " + missionGroupId + "에서 제거하였습니다.").build());
+    }
+
 }
