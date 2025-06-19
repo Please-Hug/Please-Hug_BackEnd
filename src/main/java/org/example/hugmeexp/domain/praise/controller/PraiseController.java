@@ -100,6 +100,7 @@ public class PraiseController {
     }
 
     /* 칭찬 반응 좋은 칭찬글 */
+
     /* 칭찬 칭찬 비율 */
     /* 칭찬 최근 칭찬 유저 */
 
