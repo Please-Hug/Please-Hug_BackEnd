@@ -5,10 +5,7 @@ import org.example.hugmeexp.global.common.repository.UserRepository;
 import org.example.hugmeexp.global.entity.User;
 import org.example.hugmeexp.global.infra.auth.dto.request.LoginRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RegisterRequest;
-import org.example.hugmeexp.global.infra.auth.exception.LoginFailedException;
-import org.example.hugmeexp.global.infra.auth.exception.PhoneNumberDuplicatedException;
-import org.example.hugmeexp.global.infra.auth.exception.UsernameDuplicatedException;
-import org.example.hugmeexp.global.infra.auth.exception.UsernameNotfoundException;
+import org.example.hugmeexp.global.infra.auth.exception.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,8 +20,9 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     // userId를 바탕으로 유저 리턴
-    public Optional<User> findById(long userId){
-        return userRepository.findById(userId);
+    public User findById(long userId){
+        return userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
     }
 
     // name을 바탕으로 모든 User 리턴
@@ -40,6 +38,22 @@ public class UserService {
     // phoneNumber를 바탕으로 User 리턴
     public Optional<User> findByPhoneNumber(String phoneNumber){
         return userRepository.findByPhoneNumber(phoneNumber);
+    }
+
+    // 경험치 증가
+    @Transactional
+    public void increaseExp(long userId, int value){
+        if(value <= 0) throw new InvalidPositiveValueException();
+        User user = findById(userId);
+        user.increaseExp(value);
+    }
+
+    // 구름조각 증가
+    @Transactional
+    public void increasePoint(long userId, int value){
+        if(value <= 0) throw new InvalidPositiveValueException();
+        User user = findById(userId);
+        user.increasePoint(value);
     }
 
     // 회원가입
@@ -60,6 +74,7 @@ public class UserService {
     }
 
     // 로그인(username과 password 매칭)
+    @Transactional(readOnly = true)
     public User login(LoginRequest request) {
 
         // 아이디를 DB에서 찾을 수 없다면 예외를 던짐
@@ -79,7 +94,7 @@ public class UserService {
     public void deleteByUsername(String username){
         long deletedCount = userRepository.deleteByUsername(username);
         if(deletedCount == 0) {
-            throw new UsernameNotfoundException();
+            throw new UserNotFoundException();
         }
     }
 
