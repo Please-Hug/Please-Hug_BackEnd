@@ -16,9 +16,7 @@ public interface MissionGroupService {
 
     void deleteMissionGroup(Long id);
 
-    @Transactional
     void addUserToMissionGroup(Long userId, Long missionGroupId);
 
-    @Transactional
     void removeUserFromMissionGroup(Long userId, Long missionGroupId);
 }

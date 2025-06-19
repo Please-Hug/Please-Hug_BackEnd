@@ -99,8 +99,8 @@ public class MissionGroupServiceImpl implements MissionGroupService {
         userMissionGroupRepository.save(userMissionGroup);
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void removeUserFromMissionGroup(Long userId, Long missionGroupId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
