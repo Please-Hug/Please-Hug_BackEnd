@@ -17,7 +17,7 @@ public interface PraiseEmojiReactionRepository extends JpaRepository<PraiseEmoji
 //    @Query("SELECT r.emoji, COUNT(r) FROM PraiseEmojiReaction r WHERE r.praise = :praise GROUP BY r.emoji")
 //    Map<String, Integer> countGroupedMapByPraise(Praise praise);
 
-    @Query("SELECT r. emoji, COUNT(r) FROM PraiseEmojiReaction r " +
+    @Query("SELECT r.emoji, COUNT(r) FROM PraiseEmojiReaction r " +
             "WHERE r.praise = :praise GROUP BY r.emoji")
     List<Object[]> countGroupedByEmoji(@Param("praise") Praise praise);
 }
