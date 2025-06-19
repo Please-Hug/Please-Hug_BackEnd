@@ -3,6 +3,7 @@ package org.example.hugmeexp.domain.shop.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.shop.dto.ProductResponse;
 import org.example.hugmeexp.domain.shop.service.ProductService;
+import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,8 +23,8 @@ public class ProductController {
      * @return
      */
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAllProducts() {
+    public ResponseEntity<Response<?>> getAllProducts() {
         List<ProductResponse> allProduct = productService.getAllProducts();
-        return ResponseEntity.ok().body(allProduct);
+        return ResponseEntity.ok().body(Response.builder().data(allProduct).message("Successfully retrieved all products.").build());
     }
 }

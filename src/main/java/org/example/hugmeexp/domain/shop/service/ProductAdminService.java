@@ -4,9 +4,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.shop.dto.ProductRequest;
+import org.example.hugmeexp.domain.shop.dto.ProductResponse;
 import org.example.hugmeexp.domain.shop.entity.Product;
 import org.example.hugmeexp.domain.shop.entity.ProductImage;
 import org.example.hugmeexp.domain.shop.exception.ProductNotFoundException;
+import org.example.hugmeexp.domain.shop.mapper.ProductMapper;
 import org.example.hugmeexp.domain.shop.repository.ProductImageRepository;
 import org.example.hugmeexp.domain.shop.repository.ProductRepository;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class ProductAdminService {
 
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
+    private final ProductMapper productMapper;
 
     /**
      * 상품 등록 메서드
@@ -32,7 +35,7 @@ public class ProductAdminService {
      * @throws IOException
      */
     @Transactional
-    public Product registerProduct(ProductRequest request) throws IOException {
+    public Product registerProduct(ProductRequest request) {
 
         // Product 객체 생성
         Product product = Product.createProduct(
@@ -62,20 +65,17 @@ public class ProductAdminService {
     @Transactional
     public void deleteProduct(Long productId) {
 
-        // product 조회
-        log.info("Delete product ID: {}", productId);
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException("Product not found with ID: " + productId));
+        // Id와 일치하는 상품이 없다면 예외처리
+        if (!productRepository.existsById(productId)) {
+            throw new ProductNotFoundException(productId);
+        }
+
+        log.info("Attempting to delete product ID: {}", productId);
+        Product product = productRepository.findById(productId).get();
 
         // 삭제할 상품이 이미지 정보가 있다면 연관된 ProductImage 엔티티 및 이미지 파일 삭제
         if (product.isRegisterProductImage()) {
-            try {
-                // 이미지 삭제 시도
-                deleteImage(product);
-            } catch (IOException e) {
-                // 파일 삭제 실패 시 로그 기록
-                log.error("Failed to delete image file for product ID: {}", product.getId(), e);
-            }
+            deleteImage(product);
         }
 
         // Product 엔티티 삭제
@@ -90,12 +90,16 @@ public class ProductAdminService {
      * @return
      */
     @Transactional
-    public Product modifyProduct(Long productId, ProductRequest request) throws IOException {
+    public ProductResponse modifyProduct(Long productId, ProductRequest request) {
+
+        // Id와 일치하는 상품이 없다면 예외처리
+        if (!productRepository.existsById(productId)) {
+            throw new ProductNotFoundException(productId);
+        }
 
         // product 조회
         log.info("Modify product ID: {}", productId);
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException("Product not found with ID: " + productId));
+        Product product = productRepository.findById(productId).get();
 
         // product 엔티티 수정 및 이미지 존재할 시 기존 이미지 삭제 후 생성
         product.updateProduct(request);
@@ -112,7 +116,8 @@ public class ProductAdminService {
 
         Product savedProduct = productRepository.save(product);
         log.info("Product saved with ID: {}", savedProduct.getId());
-        return product;
+        ProductResponse response = productMapper.toResponse(savedProduct);
+        return response;
     }
 
 
@@ -121,7 +126,8 @@ public class ProductAdminService {
         return fileName.substring(fileName.lastIndexOf('.') + 1);
     }
 
-    private void createImage(Product product, MultipartFile image) throws IOException {
+    private void createImage(Product product, MultipartFile image) {
+
         // 확장자 추출
         String extension = getExtension(image.getOriginalFilename());
 
@@ -150,23 +156,27 @@ public class ProductAdminService {
                 log.info("File saved successfully: {}", savePath);
             } else {
                 log.error("File was not saved: {}", savePath);
-                throw new IOException("Failed to save file : " + savePath);
             }
+
         } catch (IOException e) {
             log.error("Error occurred while saving file", e);
-            throw e;
         }
     }
 
-    private void deleteImage(Product product) throws IOException {
+    private void deleteImage(Product product) {
 
-        ProductImage productImage = product.getProductImage();
-        Path imagePath = Paths.get(productImage.getPath(),
-                productImage.getUuid() + "." + productImage.getExtension());
-        Files.deleteIfExists(imagePath);
-        log.info("Deleted image file: {}", imagePath);
+        // product와 연관된 ProductImage 및 이미지 파일 삭제
+        try {
+            ProductImage productImage = product.getProductImage();
+            Path imagePath = Paths.get(productImage.getPath(),
+                    productImage.getUuid() + "." + productImage.getExtension());
+            Files.deleteIfExists(imagePath);
+            log.info("Deleted image file: {}", imagePath);
 
-        // 이미지 삭제 후 ProductImage 엔티티 삭제
-        productImageRepository.delete(productImage);
+            // 이미지 삭제 후 ProductImage 엔티티 삭제
+            productImageRepository.delete(productImage);
+        } catch (IOException e) {
+            log.error("Failed to delete image file for product ID: {}", product.getId(), e);
+        }
     }
 }
