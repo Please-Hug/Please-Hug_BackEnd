@@ -37,7 +37,7 @@ public class PraiseService {
 
         try {
 
-            User receiverId = userRepository.findByName(praiseRequestDTO.getReceiverName()).
+            User receiverId = userRepository.findByUsername(praiseRequestDTO.getReceiverUsername()).
                     orElseThrow(() -> new UserNotFoundInPraiseException());
 
             // DTO -> Entity
@@ -55,13 +55,22 @@ public class PraiseService {
 
     }
 
-    /* 기본 - 날짜 조회 */
-    public List<PraiseResponseDTO> findByDateRange(LocalDate startDate, LocalDate endDate) {
+    /* 날짜 조회 + 나와 관련된 칭찬 조건 */
+    public List<PraiseResponseDTO> findByDateRange(LocalDate startDate, LocalDate endDate, User currentUser, boolean me) {
 
         LocalDateTime startDateTime = startDate.atStartOfDay();    // 2025-06-01 00:00:00
         LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);    // 2025-06-18 23:59:59.999
 
-        List<Praise> praiseList = praiseRepository.findByCreatedAtBetween(startDateTime, endDateTime);
+        List<Praise> praiseList;
+
+        if(me){
+            // 나와 관련된 칭찬만
+            praiseList = praiseRepository.findByDateRangeAndUser(startDateTime,endDateTime,currentUser);
+        }else {
+            // 전체 칭찬 조회
+            praiseList = praiseRepository.findByCreatedAtBetween(startDateTime, endDateTime);
+        }
+
 
         return praiseList.stream()
                 .map(praise -> {
@@ -71,9 +80,29 @@ public class PraiseService {
                 }).collect(Collectors.toList());
     }
 
-    /* 칭찬 필터링 검색 조회 */
-//    public List<PraiseResponseDTO> searchByKeywordAndDate(LocalDate startDate, LocalDate endDate, String keyword) {
-//    }
+    /* 날짜 조회 + 나와 관련된 칭찬 조건 + keyword 조건 */
+    public List<PraiseResponseDTO> searchByKeywordAndDate(LocalDate startDate, LocalDate endDate, User currentUser, boolean me, String keyword) {
+
+        LocalDateTime startDateTime = startDate.atStartOfDay();    // 2025-06-01 00:00:00
+        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);    // 2025-06-18 23:59:59.999
+
+        List<Praise> praiseList;
+
+        if(me){
+            praiseList = praiseRepository.findByDateAndUserAndKeyword(startDateTime, endDateTime, currentUser, keyword);
+        } else{
+            praiseList = praiseRepository.findByDateAndKeyword(startDateTime,endDateTime,keyword);
+        }
+
+        return praiseList.stream()
+                .map(praise -> {
+                    long commentCount = commentRepository.countByPraise(praise);
+                    Map<String, Integer> emojiCount = praiseEmojiReactionRepository.countGroupedMapByPraise(praise);
+                    return PraiseResponseDTO.from(praise,commentCount,emojiCount);
+                }).collect(Collectors.toList());
+
+    }
+
 
 
 
