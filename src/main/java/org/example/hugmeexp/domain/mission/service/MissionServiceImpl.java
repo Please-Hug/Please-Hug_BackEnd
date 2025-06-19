@@ -59,7 +59,7 @@ public class MissionServiceImpl implements MissionService {
         Mission mission = missionRepository.findById(id)
                 .orElseThrow(MissionNotFoundException::new);
 
-        mission.toBuilder()
+        mission = mission.toBuilder()
                 .name(missionRequest.getName())
                 .description(missionRequest.getDescription())
                 .difficulty(missionRequest.getDifficulty())
@@ -83,14 +83,14 @@ public class MissionServiceImpl implements MissionService {
 
     @Override
     @Transactional
-    public MissionResponse chaageMissionGroup(Long id, Long missionGroupId) {
+    public MissionResponse changeMissionGroup(Long id, Long missionGroupId) {
         Mission mission = missionRepository.findById(id)
                 .orElseThrow(MissionNotFoundException::new);
 
         MissionGroup missionGroup = missionGroupRepository.findById(missionGroupId)
                 .orElseThrow(MissionGroupNotFoundException::new);
 
-        mission.toBuilder()
+        mission = mission.toBuilder()
                 .missionGroup(missionGroup)
                 .build();
 
