@@ -27,7 +27,9 @@ public class StudyDiary extends BaseEntity {
 
     private String title;
 
-    private String Content;
+    private String content;
+
+    private boolean isCreated;
 
     private int like;
 }

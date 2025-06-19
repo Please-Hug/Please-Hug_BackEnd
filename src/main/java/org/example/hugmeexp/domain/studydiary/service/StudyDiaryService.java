@@ -55,9 +55,10 @@ public class StudyDiaryService {
     public List<StudyDiary> getSimilarStudyDiaries(Long id) {
     }
 
-    public Long saveDraft(StudyDiaryCreateRequest request, User user) {
-        studyDiaryRepository.findBy
+    public Long saveDraft(StudyDiaryCreateRequest request, UserDetails userDetails) {
+        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(UserNotFoundForStudyDiaryException::new);
 
+        
         StudyDiary createdStudyDiary = StudyDiary.builder()
                 .title(request.getTitle())
                 .content(request.getTitle())

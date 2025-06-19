@@ -96,9 +96,9 @@ public class StudyDiaryController {
     @PostMapping("/draft")
     public Response.ResponseBuilder<Object> saveDraft(
             @Valid @RequestBody StudyDiaryCreateRequest request,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal UserDetails userDetails) {
         
-        Long draftId = studyDiaryService.saveDraft(request, user);
+        Long draftId = studyDiaryService.saveDraft(request, userDetail);
         return Response.builder()
                 .message("성공적으로 임시 저장되었습니다.")
                 .data(draftId);
