@@ -4,13 +4,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.example.hugmeexp.domain.mission.enums.Difficulty;
 import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
+import org.example.hugmeexp.global.entity.BaseEntity;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class Mission {
+public class Mission extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -35,6 +36,6 @@ public class Mission {
     @Column(name = "reward_exp", nullable = false)
     private int rewardExp;
 
-    @Column(name = "order", nullable = false)
+    @Column(name = "mission_order", nullable = false)
     private int order; // 순서, missionGroup 내에서의 순서
 }

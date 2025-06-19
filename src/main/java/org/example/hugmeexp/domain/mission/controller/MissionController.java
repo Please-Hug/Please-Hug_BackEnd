@@ -57,7 +57,7 @@ public class MissionController {
     @PatchMapping("/{id}/group")
     public ResponseEntity<Response<?>> changeMissionGroup(@PathVariable Long id, @RequestParam Long missionGroupId) {
         return ResponseEntity.ok(Response.builder()
-                .data(missionService.chaageMissionGroup(id, missionGroupId))
+                .data(missionService.changeMissionGroup(id, missionGroupId))
                 .message("미션 " + id + "의 미션 그룹을 변경하였습니다.")
                 .build());
     }
