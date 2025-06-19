@@ -34,11 +34,13 @@ public class StudyDiaryService {
                 .isCreated(true)
                 .user(user)
                 .build();
+        StudyDiary saved = studyDiaryRepository.save(createdStudyDiary);
 
-        return createdStudyDiary.getId();
+        return saved.getId();
     }
 
     public List<StudyDiary> getStudyDiaries(String sort, Pageable pageable) {
+
 
         return
     }

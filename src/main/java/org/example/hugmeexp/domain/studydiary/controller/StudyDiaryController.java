@@ -9,6 +9,8 @@ import org.example.hugmeexp.domain.studydiary.service.StudyDiaryService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.example.hugmeexp.global.entity.User;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -24,12 +26,20 @@ public class StudyDiaryController {
     @GetMapping
     public Response.ResponseBuilder<Object> getStudyDiaries(
             @RequestParam(required = false) String sort,
-            Pageable pageable) {
+            //page처리를 위한 spring 제공 객체
+            @PageableDefault(page = 1,size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         
-        Object studyDiaries = studyDiaryService.getStudyDiaries(sort, pageable);
-        return Response.builder()
-                .message("배움일기 목록을 성공적으로 조회했습니다.")
-                .data(studyDiaries);
+        try {
+            Object studyDiaries = studyDiaryService.getStudyDiaries(sort, pageable);
+            return Response.builder()
+                    .message("배움일기 목록을 성공적으로 조회했습니다.")
+                    .data(studyDiaries);
+        } catch (Exception e) {
+            // 잘못된 정렬 필드나 기타 예외 처리
+            return Response.builder()
+                    .message("잘못된 요청입니다.")
+                    .data(null);
+        }
     }
 
     @Operation(summary = "배움일기 검색")
