@@ -3,7 +3,7 @@ package org.example.hugmeexp.domain.praise.mapper;
 import org.example.hugmeexp.domain.praise.dto.PraiseRequestDTO;
 import org.example.hugmeexp.domain.praise.dto.PraiseResponseDTO;
 import org.example.hugmeexp.domain.praise.entity.Praise;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.mapstruct.Mapper;
 
 import java.util.List;

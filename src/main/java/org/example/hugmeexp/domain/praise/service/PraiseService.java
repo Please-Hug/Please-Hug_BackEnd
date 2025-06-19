@@ -10,8 +10,8 @@ import org.example.hugmeexp.domain.praise.mapper.PraiseMapper;
 import org.example.hugmeexp.domain.praise.repository.CommentRepository;
 import org.example.hugmeexp.domain.praise.repository.PraiseEmojiReactionRepository;
 import org.example.hugmeexp.domain.praise.repository.PraiseRepository;
-import org.example.hugmeexp.global.common.repository.UserRepository;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

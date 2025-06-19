@@ -1,6 +1,6 @@
-package org.example.hugmeexp.global.common.repository;
+package org.example.hugmeexp.domain.user.repository;
 
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -17,14 +17,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // username을 바탕으로 User 리턴
     Optional<User> findByUsername(String username);
 
-    // name을 바탕으로 User 리턴(사용 지양)
-    Optional<User> findByName(String name);
-
     // username을 바탕으로 User 삭제
-    void deleteByUsername(String username);
-
-    // id를 바탕으로 User 리턴
-    Optional<User> findById(long userId);
+    Integer deleteByUsername(String username);
 
     // name을 바탕으로 모든 User 리턴
     List<User> findByNameContaining(String name);

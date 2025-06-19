@@ -1,4 +1,4 @@
-package org.example.hugmeexp.global.entity;
+package org.example.hugmeexp.domain.user.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

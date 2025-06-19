@@ -2,9 +2,8 @@ package org.example.hugmeexp.global.infra.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.global.entity.enumeration.UserRole;
+import org.example.hugmeexp.domain.user.enums.UserRole;
 import org.example.hugmeexp.global.infra.auth.dto.response.AuthResponse;
-import org.example.hugmeexp.global.infra.auth.exception.InvalidAccessTokenException;
 import org.example.hugmeexp.global.infra.auth.exception.InvalidRefreshTokenException;
 import org.example.hugmeexp.global.infra.auth.exception.TokenReuseDetectedException;
 import org.example.hugmeexp.global.infra.auth.jwt.JwtTokenProvider;
