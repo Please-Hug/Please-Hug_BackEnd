@@ -16,7 +16,7 @@ public interface MissionService {
 
     void deleteMission(Long id);
 
-    MissionResponse chaageMissionGroup(Long id, Long missionGroupId);
+    MissionResponse changeMissionGroup(Long id, Long missionGroupId);
 
     List<MissionResponse> getMissionsByMissionGroupId(Long missionGroupId);
 }
