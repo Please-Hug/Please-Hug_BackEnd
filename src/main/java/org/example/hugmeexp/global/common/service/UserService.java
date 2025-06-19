@@ -22,6 +22,26 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // userId를 바탕으로 유저 리턴
+    public Optional<User> findById(long userId){
+        return userRepository.findById(userId);
+    }
+
+    // name을 바탕으로 모든 User 리턴
+    public List<User> findByNameContaining(String name){
+        return userRepository.findByNameContaining(name);
+    }
+
+    // username을 바탕으로 User 리턴
+    public Optional<User> findByUsername(String username){
+        return userRepository.findByUsername(username);
+    }
+
+    // phoneNumber를 바탕으로 User 리턴
+    public Optional<User> findByPhoneNumber(String phoneNumber){
+        return userRepository.findByPhoneNumber(phoneNumber);
+    }
+
     // 회원가입
     @Transactional
     public User registerNewUser(RegisterRequest request) {
@@ -41,11 +61,14 @@ public class UserService {
 
     // 로그인(username과 password 매칭)
     public User login(LoginRequest request) {
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(LoginFailedException::new); // 아이디를 DB에서 찾을 수 없다면 예외를 던짐
 
+        // 아이디를 DB에서 찾을 수 없다면 예외를 던짐
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(LoginFailedException::new);
+
+        // 비밀번호 불일치시 예외를 던짐
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new LoginFailedException(); // 비밀번호 불일치시 예외를 던짐
+            throw new LoginFailedException();
         }
 
         return user;
@@ -54,32 +77,10 @@ public class UserService {
     // username을 바탕으로 삭제
     @Transactional
     public void deleteByUsername(String username){
-        if(userRepository.existsByUsername(username)){
-            userRepository.deleteByUsername(username);
-        }
-        else {
+        long deletedCount = userRepository.deleteByUsername(username);
+        if(deletedCount == 0) {
             throw new UsernameNotfoundException();
         }
-    }
-
-    // userId를 바탕으로 유저 리턴
-    public Optional<User> findById(long userId){
-        return userRepository.findById(userId);
-    }
-
-    // name을 바탕으로 모든 User 리턴
-    public List<User> findByNameContaining(String name){
-        return userRepository.findByNameContaining(name);
-    }
-
-    // username을 바탕으로 User 리턴
-    public Optional<User> findByUsername(String username){
-        return userRepository.findByUsername(username);
-    }
-
-    // phoneNumber를 바탕으로 User 리턴
-    public Optional<User> findByPhoneNumber(String phoneNumber){
-        return userRepository.findByPhoneNumber(phoneNumber);
     }
 
     // username과 phoneNumber가 중복되는지 검사
