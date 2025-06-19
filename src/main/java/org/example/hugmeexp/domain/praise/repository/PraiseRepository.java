@@ -11,11 +11,28 @@ import java.util.List;
 
 @Repository
 public interface PraiseRepository extends JpaRepository<Praise, Long> {
+
+    /* 칭찬 생성 */
     List<Praise> findByCreatedAtBetween(LocalDateTime createdAtAfter, LocalDateTime createdAtBefore);
 
+    /* 칭찬 날짜 + ME*/
     @Query("SELECT p FROM Praise p " +
             "WHERE p.createdAt BETWEEN :startDateTime AND :endDateTime " +
             "AND (p.sender = :currentUser OR p.receiver = :currentUser)")
     List<Praise> findByDateRangeAndUser(LocalDateTime startDateTime, LocalDateTime endDateTime, User currentUser);
+
+    /* 칭찬 날짜 + ME + keyword */
+    @Query("SELECT p FROM Praise p " +
+            "WHERE p.createdAt BETWEEN :startDateTime AND :endDateTime " +
+            "AND (p.sender = :currentUser OR p.receiver = :currentUser) " +
+            "AND (p.sender.name LIKE %:keyword% OR p.receiver.name LIKE %:keyword%)")
+    List<Praise> findByDateAndUserAndKeyword(LocalDateTime startDateTime, LocalDateTime endDateTime, User currentUser, String keyword);
+
+    /* 칭찬 날짜 + keyword*/
+    @Query("SELECT p FROM Praise p " +
+            "WHERE p.createdAt BETWEEN :startDateTime AND :endDateTime " +
+            "AND (p.sender.name LIKE %:keyword% OR p.receiver.name LIKE %:keyword%)")
+    List<Praise> findByDateAndKeyword(LocalDateTime startDateTime, LocalDateTime endDateTime, String keyword);
+
 
 }
