@@ -22,6 +22,7 @@ public class PraiseResponseDTO {
     private List<String> receiverName;    // 칭찬 받은 사람 이름
     private String content;    // 칭찬 내용
     private PraiseType type;    // 칭찬 타입
+    private String categoryLabel;    // "감사해요", "응원해요", "인정해요"
     private long commentCount;    // 댓글 개수
     private Map<String, Integer> emojiReactionCount;    // 이모지별 반응 수
     private LocalDateTime createdAt;    // 작성 시간
@@ -33,6 +34,7 @@ public class PraiseResponseDTO {
                 .receiverName(List.of(praise.getReceiver().getName()))
                 .content(praise.getContent())
                 .type(praise.getPraiseType())
+                .categoryLabel(praise.getPraiseType().getLabel())
                 .commentCount(commentCount)
                 .emojiReactionCount(emojiReactionCount)
                 .createdAt(praise.getCreatedAt())

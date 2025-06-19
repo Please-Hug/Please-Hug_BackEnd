@@ -21,11 +21,11 @@ public class PraiseEmojiReaction extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "praise_id", nullable = false)
-    private Praise praiseId;    // 칭찬에 반응하기
+    private Praise praise;    // 칭찬에 반응하기
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reaction_writer_id", nullable = false)
-    private User reactorWriterId;    // 반응한 사람 이름
+    private User reactorWriter;    // 반응한 사람 이름
 
     @Column(nullable = false, length = 1)
     private String emoji;    // 이모지 값

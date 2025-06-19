@@ -100,6 +100,34 @@ public class PraiseController {
     }
 
     /* 칭찬 반응 좋은 칭찬글 */
+    @Operation(summary = "반응 좋은 칭찬 글 조회", description = "반응 수 기준으로 상위 5개 칭찬 글 조회합니다 ")
+    @GetMapping("/popular")
+    public ResponseEntity<Response<List<PraiseResponseDTO>>> getPopularPraises(
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate startDate,
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate endDate){
+
+        log.info("Received praise search request: startDate={}, endDate={}", startDate, endDate);
+
+        if (startDate.isAfter(endDate)) {
+            log.warn("Invalid date range: startDate is after endDate");
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Response.<List<PraiseResponseDTO>>builder()
+                            .message("startDate 은 endDate 보다 이후일 수 없습니다.")
+                            .data(List.of())
+                            .build());
+        }
+
+        List<PraiseResponseDTO> popularPraises = praiseService.findPopularPraises(startDate, endDate, 5);
+
+        Response<List<PraiseResponseDTO>> response = Response.<List<PraiseResponseDTO>>builder()
+                .message("반응 좋은 칭찬 글 조회 성공")
+                .data(popularPraises)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
 
     /* 칭찬 칭찬 비율 */
     /* 칭찬 최근 칭찬 유저 */

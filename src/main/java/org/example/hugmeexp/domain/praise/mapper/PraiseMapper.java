@@ -28,6 +28,7 @@ public interface PraiseMapper {
                 .receiverName(List.of(praise.getReceiver().getName()))
                 .content(praise.getContent())
                 .type(praise.getPraiseType())
+                .categoryLabel(praise.getPraiseType().getLabel())
                 .commentCount(0)
                 .emojiReactionCount(null)
                 .createdAt(praise.getCreatedAt())
