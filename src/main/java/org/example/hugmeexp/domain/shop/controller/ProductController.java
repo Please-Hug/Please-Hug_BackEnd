@@ -1,18 +1,13 @@
 package org.example.hugmeexp.domain.shop.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.domain.praise.dto.PraiseRequestDTO;
-import org.example.hugmeexp.domain.praise.dto.PraiseResponseDTO;
 import org.example.hugmeexp.domain.shop.dto.ProductResponse;
 import org.example.hugmeexp.domain.shop.dto.PurchaseRequest;
 import org.example.hugmeexp.domain.shop.dto.PurchaseResponse;
 import org.example.hugmeexp.domain.shop.service.ProductService;
 import org.example.hugmeexp.global.common.response.Response;
-import org.example.hugmeexp.global.entity.User;
 import org.example.hugmeexp.global.security.CustomUserDetails;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;

@@ -15,8 +15,8 @@ import org.example.hugmeexp.domain.missionGroup.exception.NotExistsUserMissionGr
 import org.example.hugmeexp.domain.missionGroup.mapper.MissionGroupMapper;
 import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepository;
 import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepository;
-import org.example.hugmeexp.global.common.repository.UserRepository;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

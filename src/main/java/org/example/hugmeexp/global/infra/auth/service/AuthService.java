@@ -2,8 +2,8 @@ package org.example.hugmeexp.global.infra.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.global.common.service.UserService;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.service.UserService;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.global.infra.auth.dto.request.LoginRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RegisterRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RefreshRequest;

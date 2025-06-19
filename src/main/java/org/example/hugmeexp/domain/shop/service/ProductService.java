@@ -12,8 +12,8 @@ import org.example.hugmeexp.domain.shop.exception.*;
 import org.example.hugmeexp.domain.shop.mapper.ProductMapper;
 import org.example.hugmeexp.domain.shop.repository.OrderRepository;
 import org.example.hugmeexp.domain.shop.repository.ProductRepository;
-import org.example.hugmeexp.global.common.repository.UserRepository;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

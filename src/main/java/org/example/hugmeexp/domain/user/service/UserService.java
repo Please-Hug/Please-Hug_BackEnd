@@ -1,8 +1,12 @@
-package org.example.hugmeexp.global.common.service;
+package org.example.hugmeexp.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.hugmeexp.global.common.repository.UserRepository;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.exception.InvalidPositiveValueException;
+import org.example.hugmeexp.domain.user.exception.PhoneNumberDuplicatedException;
+import org.example.hugmeexp.domain.user.exception.UserNotFoundException;
+import org.example.hugmeexp.domain.user.exception.UsernameDuplicatedException;
+import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.global.infra.auth.dto.request.LoginRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RegisterRequest;
 import org.example.hugmeexp.global.infra.auth.exception.*;
@@ -18,6 +22,11 @@ import java.util.Optional;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    // 모든 User 리턴
+    public List<User> findAll(){
+        return userRepository.findAll();
+    }
 
     // userId를 바탕으로 유저 리턴
     public User findById(long userId){

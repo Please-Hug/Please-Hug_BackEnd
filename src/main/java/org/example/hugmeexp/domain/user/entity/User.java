@@ -1,11 +1,12 @@
-package org.example.hugmeexp.global.entity;
+package org.example.hugmeexp.domain.user.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.example.hugmeexp.global.entity.enumeration.UserRole;
+import org.example.hugmeexp.domain.user.enums.UserRole;
+import org.example.hugmeexp.global.entity.BaseEntity;
 
 import static jakarta.persistence.CascadeType.*;
 

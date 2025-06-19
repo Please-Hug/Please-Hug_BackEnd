@@ -9,7 +9,7 @@ import org.example.hugmeexp.domain.praise.dto.PraiseRequestDTO;
 import org.example.hugmeexp.domain.praise.dto.PraiseResponseDTO;
 import org.example.hugmeexp.domain.praise.service.PraiseService;
 import org.example.hugmeexp.global.common.response.Response;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.global.security.CustomUserDetails;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;

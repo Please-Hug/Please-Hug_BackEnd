@@ -1,6 +1,6 @@
-package org.example.hugmeexp.global.common.repository;
+package org.example.hugmeexp.domain.user.repository;
 
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.example.hugmeexp.domain.praise.enums.PraiseType;
 import org.example.hugmeexp.global.entity.BaseEntity;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.entity.User;
 
 // 칭찬
 @Entity

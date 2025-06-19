@@ -1,4 +1,4 @@
-package org.example.hugmeexp.global.infra.auth.exception;
+package org.example.hugmeexp.domain.user.exception;
 
 import org.example.hugmeexp.global.common.exception.BaseCustomException;
 import org.springframework.http.HttpStatus;

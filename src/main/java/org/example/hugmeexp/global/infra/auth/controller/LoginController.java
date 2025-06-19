@@ -20,11 +20,11 @@ public class LoginController {
     private final AuthService authService;
 
     @PostMapping("/api/login")
-    public ResponseEntity<Response<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<Response<?>> login(@Valid @RequestBody LoginRequest request) {
         // 서비스에 비즈니스 로직 위임
         AuthResponse result = authService.login(request);
 
-        return ResponseEntity.ok(Response.<AuthResponse>builder()
+        return ResponseEntity.ok(Response.builder()
                 .message("로그인에 성공했습니다")
                 .data(result)
                 .build());

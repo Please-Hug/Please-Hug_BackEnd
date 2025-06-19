@@ -1,7 +1,7 @@
 package org.example.hugmeexp.global.auth.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.hugmeexp.global.common.service.UserService;
+import org.example.hugmeexp.domain.user.service.UserService;
 import org.example.hugmeexp.global.infra.auth.dto.request.LoginRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RegisterRequest;
 import org.junit.jupiter.api.AfterEach;
