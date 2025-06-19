@@ -18,7 +18,7 @@ public class Product {
     private Long id;
 
     // Product와 ProductImage는 1:1 관계이고 Product -> ProductImage의 단방향 매핑
-    @OneToOne(cascade = CascadeType.PERSIST)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "product_image_id", nullable = true)
     private ProductImage productImage;
 
