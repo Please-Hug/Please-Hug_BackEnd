@@ -25,43 +25,29 @@ public class Attendance extends BaseEntity {
     private Long id; // JPA에서 관리하는 id, 이거 생성 안 해두면 나중에 jpa 에서 엔티티 저장/조회 시 에러 난다고 함
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(nullable = false)
     private final Long userName;
+
+    @Column(nullable = false)
     private final LocalDate attendanceDate;
+
+    @Column(nullable = false)
     private final int exp;
+
+    @Column(nullable = false)
     private final int point;
 
-    // 내부적으로만 쓰는 생성자, 정적 팩토리 메서드 of로 외부에서도 호출 가능한 생성자를 만들 수 있음
-    private Attendance(Long id, Long userName, LocalDate attendanceDate, int exp, int point) {
-        this.id = id; // JPA에서 관리하는 id
-        this.userName = userName;
-        this.attendanceDate = attendanceDate;
-        this.exp = exp;
-        this.point = point;
-    }
-
-    //정적 팩토리 메서드
-    public static Attendance createForCheck(Long userId, LocalDate attendanceDate, int exp, int point) {
+    // 정적 팩토리 메서드
+    public static Attendance of(User user, LocalDate attendanceDate, int exp, int point) {
         return Attendance.builder()
-                .userName(userId)
+                .user(user)
                 .attendanceDate(attendanceDate)
                 .exp(exp)
                 .point(point)
                 .build();
     }
-
-    // 외부에서 호출 가능한 객체 생성 메서드
-    public static Attendance of(Long userId, LocalDate attendanceDate, int exp, int point) {
-        return Attendance.builder()
-                .userName(userId)
-                .attendanceDate(attendanceDate)
-                .exp(exp)
-                .point(point)
-                .build();
-    }
-
-
 }
 

@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.attendance.service;
 
+import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.attendance.dto.AttendanceCheckRequest;
 import org.example.hugmeexp.domain.attendance.dto.AttendanceCheckResponse;
 import org.example.hugmeexp.domain.attendance.dto.AttendanceStatusResponse;
@@ -9,6 +10,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class AttendanceService {
 
     // 예시: 유저별 출석일 저장 (실제 환경에서는 DB 사용)
