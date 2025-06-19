@@ -6,6 +6,7 @@ import org.example.hugmeexp.global.entity.BaseEntity;
 import org.example.hugmeexp.global.entity.User;
 
 @Entity
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "mission_group_id"})})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
