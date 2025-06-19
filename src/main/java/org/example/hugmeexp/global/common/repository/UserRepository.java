@@ -17,7 +17,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // username을 바탕으로 User 리턴
     Optional<User> findByUsername(String username);
 
-    // name을 바탕으로 User 리턴(사용 지양, name과 일치하는 여러 유저중 랜덤으로 하나 리턴)
+    // name을 바탕으로 User 리턴(사용 지양)
     Optional<User> findByName(String name);
 
     // username을 바탕으로 User 삭제
