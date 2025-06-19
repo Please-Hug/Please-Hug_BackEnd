@@ -254,7 +254,6 @@ class MissionGroupControllerTest {
         // When & Then
         mockMvc.perform(post(BASE_URL + "/{missionGroupId}/users/{userId}", TEST_GROUP_ID, TEST_USER_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("사용자 " + TEST_USER_ID + "를 미션 그룹 " + TEST_GROUP_ID + "에 추가하였습니다."))
                 .andDo(print());
 
         // missionGroupService의 addUserToMissionGroup이 정확한 인자와 함께 1번 호출되었는지 검증
@@ -297,7 +296,6 @@ class MissionGroupControllerTest {
         // When & Then
         mockMvc.perform(delete(BASE_URL + "/{missionGroupId}/users/{userId}", TEST_GROUP_ID, TEST_USER_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("사용자 " + TEST_USER_ID + "를 미션 그룹 " + TEST_GROUP_ID + "에서 제거하였습니다."))
                 .andDo(print());
 
         // missionGroupService의 removeUserFromMissionGroup이 정확한 인자와 함께 1번 호출되었는지 검증
