@@ -22,10 +22,9 @@ public class RegisterController
     @PostMapping("/api/register")
     public ResponseEntity<Response<AuthResponse>> register(@Valid @RequestBody RegisterRequest request)
     {
-        // 회원가입 및 인증 로직을 서비스에 위임
+        // 서비스에 비즈니스 로직 위임
         AuthResponse result = authService.registerAndAuthenticate(request);
 
-        // HTTP 응답 구성
         return ResponseEntity.ok(Response.<AuthResponse>builder()
                 .message("회원가입에 성공했습니다")
                 .data(result)
