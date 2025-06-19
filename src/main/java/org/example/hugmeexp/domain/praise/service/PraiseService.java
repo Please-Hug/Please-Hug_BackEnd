@@ -37,7 +37,7 @@ public class PraiseService {
 
         try {
 
-            User receiverId = userRepository.findByUsername(praiseRequestDTO.getReceiverUserName()).
+            User receiverId = userRepository.findByUsername(praiseRequestDTO.getReceiverUsername()).
                     orElseThrow(() -> new UserNotFoundInPraiseException());
 
             // DTO -> Entity
