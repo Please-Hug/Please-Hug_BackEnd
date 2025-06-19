@@ -1,11 +1,16 @@
 package org.example.hugmeexp.domain.missionGroup.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.hugmeexp.domain.mission.dto.response.MissionResponse;
+import org.example.hugmeexp.domain.mission.enums.Difficulty;
+import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
 import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
 import org.example.hugmeexp.domain.missionGroup.service.MissionGroupService;
 import org.example.hugmeexp.global.common.exception.ExceptionController;
+import org.example.hugmeexp.global.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -37,6 +43,9 @@ class MissionGroupControllerTest {
 
     @Mock
     private MissionGroupService missionGroupService;
+    
+    @Mock
+    private MissionService missionService;
 
     @InjectMocks
     private MissionGroupController missionGroupController;
@@ -206,5 +215,29 @@ class MissionGroupControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(missionGroupService, times(1)).deleteMissionGroup(nonExistentId);
+    }
+
+    @Test
+    @DisplayName("미션 그룹 ID로 미션 목록 조회 - 성공")
+    void getMissionsByMissionGroupId_ShouldReturnOk() throws Exception {
+        // Given
+        Long missionGroupId = TEST_ID;
+        MissionResponse missionResponse = MissionResponse.builder()
+                .id(10L)
+                .name("미션1")
+                .description("설명")
+                .difficulty(Difficulty.valueOf("EASY"))
+                .rewardPoint(100)
+                .rewardExp(50)
+                .order(1)
+                .build();
+        given(missionService.getMissionsByMissionGroupId(missionGroupId))
+                .willReturn(List.of(missionResponse));
+
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/{id}/missions", missionGroupId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].id").value(10L))
+                .andExpect(jsonPath("$.data[0].name").value("미션1"));
     }
 }
