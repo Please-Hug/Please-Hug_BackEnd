@@ -12,11 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
-//TODO '/api/v1/shop' -> '/api/v1/admin/shop' (관리자 권한 때문에 경로 수정해놓음)
-
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/shop")
+@RequestMapping("/api/v1/admin/shop")
 @Slf4j
 public class ProductAdminController {
 
