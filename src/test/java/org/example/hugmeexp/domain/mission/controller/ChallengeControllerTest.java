@@ -64,6 +64,6 @@ class ChallengeControllerTest {
         // invalid enum value
         mockMvc.perform(patch("/api/v1/challenges/{challengeId}", challengeId)
                         .param("newProgress", "INVALID_STATE"))
-                .andExpect(status().is(500)); // 나중에 400으로 변경해야함
+                .andExpect(status().isBadRequest());
     }
 }
