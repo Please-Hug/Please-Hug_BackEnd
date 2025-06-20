@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.service.UserService;
-import org.example.hugmeexp.global.common.response.Response;
 import org.example.hugmeexp.global.security.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
