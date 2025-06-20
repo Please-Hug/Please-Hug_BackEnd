@@ -2,13 +2,12 @@ package org.example.hugmeexp.global.infra.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.global.common.service.UserService;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.service.UserService;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.global.infra.auth.dto.request.LoginRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RegisterRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RefreshRequest;
 import org.example.hugmeexp.global.infra.auth.dto.response.*;
-import org.example.hugmeexp.global.infra.auth.exception.InvalidAccessTokenException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,7 +69,17 @@ public class AuthService
     }
 
     // 로그아웃 처리
-    public boolean logout(String accessToken) {
-        return tokenService.logout(accessToken);
+    public void logout(String accessToken) {
+        tokenService.logout(accessToken);
+    }
+
+    // 액세스 또는 리프레시 토큰 유효성 검사
+    public boolean validateToken(String token) {
+        return tokenService.validateToken(token);
+    }
+
+    // 액세스 또는 리프레시 토큰에서 username을 추출하는 메서드
+    public String getUsernameFromToken(String token) {
+        return tokenService.getUsernameFromToken(token);
     }
 }

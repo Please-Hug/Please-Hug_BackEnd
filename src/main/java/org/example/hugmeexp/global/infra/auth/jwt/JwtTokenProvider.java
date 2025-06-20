@@ -8,7 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.global.entity.enumeration.UserRole;
+import org.example.hugmeexp.domain.user.enums.UserRole;
 import org.example.hugmeexp.global.infra.auth.exception.AccessTokenStillValidException;
 import org.example.hugmeexp.global.infra.auth.exception.InvalidAccessTokenException;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,7 +76,7 @@ public class JwtTokenProvider {
                 .signWith(key)
                 .compact();
 
-        // USED_TOKEN_PREFIX + jti를 false로 설명(지금 발급한 refresh token은 사용되지 않았음을 표시)
+        // USED_TOKEN_PREFIX + jti를 false로 설정(지금 발급한 refresh token은 사용되지 않았음을 표시)
         redisTemplate.opsForValue().set(USED_TOKEN_PREFIX + jti, "false", Duration.ofMillis(refreshTokenExpiration));
         return refreshToken;
     }
@@ -182,7 +182,7 @@ public class JwtTokenProvider {
             throw new AccessTokenStillValidException();
         }
         catch (ExpiredJwtException e) {
-            // 액세스 토큰이 지났다면 pass
+            // 액세스 토큰의 유효기간이 만료되었다면 pass
         }
         catch (JwtException e) {
             // 형식 오류, 서명 오류, 위조라면 예외를 던짐

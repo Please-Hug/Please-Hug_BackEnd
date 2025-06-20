@@ -2,7 +2,7 @@ package org.example.hugmeexp.global.security;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

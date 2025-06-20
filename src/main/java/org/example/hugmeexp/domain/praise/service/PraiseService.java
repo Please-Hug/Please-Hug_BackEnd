@@ -10,13 +10,14 @@ import org.example.hugmeexp.domain.praise.mapper.PraiseMapper;
 import org.example.hugmeexp.domain.praise.repository.CommentRepository;
 import org.example.hugmeexp.domain.praise.repository.PraiseEmojiReactionRepository;
 import org.example.hugmeexp.domain.praise.repository.PraiseRepository;
-import org.example.hugmeexp.global.common.repository.UserRepository;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,7 +38,7 @@ public class PraiseService {
 
         try {
 
-            User receiverId = userRepository.findByName(praiseRequestDTO.getReceiverName()).
+            User receiverId = userRepository.findByUsername(praiseRequestDTO.getReceiverUsername()).
                     orElseThrow(() -> new UserNotFoundInPraiseException());
 
             // DTO -> Entity
@@ -55,26 +56,102 @@ public class PraiseService {
 
     }
 
-    /* 기본 - 날짜 조회 */
-    public List<PraiseResponseDTO> findByDateRange(LocalDate startDate, LocalDate endDate) {
+    /* 날짜 조회 + 나와 관련된 칭찬 조건 */
+    public List<PraiseResponseDTO> findByDateRange(LocalDate startDate, LocalDate endDate, User currentUser, boolean me) {
 
         LocalDateTime startDateTime = startDate.atStartOfDay();    // 2025-06-01 00:00:00
         LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);    // 2025-06-18 23:59:59.999
 
-        List<Praise> praiseList = praiseRepository.findByCreatedAtBetween(startDateTime, endDateTime);
+        List<Praise> praiseList;
+
+        if(me){
+            // 나와 관련된 칭찬만
+            praiseList = praiseRepository.findByDateRangeAndUser(startDateTime,endDateTime,currentUser);
+        }else {
+            // 전체 칭찬 조회
+            praiseList = praiseRepository.findByCreatedAtBetween(startDateTime, endDateTime);
+        }
+
 
         return praiseList.stream()
                 .map(praise -> {
                     long commentCount = commentRepository.countByPraise(praise);
-                    Map<String, Integer> emojiCount = praiseEmojiReactionRepository.countGroupedMapByPraise(praise);
+                    List<Object[]> counts = praiseEmojiReactionRepository.countGroupedByEmoji(praise);
+
+                    Map<String, Integer> emojiCount = counts.stream()
+                            .collect(Collectors.toMap(
+                                    row -> (String) row[0],
+                                    row -> ((Long) row[1]).intValue()
+                            ));
                     return PraiseResponseDTO.from(praise,commentCount,emojiCount);
+
                 }).collect(Collectors.toList());
     }
 
-    /* 칭찬 필터링 검색 조회 */
-//    public List<PraiseResponseDTO> searchByKeywordAndDate(LocalDate startDate, LocalDate endDate, String keyword) {
-//    }
+    /* 날짜 조회 + 나와 관련된 칭찬 조건 + keyword 조건 */
+    public List<PraiseResponseDTO> searchByKeywordAndDate(LocalDate startDate, LocalDate endDate, User currentUser, boolean me, String keyword) {
+
+        LocalDateTime startDateTime = startDate.atStartOfDay();    // 2025-06-01 00:00:00
+        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);    // 2025-06-18 23:59:59.999
+
+        List<Praise> praiseList;
+
+        if(me){
+            praiseList = praiseRepository.findByDateAndUserAndKeyword(startDateTime, endDateTime, currentUser, keyword);
+        } else{
+            praiseList = praiseRepository.findByDateAndKeyword(startDateTime,endDateTime,keyword);
+        }
+
+        return praiseList.stream()
+                .map(praise -> {
+                    long commentCount = commentRepository.countByPraise(praise);
+
+                    List<Object[]> counts = praiseEmojiReactionRepository.countGroupedByEmoji(praise);
+                    Map<String, Integer> emojiCount = counts.stream()
+                            .collect(Collectors.toMap(
+                                    row -> (String) row[0],
+                                    row -> ((Long) row[1]).intValue()
+                            ));
+
+                    return PraiseResponseDTO.from(praise,commentCount,emojiCount);
+                }).collect(Collectors.toList());
+
+    }
 
 
+    /* 칭찬 반응 좋은 칭찬글 */
+    public List<PraiseResponseDTO> findPopularPraises(LocalDate startDate, LocalDate endDate, int i) {
 
+        LocalDateTime startDateTime = startDate.atStartOfDay();    // 2025-06-01 00:00:00
+        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);    // 2025-06-18 23:59:59.999
+
+        // 해당 기간 내 칭찬글 전체 조회
+        List<Praise> praiseList = praiseRepository.findByCreatedAtBetween(startDateTime, endDateTime);
+
+        // DTO 변환 + 이모지 반응 수 기준 정렬
+        return praiseList.stream()
+                .map(praise -> {
+                    long commentCount = commentRepository.countByPraise(praise);
+
+                    // 이모지 카운트 변환 처리
+//                    Map<String, Integer> emojiCount = praiseEmojiReactionRepository.countGroupedMapByPraise(praise);
+                    List<Object[]> counts = praiseEmojiReactionRepository.countGroupedByEmoji(praise);
+                    Map<String, Integer> emojiCount = counts.stream()
+                            .collect(Collectors.toMap(
+                                    row -> (String) row[0],
+                                    row -> ((Long) row[1]).intValue()
+                            ));
+
+                    return PraiseResponseDTO.from(praise,commentCount,emojiCount);
+
+                })
+
+                // 이모지 반응 수 총합 기준 내림차순 정렬
+                .sorted(Comparator.comparingInt((PraiseResponseDTO p) ->
+                        p.getEmojiReactionCount() == null ? 0 : p.getEmojiReactionCount().values().stream().mapToInt(Integer::intValue).sum()
+                ).reversed())
+                .limit(i)
+                .collect(Collectors.toList());
+
+    }
 }

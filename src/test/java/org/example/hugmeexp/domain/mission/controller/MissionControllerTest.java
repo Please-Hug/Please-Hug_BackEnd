@@ -1,0 +1,243 @@
+package org.example.hugmeexp.domain.mission.controller;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.hugmeexp.domain.mission.dto.request.MissionRequest;
+import org.example.hugmeexp.domain.mission.dto.response.MissionResponse;
+import org.example.hugmeexp.domain.mission.enums.Difficulty;
+import org.example.hugmeexp.domain.mission.exception.MissionNotFoundException;
+import org.example.hugmeexp.domain.mission.service.MissionService;
+import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.global.common.exception.ExceptionController;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.Collections;
+
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@ExtendWith(MockitoExtension.class)
+@DisplayName("미션 컨트롤러 테스트")
+class MissionControllerTest {
+    private final String BASE_URL = "/api/v1/missions";
+    private MockMvc mockMvc;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Mock
+    private MissionService missionService;
+
+    @InjectMocks
+    private MissionController missionController;
+
+    @BeforeEach
+    void setup() {
+        mockMvc = MockMvcBuilders.standaloneSetup(missionController)
+                .setControllerAdvice(new ExceptionController())
+                .build();
+    }
+
+    @Test
+    @DisplayName("모든 미션 조회 - 성공")
+    void getAllMissions_Success() throws Exception {
+        // given
+        given(missionService.getAllMissions()).willReturn(Collections.emptyList());
+
+        // when & then
+        mockMvc.perform(get(BASE_URL))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("미션 목록을 성공적으로 가져왔습니다."))
+                .andExpect(jsonPath("$.data").isArray());
+
+        verify(missionService).getAllMissions();
+    }
+
+    @Test
+    @DisplayName("미션 생성 - 성공")
+    void createMission_Success() throws Exception {
+        // given
+        MissionRequest request = MissionRequest.builder()
+                .missionGroupId(1L)
+                .name("Test Mission")
+                .description("This is a test mission.")
+                .difficulty(Difficulty.valueOf("EASY"))
+                .rewardPoint(100)
+                .rewardExp(100)
+                .order(1)
+                .build();
+        MissionResponse response = mock(MissionResponse.class);
+        given(missionService.createMission(any())).willReturn(response);
+
+        // when & then
+        mockMvc.perform(post(BASE_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated());
+
+        verify(missionService).createMission(any());
+    }
+
+    @Test
+    @DisplayName("ID로 미션 조회 - 성공")
+    void getMissionById_Success() throws Exception {
+        // given
+        Long missionId = 1L;
+
+        MissionResponse response = MissionResponse.builder()
+                .id(missionId)
+                .build();
+        given(missionService.getMissionById(eq(missionId))).willReturn(response);
+
+        // when & then
+        mockMvc.perform(get(BASE_URL + "/{id}", missionId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("미션 1를 가져왔습니다."))
+                .andExpect(jsonPath("$.data").exists());
+
+        verify(missionService).getMissionById(eq(missionId));
+    }
+
+    @Test
+    @DisplayName("ID로 미션 조회 - 실패")
+    void getMissionById_MissionNotFound() throws Exception {
+        // given
+        Long nonExistentId = 999L;
+        given(missionService.getMissionById(nonExistentId))
+                .willThrow(new MissionNotFoundException());
+
+        // when & then
+        mockMvc.perform(get(BASE_URL + "/{id}", nonExistentId))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("미션 업데이트 - 성공")
+    void updateMission_Success() throws Exception {
+        // given
+        Long missionId = 1L;
+        MissionRequest request = MissionRequest.builder()
+                .missionGroupId(1L)
+                .name("Test Mission")
+                .description("This is a test mission.")
+                .difficulty(Difficulty.valueOf("EASY"))
+                .rewardPoint(100)
+                .rewardExp(100)
+                .order(1)
+                .build();
+        MissionResponse response = MissionResponse.builder()
+                .id(missionId)
+                .build();
+        given(missionService.updateMission(eq(missionId), any())).willReturn(response);
+
+        // when & then
+        mockMvc.perform(put(BASE_URL + "/{id}", missionId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("미션 1를 업데이트 하였습니다."))
+                .andExpect(jsonPath("$.data").exists());
+
+        verify(missionService).updateMission(eq(missionId), any());
+    }
+
+    @Test
+    @DisplayName("미션 업데이트 - 실패")
+    void updateMission_MissionNotFound() throws Exception {
+        // given
+        Long nonExistentId = 999L;
+        MissionRequest request = MissionRequest.builder()
+                .missionGroupId(1L)
+                .name("Test Mission")
+                .description("This is a test mission.")
+                .difficulty(Difficulty.valueOf("EASY"))
+                .rewardPoint(100)
+                .rewardExp(100)
+                .order(1)
+                .build();
+        given(missionService.updateMission(eq(nonExistentId), any()))
+                .willThrow(new MissionNotFoundException());
+
+        // when & then
+        mockMvc.perform(put(BASE_URL + "/{id}", nonExistentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("미션 삭제 - 성공")
+    void deleteMission_Success() throws Exception {
+        // given
+        Long missionId = 1L;
+        doNothing().when(missionService).deleteMission(missionId);
+
+        // when & then
+        mockMvc.perform(delete(BASE_URL + "/{id}", missionId))
+                .andExpect(status().isNoContent());
+
+        verify(missionService).deleteMission(missionId);
+    }
+
+    @Test
+    @DisplayName("미션 삭제 - 실패")
+    void deleteMission_MissionNotFound() throws Exception {
+        // given
+        Long nonExistentId = 999L;
+        doThrow(new MissionNotFoundException()).when(missionService).deleteMission(nonExistentId);
+
+        // when & then
+        mockMvc.perform(delete(BASE_URL + "/{id}", nonExistentId))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("미션 그룹 변경 - 성공")
+    void changeMissionGroup_Success() throws Exception {
+        // given
+        Long missionId = 1L;
+        Long groupId = 2L;
+        MissionGroupResponse group = MissionGroupResponse.builder()
+                .id(groupId)
+                .name("Test Group")
+                .build();
+        MissionResponse response = MissionResponse.builder()
+                .id(missionId)
+                .missionGroup(group)
+                .build();
+        given(missionService.changeMissionGroup(missionId, groupId)).willReturn(response);
+
+        // when & then
+        mockMvc.perform(patch(BASE_URL + "/{id}/group", missionId)
+                        .param("missionGroupId", groupId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("미션 1의 미션 그룹을 변경하였습니다."))
+                .andExpect(jsonPath("$.data").exists());
+
+        verify(missionService).changeMissionGroup(missionId, groupId);
+    }
+
+    @Test
+    @DisplayName("미션 그룹 변경 - 실패")
+    void changeMissionGroup_MissionNotFound() throws Exception {
+        // given
+        Long nonExistentId = 999L;
+        Long groupId = 2L;
+        given(missionService.changeMissionGroup(nonExistentId, groupId))
+                .willThrow(new MissionNotFoundException());
+
+        // when & then
+        mockMvc.perform(patch(BASE_URL + "/{id}/group", nonExistentId)
+                        .param("missionGroupId", groupId.toString()))
+                .andExpect(status().isNotFound());
+    }
+}

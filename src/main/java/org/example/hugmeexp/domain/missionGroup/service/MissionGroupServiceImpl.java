@@ -6,12 +6,17 @@ import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
 import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
-import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
+import org.example.hugmeexp.domain.missionGroup.entity.UserMissionGroup;
 import org.example.hugmeexp.domain.missionGroup.exception.TeacherNotFoundException;
+import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
+import org.example.hugmeexp.domain.missionGroup.exception.UserNotFoundException;
+import org.example.hugmeexp.domain.missionGroup.exception.AlreadyExistsUserMissionGroupException;
+import org.example.hugmeexp.domain.missionGroup.exception.NotExistsUserMissionGroupException;
 import org.example.hugmeexp.domain.missionGroup.mapper.MissionGroupMapper;
 import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepository;
-import org.example.hugmeexp.global.common.repository.UserRepository;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepository;
+import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MissionGroupServiceImpl implements MissionGroupService {
     private final MissionGroupRepository missionGroupRepository;
+    private final UserMissionGroupRepository userMissionGroupRepository;
     private final UserRepository userRepository;
     private final MissionGroupMapper missionGroupMapper;
     @Override
@@ -75,5 +81,41 @@ public class MissionGroupServiceImpl implements MissionGroupService {
             throw new MissionGroupNotFoundException();
         }
         missionGroupRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public void addUserToMissionGroup(Long userId, Long missionGroupId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+        MissionGroup missionGroup = missionGroupRepository.findById(missionGroupId)
+                .orElseThrow(MissionGroupNotFoundException::new);
+
+        if (userMissionGroupRepository.existsByUserAndMissionGroup(user, missionGroup)) {
+            throw new AlreadyExistsUserMissionGroupException();
+        }
+
+        var userMissionGroup = UserMissionGroup.builder()
+                .user(user)
+                .missionGroup(missionGroup)
+                .build();
+
+        userMissionGroupRepository.save(userMissionGroup);
+    }
+
+    @Override
+    @Transactional
+    public void removeUserFromMissionGroup(Long userId, Long missionGroupId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        MissionGroup missionGroup = missionGroupRepository.findById(missionGroupId)
+                .orElseThrow(MissionGroupNotFoundException::new);
+
+        UserMissionGroup userMissionGroup = userMissionGroupRepository
+                .findByUserAndMissionGroup(user, missionGroup)
+                .orElseThrow(NotExistsUserMissionGroupException::new);
+
+        userMissionGroupRepository.delete(userMissionGroup);
     }
 }
