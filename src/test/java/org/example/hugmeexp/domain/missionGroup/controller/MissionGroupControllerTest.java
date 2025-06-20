@@ -2,7 +2,9 @@ package org.example.hugmeexp.domain.missionGroup.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.hugmeexp.domain.mission.dto.response.MissionResponse;
+import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.enums.Difficulty;
+import org.example.hugmeexp.domain.mission.enums.UserMissionState;
 import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
@@ -20,8 +22,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
 import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -57,6 +69,9 @@ class MissionGroupControllerTest {
     void setup() {
         mockMvc = MockMvcBuilders.standaloneSetup(missionGroupController)
                 .setControllerAdvice(new ExceptionController())
+                .setCustomArgumentResolvers(
+                        new AuthenticationPrincipalArgumentResolver()
+                )
                 .build();
     }
 
@@ -253,7 +268,7 @@ class MissionGroupControllerTest {
 
         // When & Then
         mockMvc.perform(post(BASE_URL + "/{missionGroupId}/users/{userId}", TEST_GROUP_ID, TEST_USER_ID))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andDo(print());
 
         // missionGroupService의 addUserToMissionGroup이 정확한 인자와 함께 1번 호출되었는지 검증
@@ -327,5 +342,53 @@ class MissionGroupControllerTest {
         mockMvc.perform(delete(BASE_URL + "/{missionGroupId}/users/{userId}", TEST_GROUP_ID, TEST_USER_ID))
                 .andExpect(status().isNotFound()) // ExceptionController가 404 Not Found로 변환한다고 가정
                 .andDo(print());
+    }
+
+    @Test
+    @DisplayName("미션 그룹 도전 목록 조회 – 성공")
+    void getMissionGroupChallenges_Success() throws Exception {
+        // given
+        String username = "testUser";
+        Long missionGroupId = TEST_GROUP_ID;
+        UserMissionResponse challenge = UserMissionResponse.builder()
+                .id(42L)
+                .progress(UserMissionState.COMPLETED)
+                .build();
+
+        given(missionGroupService
+                .findUserMissionByUsernameAndMissionGroup(username, missionGroupId))
+                .willReturn(List.of(challenge));
+
+        // UserDetails + Authentication 준비
+        UserDetails userDetails = User.withUsername(username)
+                .password("dummy")
+                .authorities(new SimpleGrantedAuthority("ROLE_USER"))
+                .build();
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails, userDetails.getPassword(), userDetails.getAuthorities());
+
+        // ★ 여기가 포인트! SecurityContextHolder 에 강제로 넣어준다.
+        SecurityContext ctx = new SecurityContextImpl();
+        ctx.setAuthentication(auth);
+        SecurityContextHolder.setContext(ctx);
+
+        // when & then
+        mockMvc.perform(get(BASE_URL + "/{missionGroupId}/challenges", missionGroupId)
+                        // .principal(auth) 도 여전히 넣어줘도 무방합니다.
+                        .principal(auth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value(
+                        "사용자 " + username +
+                                "의 미션 그룹 " + missionGroupId +
+                                " 도전 목록을 가져왔습니다."))
+                .andExpect(jsonPath("$.data[0].id").value(42))
+                .andExpect(jsonPath("$.data[0].progress").value("COMPLETED"))
+                .andDo(print());
+
+        verify(missionGroupService)
+                .findUserMissionByUsernameAndMissionGroup(username, missionGroupId);
+
+        // 테스트 후 정리
+        SecurityContextHolder.clearContext();
     }
 }
