@@ -3,15 +3,13 @@ package org.example.hugmeexp.domain.missionGroup.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.example.hugmeexp.domain.mission.entity.UserMission;
+import org.example.hugmeexp.domain.mission.repository.UserMissionRepository;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
 import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
 import org.example.hugmeexp.domain.missionGroup.entity.UserMissionGroup;
-import org.example.hugmeexp.domain.missionGroup.exception.TeacherNotFoundException;
-import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
-import org.example.hugmeexp.domain.missionGroup.exception.UserNotFoundException;
-import org.example.hugmeexp.domain.missionGroup.exception.AlreadyExistsUserMissionGroupException;
-import org.example.hugmeexp.domain.missionGroup.exception.NotExistsUserMissionGroupException;
+import org.example.hugmeexp.domain.missionGroup.exception.*;
 import org.example.hugmeexp.domain.missionGroup.mapper.MissionGroupMapper;
 import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepository;
 import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepository;
@@ -27,7 +25,9 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     private final MissionGroupRepository missionGroupRepository;
     private final UserMissionGroupRepository userMissionGroupRepository;
     private final UserRepository userRepository;
+    private final UserMissionRepository userMissionRepository;
     private final MissionGroupMapper missionGroupMapper;
+
     @Override
     public List<MissionGroupResponse> getAllMissionGroups() {
         return missionGroupRepository.findAll()
@@ -117,5 +117,19 @@ public class MissionGroupServiceImpl implements MissionGroupService {
                 .orElseThrow(NotExistsUserMissionGroupException::new);
 
         userMissionGroupRepository.delete(userMissionGroup);
+    }
+
+    @Override
+    public List<UserMission> findUserMissionByUsernameAndMissionGroup(String username, Long missionGroupId) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(UserNotFoundException::new);
+
+        MissionGroup missionGroup = missionGroupRepository.findById(missionGroupId)
+                .orElseThrow(MissionGroupNotFoundException::new);
+
+        UserMissionGroup userMissionGroup = userMissionGroupRepository.findByUserAndMissionGroup(user, missionGroup)
+                .orElseThrow(UserMissionGroupNotFoundException::new);
+
+        return userMissionRepository.findByUserAndUserMissionGroup(user, userMissionGroup);
     }
 }

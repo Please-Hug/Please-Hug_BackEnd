@@ -5,21 +5,34 @@ import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.mission.dto.request.MissionRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionResponse;
 import org.example.hugmeexp.domain.mission.entity.Mission;
+import org.example.hugmeexp.domain.mission.entity.UserMission;
+import org.example.hugmeexp.domain.mission.enums.UserMissionState;
 import org.example.hugmeexp.domain.mission.exception.MissionNotFoundException;
+import org.example.hugmeexp.domain.mission.exception.UserMissionNotFoundException;
 import org.example.hugmeexp.domain.mission.mapper.MissionMapper;
 import org.example.hugmeexp.domain.mission.repository.MissionRepository;
+import org.example.hugmeexp.domain.mission.repository.UserMissionRepository;
 import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
+import org.example.hugmeexp.domain.missionGroup.entity.UserMissionGroup;
 import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
 import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepository;
+import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepository;
+import org.example.hugmeexp.domain.user.entity.User;
+import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import org.example.hugmeexp.domain.missionGroup.exception.UserNotFoundException;
+import org.example.hugmeexp.domain.missionGroup.exception.UserMissionGroupNotFoundException;
 
 @Service
 @RequiredArgsConstructor
 public class MissionServiceImpl implements MissionService {
     private final MissionRepository missionRepository;
     private final MissionGroupRepository missionGroupRepository;
+    private final UserMissionRepository userMissionRepository;
+    private final UserMissionGroupRepository userMissionGroupRepository;
+    private final UserRepository userRepository;
     private final MissionMapper missionMapper;
 
     @Override
@@ -108,5 +121,42 @@ public class MissionServiceImpl implements MissionService {
         return missions.stream()
                 .map(missionMapper::toMissionResponse)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public UserMission challengeMission(String username, Long missionId) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(UserNotFoundException::new);
+
+        Mission mission = missionRepository.findById(missionId)
+                .orElseThrow(MissionNotFoundException::new);
+
+        MissionGroup missionGroup = mission.getMissionGroup();
+
+        UserMissionGroup userMissionGroup = userMissionGroupRepository.findByUserAndMissionGroup(user, missionGroup)
+                .orElseThrow(UserMissionGroupNotFoundException::new);
+
+        UserMission userMission = UserMission.builder()
+                .user(user)
+                .mission(mission)
+                .userMissionGroup(userMissionGroup)
+                .progress(UserMissionState.NOT_STARTED)
+                .build();
+
+        return userMissionRepository.save(userMission);
+    }
+
+    @Override
+    @Transactional
+    public void changeUserMissionState(Long userMissionId, UserMissionState newProgress) {
+        UserMission userMission = userMissionRepository.findById(userMissionId)
+                .orElseThrow(UserMissionNotFoundException::new);
+
+        userMission = userMission.toBuilder()
+                .progress(newProgress)
+                .build();
+
+        userMissionRepository.save(userMission);
     }
 }
