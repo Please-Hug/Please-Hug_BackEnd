@@ -2,7 +2,9 @@ package org.example.hugmeexp.domain.missionGroup.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.hugmeexp.domain.mission.dto.response.MissionResponse;
+import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.enums.Difficulty;
+import org.example.hugmeexp.domain.mission.enums.UserMissionState;
 import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
@@ -11,6 +13,7 @@ import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundEx
 import org.example.hugmeexp.domain.missionGroup.exception.NotExistsUserMissionGroupException;
 import org.example.hugmeexp.domain.missionGroup.exception.UserNotFoundException;
 import org.example.hugmeexp.domain.missionGroup.service.MissionGroupService;
+import org.example.hugmeexp.domain.user.dto.response.UserSimpleResponse;
 import org.example.hugmeexp.global.common.exception.ExceptionController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,8 +23,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
 import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -57,6 +70,9 @@ class MissionGroupControllerTest {
     void setup() {
         mockMvc = MockMvcBuilders.standaloneSetup(missionGroupController)
                 .setControllerAdvice(new ExceptionController())
+                .setCustomArgumentResolvers(
+                        new AuthenticationPrincipalArgumentResolver()
+                )
                 .build();
     }
 
@@ -64,11 +80,14 @@ class MissionGroupControllerTest {
     @DisplayName("모든 미션 그룹 조회 - 성공")
     void getAllMissionGroups_ShouldReturnList() throws Exception {
         // Given
+        UserSimpleResponse teacher = new UserSimpleResponse(
+                "teacher1", "Teacher One", "");
+
         MissionGroupResponse missionGroupResponse = MissionGroupResponse
                 .builder()
                 .id(TEST_ID)
                 .name("Test Group")
-                .teacherUsername("teacher1")
+                .teacher(teacher)
                 .build();
         given(missionGroupService.getAllMissionGroups())
                 .willReturn(List.of(missionGroupResponse));
@@ -82,6 +101,9 @@ class MissionGroupControllerTest {
     @Test
     @DisplayName("미션 그룹 생성 - 성공")
     void createMissionGroup_ShouldReturnCreated() throws Exception {
+        UserSimpleResponse teacher = new UserSimpleResponse(
+                "teacher1", "Teacher One", "");
+
         // Given
         MissionGroupRequest request = MissionGroupRequest
                 .builder()
@@ -92,7 +114,7 @@ class MissionGroupControllerTest {
                 .builder()
                 .id(TEST_ID)
                 .name("New Group")
-                .teacherUsername("teacher1")
+                .teacher(teacher)
                 .build();
 
         given(missionGroupService.createMissionGroup(request))
@@ -109,12 +131,15 @@ class MissionGroupControllerTest {
     @Test
     @DisplayName("ID로 미션 그룹 조회 - 성공")
     void getMissionGroupById_ShouldReturnOk() throws Exception {
+        UserSimpleResponse teacher = new UserSimpleResponse(
+                "teacher1", "Teacher One", "");
+
         // Given
         MissionGroupResponse response = MissionGroupResponse
                 .builder()
                 .id(TEST_ID)
                 .name("Test Group")
-                .teacherUsername("teacher1")
+                .teacher(teacher)
                 .build();
         given(missionGroupService.getMissionById(TEST_ID))
                 .willReturn(response);
@@ -146,6 +171,8 @@ class MissionGroupControllerTest {
     @Test
     @DisplayName("미션 그룹 수정 - 성공")
     void updateMissionGroup_ShouldReturnOk() throws Exception {
+        UserSimpleResponse teacher = new UserSimpleResponse(
+                "teacher2", "Teacher One", "");
         // Given
         MissionGroupRequest request = MissionGroupRequest
                 .builder()
@@ -156,7 +183,7 @@ class MissionGroupControllerTest {
                 .builder()
                 .id(TEST_ID)
                 .name("Updated Group")
-                .teacherUsername("teacher2")
+                .teacher(teacher)
                 .build();
 
         given(missionGroupService.updateMissionGroup(eq(TEST_ID), any(MissionGroupRequest.class)))
@@ -169,7 +196,7 @@ class MissionGroupControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(TEST_ID))
                 .andExpect(jsonPath("$.data.name").value("Updated Group"))
-                .andExpect(jsonPath("$.data.teacherUsername").value("teacher2"));
+                .andExpect(jsonPath("$.data.teacher.username").value("teacher2"));
     }
 
     @Test
@@ -253,7 +280,7 @@ class MissionGroupControllerTest {
 
         // When & Then
         mockMvc.perform(post(BASE_URL + "/{missionGroupId}/users/{userId}", TEST_GROUP_ID, TEST_USER_ID))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andDo(print());
 
         // missionGroupService의 addUserToMissionGroup이 정확한 인자와 함께 1번 호출되었는지 검증
@@ -327,5 +354,51 @@ class MissionGroupControllerTest {
         mockMvc.perform(delete(BASE_URL + "/{missionGroupId}/users/{userId}", TEST_GROUP_ID, TEST_USER_ID))
                 .andExpect(status().isNotFound()) // ExceptionController가 404 Not Found로 변환한다고 가정
                 .andDo(print());
+    }
+
+    @Test
+    @DisplayName("미션 그룹 도전 목록 조회 – 성공")
+    void getMissionGroupChallenges_Success() throws Exception {
+        // given
+        String username = "testUser";
+        Long missionGroupId = TEST_GROUP_ID;
+        UserMissionResponse challenge = UserMissionResponse.builder()
+                .id(42L)
+                .progress(UserMissionState.COMPLETED)
+                .build();
+
+        given(missionGroupService
+                .findUserMissionByUsernameAndMissionGroup(username, missionGroupId))
+                .willReturn(List.of(challenge));
+
+
+        UserDetails userDetails = User.withUsername(username)
+                .password("dummy")
+                .authorities(new SimpleGrantedAuthority("ROLE_USER"))
+                .build();
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails, userDetails.getPassword(), userDetails.getAuthorities());
+
+        SecurityContext ctx = new SecurityContextImpl();
+        ctx.setAuthentication(auth);
+        SecurityContextHolder.setContext(ctx);
+
+        // when & then
+        mockMvc.perform(get(BASE_URL + "/{missionGroupId}/challenges", missionGroupId)
+                        .principal(auth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value(
+                        "사용자 " + username +
+                                "의 미션 그룹 " + missionGroupId +
+                                " 도전 목록을 가져왔습니다."))
+                .andExpect(jsonPath("$.data[0].id").value(42))
+                .andExpect(jsonPath("$.data[0].progress").value("COMPLETED"))
+                .andDo(print());
+
+        verify(missionGroupService)
+                .findUserMissionByUsernameAndMissionGroup(username, missionGroupId);
+
+        // 테스트 후 정리
+        SecurityContextHolder.clearContext();
     }
 }

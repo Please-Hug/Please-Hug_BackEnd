@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -82,6 +83,17 @@ public class ExceptionController {
                 .body(ErrorResponse.builder()
                         .code(400)
                         .message("RequestParam이 누락되었습니다.")
+                        .build());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException exception){
+        log.warn("Method Argument Type Mismatch Exception : {}\n", exception.getMessage());
+
+        return ResponseEntity.badRequest()
+                .body(ErrorResponse.builder()
+                        .code(400)
+                        .message("요청 파라미터 값이 올바르지 않습니다.")
                         .build());
     }
 
