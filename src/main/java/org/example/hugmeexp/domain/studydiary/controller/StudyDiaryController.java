@@ -5,12 +5,12 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryCreateRequest;
+import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryUpdateRequest;
+import org.example.hugmeexp.domain.studydiary.dto.request.CommentCreateRequest;
 import org.example.hugmeexp.domain.studydiary.service.StudyDiaryService;
 import org.example.hugmeexp.global.common.response.Response;
-import org.example.hugmeexp.global.entity.User;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -24,133 +24,179 @@ public class StudyDiaryController {
 
     @Operation(summary = "배움일기 목록 조회")
     @GetMapping
-    public Response.ResponseBuilder<Object> getStudyDiaries(
+    public ResponseEntity<Response<Object>> getStudyDiaries(
             @RequestParam(required = false) String sort,
-            //page처리를 위한 spring 제공 객체
-            @PageableDefault(page = 1,size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            Pageable pageable) {
         
-        try {
-            Object studyDiaries = studyDiaryService.getStudyDiaries(sort, pageable);
-            return Response.builder()
-                    .message("배움일기 목록을 성공적으로 조회했습니다.")
-                    .data(studyDiaries);
-        } catch (Exception e) {
-            // 잘못된 정렬 필드나 기타 예외 처리
-            return Response.builder()
-                    .message("잘못된 요청입니다.")
-                    .data(null);
-        }
+        Object studyDiaries = studyDiaryService.getStudyDiaries(sort, pageable);
+        return ResponseEntity.ok(Response.<Object>builder()
+                .message("배움일기 목록을 성공적으로 조회했습니다.")
+                .data(studyDiaries)
+                .build());
     }
 
     @Operation(summary = "배움일기 검색")
     @GetMapping("/search")
-    public Response.ResponseBuilder<Object> searchStudyDiaries(
+    public ResponseEntity<Response<Object>> searchStudyDiaries(
             @RequestParam String keyword,
             Pageable pageable) {
         
         Object searchResults = studyDiaryService.searchStudyDiaries(keyword, pageable);
-        return Response.builder()
+        return ResponseEntity.ok(Response.<Object>builder()
                 .message("검색을 성공적으로 완료했습니다.")
-                .data(searchResults);
+                .data(searchResults)
+                .build());
     }
 
     @Operation(summary = "배움일기 상세 조회")
     @GetMapping("/{id}")
-    public Response.ResponseBuilder<Object> getStudyDiary(@PathVariable Long id) {
+    public ResponseEntity<Response<Object>> getStudyDiary(@PathVariable Long id) {
         
         Object studyDiary = studyDiaryService.getStudyDiary(id);
-        return Response.builder()
+        return ResponseEntity.ok(Response.<Object>builder()
                 .message("배움일기를 성공적으로 조회했습니다.")
-                .data(studyDiary);
+                .data(studyDiary)
+                .build());
     }
 
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "사용자 배움일기 목록 조회")
     @GetMapping("/user/{user-id}")
-    public Response.ResponseBuilder<Object> getUserStudyDiaries(
+    public ResponseEntity<Response<Object>> getUserStudyDiaries(
             @PathVariable("user-id") Long userId,
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal UserDetails userDetails,
             Pageable pageable) {
         
         Object userStudyDiaries = studyDiaryService.getUserStudyDiaries(userId, pageable);
-        return Response.builder()
+        return ResponseEntity.ok(Response.<Object>builder()
                 .message("사용자 배움일기 목록을 성공적으로 조회했습니다.")
-                .data(userStudyDiaries);
+                .data(userStudyDiaries)
+                .build());
     }
 
-    @Operation(summary = "비슷한 배움일기 추천")
-    @GetMapping("/{id}/similar")
-    public Response.ResponseBuilder<Object> getSimilarStudyDiaries(@PathVariable Long id) {
-        
-        Object similarStudyDiaries = studyDiaryService.getSimilarStudyDiaries(id);
-        return Response.builder()
-                .message("비슷한 배움일기를 성공적으로 조회했습니다.")
-                .data(similarStudyDiaries);
-    }
+//    @Operation(summary = "비슷한 배움일기 추천")
+//    @GetMapping("/{id}/similar")
+//    public ResponseEntity<Response<Object>> getSimilarStudyDiaries(@PathVariable Long id) {
+//
+//        Object similarStudyDiaries = studyDiaryService.getSimilarStudyDiaries(id);
+//        return ResponseEntity.ok(Response.<Object>builder()
+//                .message("비슷한 배움일기를 성공적으로 조회했습니다.")
+//                .data(similarStudyDiaries)
+//                .build());
+//    }
 
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "배움일기 생성")
     @PostMapping
-    public Response.ResponseBuilder<Object> createStudyDiary(
+    public ResponseEntity<Response<Object>> createStudyDiary(
             @Valid @RequestBody StudyDiaryCreateRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         
         Long studyDiaryId = studyDiaryService.createStudyDiary(request, userDetails);
-        return Response.builder()
+        return ResponseEntity.ok(Response.<Object>builder()
                 .message("성공적으로 생성되었습니다.")
-                .data(studyDiaryId);
+                .data(studyDiaryId)
+                .build());
+    }
+
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "배움일기 수정")
+    @PutMapping("/{id}")
+    public ResponseEntity<Response<Object>> updateStudyDiary(
+            @PathVariable Long id,
+            @Valid @RequestBody StudyDiaryUpdateRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        Long updatedStudyDiaryId = studyDiaryService.updateStudyDiary(id, request, userDetails);
+        return ResponseEntity.ok(Response.<Object>builder()
+                .message("성공적으로 수정되었습니다.")
+                .data(updatedStudyDiaryId)
+                .build());
+    }
+
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "배움일기 삭제")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Response<Object>> deleteStudyDiary(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        studyDiaryService.deleteStudyDiary(id, userDetails);
+        return ResponseEntity.ok(Response.<Object>builder()
+                .message("성공적으로 삭제되었습니다.")
+                .data(null)
+                .build());
     }
 
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "배움일기 임시 저장")
     @PostMapping("/draft")
-    public Response.ResponseBuilder<Object> saveDraft(
+    public ResponseEntity<Response<Object>> saveDraft(
             @Valid @RequestBody StudyDiaryCreateRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         
-        Long draftId = studyDiaryService.saveDraft(request, userDetail);
-        return Response.builder()
+        Long draftId = studyDiaryService.saveDraft(request, userDetails);
+        return ResponseEntity.ok(Response.<Object>builder()
                 .message("성공적으로 임시 저장되었습니다.")
-                .data(draftId);
+                .data(draftId)
+                .build());
     }
 
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "이번 주 작성 상태 조회")
     @GetMapping("/user/{user-id}/week-status")
-    public Response.ResponseBuilder<Object> getWeekStatus(
+    public ResponseEntity<Response<Object>> getWeekStatus(
             @PathVariable("user-id") Long userId,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal UserDetails userDetails) {
         
         Object weekStatus = studyDiaryService.getWeekStatus(userId);
-        return Response.builder()
+        return ResponseEntity.ok(Response.<Object>builder()
                 .message("이번 주 작성 상태를 성공적으로 조회했습니다.")
-                .data(weekStatus);
+                .data(weekStatus)
+                .build());
     }
 
-    @SecurityRequirement(name = "JWT")
-    @Operation(summary = "배움일기 내보내기")
-    @GetMapping("/user/{user-id}/export")
-    public Response.ResponseBuilder<Object> exportStudyDiaries(
-            @PathVariable("user-id") Long userId,
-            @AuthenticationPrincipal User user) {
-        
-        Object exportData = studyDiaryService.exportStudyDiaries(userId);
-        return Response.builder()
-                .message("배움일기를 성공적으로 내보냈습니다.")
-                .data(exportData);
-    }
+//    @SecurityRequirement(name = "JWT")
+//    @Operation(summary = "배움일기 내보내기")
+//    @GetMapping("/user/{user-id}/export")
+//    public ResponseEntity<Response<Object>> exportStudyDiaries(
+//            @PathVariable("user-id") Long userId,
+//            @AuthenticationPrincipal UserDetails userDetails) {
+//
+//        Object exportData = studyDiaryService.exportStudyDiaries(userId);
+//        return ResponseEntity.ok(Response.<Object>builder()
+//                .message("배움일기를 성공적으로 내보냈습니다.")
+//                .data(exportData)
+//                .build());
+//    }
 
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "댓글 등록")
     @PostMapping("/{id}/comments")
-    public Response.ResponseBuilder<Object> createComment(
+    public ResponseEntity<Response<Object>> createComment(
             @PathVariable Long id,
             @Valid @RequestBody CommentCreateRequest request,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal UserDetails userDetails) {
         
-        Long commentId = studyDiaryService.createComment(id, request, user);
-        return Response.builder()
+        Long commentId = studyDiaryService.createComment(id, request, userDetails);
+        return ResponseEntity.ok(Response.<Object>builder()
                 .message("댓글이 성공적으로 등록되었습니다.")
-                .data(commentId);
+                .data(commentId)
+                .build());
+    }
+
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "댓글 삭제")
+    @DeleteMapping("/{id}/comments/{commentId}")
+    public ResponseEntity<Response<Object>> deleteComment(
+            @PathVariable Long id,
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        studyDiaryService.deleteComment(id, commentId, userDetails);
+        return ResponseEntity.ok(Response.<Object>builder()
+                .message("댓글이 성공적으로 삭제되었습니다.")
+                .data(null)
+                .build());
     }
 }

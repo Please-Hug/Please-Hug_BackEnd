@@ -2,7 +2,6 @@ package org.example.hugmeexp.domain.studydiary.repository;
 
 import org.example.hugmeexp.domain.studydiary.entity.StudyDiary;
 import org.example.hugmeexp.domain.studydiary.entity.StudyDiaryLike;
-import org.example.hugmeexp.global.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

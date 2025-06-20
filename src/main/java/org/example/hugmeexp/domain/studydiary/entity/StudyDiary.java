@@ -2,15 +2,16 @@ package org.example.hugmeexp.domain.studydiary.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.global.entity.BaseEntity;
-import org.example.hugmeexp.global.entity.User;
 
 import java.util.List;
 
 @Getter
 @Entity
 @Builder
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class StudyDiary extends BaseEntity {
 
     @Id
@@ -22,7 +23,7 @@ public class StudyDiary extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany(mappedBy = "studydiary", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "studyDiary", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StudyDiaryComment> comments;
 
     private String title;
@@ -31,5 +32,14 @@ public class StudyDiary extends BaseEntity {
 
     private boolean isCreated;
 
-    private int like;
+    private int likeCount;
+
+    // 수정 메소드들 (더티 체킹 활용)
+    public void updateTitle(String title) {
+        this.title = title;
+    }
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }

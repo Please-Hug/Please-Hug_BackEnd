@@ -1,17 +1,16 @@
 package org.example.hugmeexp.domain.studydiary.entity;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.global.entity.BaseEntity;
-import org.example.hugmeexp.global.entity.User;
 
 
 @Getter
 @Entity
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Builder
-@RequiredArgsConstructor
 public class StudyDiaryComment extends BaseEntity {
 
     @Id
