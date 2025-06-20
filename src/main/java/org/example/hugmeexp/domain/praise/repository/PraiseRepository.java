@@ -1,6 +1,5 @@
 package org.example.hugmeexp.domain.praise.repository;
 
-import org.example.hugmeexp.domain.praise.dto.PraiseResponseDTO;
 import org.example.hugmeexp.domain.praise.entity.Praise;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.function.Function;
 
 @Repository
 public interface PraiseRepository extends JpaRepository<Praise, Long> {
@@ -36,4 +34,10 @@ public interface PraiseRepository extends JpaRepository<Praise, Long> {
             "AND (p.sender.name LIKE %:keyword% OR p.receiver.name LIKE %:keyword%)")
     List<Praise> findByDateAndKeyword(LocalDateTime startDateTime, LocalDateTime endDateTime, String keyword);
 
+    /* 칭찬 칭찬 비율(한달동안 받은 칭찬 종류 count) */
+    @Query("SELECT p.praiseType, COUNT(p) FROM Praise p "+
+            "WHERE p.receiver.id = :userId "+
+            "AND p.createdAt BETWEEN :startDateTime AND :endDateTime "+
+            "GROUP BY p.praiseType")
+    List<Object[]> countPraiseTypeByUserInMonth(Long userId, LocalDateTime startDateTime, LocalDateTime endDateTime);
 }
