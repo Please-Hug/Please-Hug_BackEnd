@@ -14,7 +14,10 @@ public class ProductResponse {
     private Long id;
     private String name;
     private String brand;
-    private String quantity;
-    private String price;
+    private int quantity;
+    private int price;
     private String imageUrl;
+
+    // 로그인 사용자가 구매 가능한 상품인지
+    private boolean available = false;
 }
