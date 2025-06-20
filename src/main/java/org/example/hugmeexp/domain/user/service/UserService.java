@@ -149,7 +149,6 @@ public class UserService {
         log.info("Profile image deleted successfully - user: {} ({}) / image path: {}", findUser.getUsername(), findUser.getName(), imagePath);
     }
 
-
     // username을 바탕으로 삭제
     @Transactional
     public void deleteByUsername(String username){

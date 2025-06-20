@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.hugmeexp.domain.user.service.UserService;
 import org.example.hugmeexp.global.infra.auth.dto.request.LoginRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RegisterRequest;
+import org.example.hugmeexp.global.infra.auth.service.CredentialService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,6 +44,9 @@ class LoginControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
+    private CredentialService credentialService;
+
+    @Autowired
     private UserService userService;
 
     @BeforeEach
@@ -53,7 +57,7 @@ class LoginControllerTest {
         request.setName("홍길동");
         request.setPhoneNumber("010-1234-5678");
 
-        userService.registerNewUser(request);
+        credentialService.registerNewUser(request);
     }
 
     @AfterEach
@@ -100,7 +104,6 @@ class LoginControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("아이디 또는 비밀번호가 잘못되었습니다."));
     }
-
 
     @Test
     @DisplayName("틀린 비밀번호를 입력하면 실패한다.")

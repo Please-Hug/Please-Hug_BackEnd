@@ -146,6 +146,7 @@ public class User extends BaseEntity {
         return this.profileImage != null;
     }
 
+    // ProfileImage 연관관계를 끝는 메서드
     public void deleteProfileImage() {
         this.profileImage = null;
     }
