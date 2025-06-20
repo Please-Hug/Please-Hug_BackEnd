@@ -8,6 +8,7 @@ import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.entity.Mission;
 import org.example.hugmeexp.domain.mission.entity.UserMission;
 import org.example.hugmeexp.domain.mission.enums.UserMissionState;
+import org.example.hugmeexp.domain.mission.exception.AlreadyExistsUserMissionException;
 import org.example.hugmeexp.domain.mission.exception.MissionNotFoundException;
 import org.example.hugmeexp.domain.mission.exception.UserMissionNotFoundException;
 import org.example.hugmeexp.domain.mission.mapper.MissionMapper;
@@ -134,6 +135,10 @@ public class MissionServiceImpl implements MissionService {
 
         Mission mission = missionRepository.findById(missionId)
                 .orElseThrow(MissionNotFoundException::new);
+
+        if (userMissionRepository.existsUserMissionByUserAndMission(user, mission)) {
+            throw new AlreadyExistsUserMissionException();
+        }
 
         MissionGroup missionGroup = mission.getMissionGroup();
 
