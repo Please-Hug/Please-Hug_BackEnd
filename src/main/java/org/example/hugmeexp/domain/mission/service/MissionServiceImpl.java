@@ -161,9 +161,7 @@ public class MissionServiceImpl implements MissionService {
         UserMission userMission = userMissionRepository.findById(userMissionId)
                 .orElseThrow(UserMissionNotFoundException::new);
 
-        userMission = userMission.toBuilder()
-                .progress(newProgress)
-                .build();
+        userMission.setProgress(newProgress);
 
         userMissionRepository.save(userMission);
     }
