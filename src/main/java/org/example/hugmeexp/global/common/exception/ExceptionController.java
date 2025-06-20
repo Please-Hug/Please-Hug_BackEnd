@@ -12,9 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.servlet.NoHandlerFoundException;
-import org.springframework.http.HttpStatus;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -88,15 +86,14 @@ public class ExceptionController {
                         .build());
     }
 
-    // 404 에러 처리 추가
-    @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(NoHandlerFoundException exception) {
-        log.warn("No Handler Found Exception: {}\n", exception.getMessage());
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException exception){
+        log.warn("Method Argument Type Mismatch Exception : {}\n", exception.getMessage());
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        return ResponseEntity.badRequest()
                 .body(ErrorResponse.builder()
-                        .code(404)
-                        .message("요청한 리소스를 찾을 수 없습니다.")
+                        .code(400)
+                        .message("요청 파라미터 값이 올바르지 않습니다.")
                         .build());
     }
 
@@ -114,5 +111,4 @@ public class ExceptionController {
                         .message("일시적으로 접속이 원활하지 않습니다.")
                         .build());
     }
-
 }

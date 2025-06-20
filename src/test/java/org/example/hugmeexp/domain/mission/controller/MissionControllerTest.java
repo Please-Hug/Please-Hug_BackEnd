@@ -3,7 +3,9 @@ package org.example.hugmeexp.domain.mission.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.hugmeexp.domain.mission.dto.request.MissionRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionResponse;
+import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.enums.Difficulty;
+import org.example.hugmeexp.domain.mission.enums.UserMissionState;
 import org.example.hugmeexp.domain.mission.exception.MissionNotFoundException;
 import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
@@ -16,6 +18,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -44,6 +55,7 @@ class MissionControllerTest {
     void setup() {
         mockMvc = MockMvcBuilders.standaloneSetup(missionController)
                 .setControllerAdvice(new ExceptionController())
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .build();
     }
 
@@ -239,5 +251,57 @@ class MissionControllerTest {
         mockMvc.perform(patch(BASE_URL + "/{id}/group", nonExistentId)
                         .param("missionGroupId", groupId.toString()))
                 .andExpect(status().isNotFound());
+    }
+
+
+    @Test
+    @DisplayName("미션 도전 - 성공 (201)")
+    void challengeMission_Success() throws Exception {
+        // given
+        String username = "testUser";
+        Long missionId = 42L;
+
+        // Service 가 리턴해 줄 DTO
+        UserMissionResponse serviceResponse = UserMissionResponse.builder()
+                .id(99L)
+                .progress(UserMissionState.NOT_STARTED)
+                .build();
+
+        given(missionService.challengeMission(username, missionId))
+                .willReturn(serviceResponse);
+
+        // UserDetails + Authentication 준비
+        UserDetails userDetails = User.withUsername(username)
+                .password("dummy")
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
+                .build();
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                userDetails.getPassword(),
+                userDetails.getAuthorities()
+        );
+
+        // SecurityContextHolder 에도 넣어줘야 @AuthenticationPrincipal 바인딩이 된다.
+        SecurityContext ctx = new SecurityContextImpl();
+        ctx.setAuthentication(auth);
+        SecurityContextHolder.setContext(ctx);
+
+        // when & then
+        mockMvc.perform(post(BASE_URL + "/{id}/challenges", missionId)
+                        .principal(auth)       // request.getUserPrincipal()에도 담아두고
+                        .contentType("application/json"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.message")
+                        .value("미션 " + missionId + "에 도전하였습니다."))
+                .andExpect(jsonPath("$.data.id").value(99))
+                .andExpect(jsonPath("$.data.progress")
+                        .value(UserMissionState.NOT_STARTED.name()));
+
+        // Service 호출 검증
+        verify(missionService).challengeMission(username, missionId);
+
+        // 테스트 끝난 뒤에는 Context 초기화
+        SecurityContextHolder.clearContext();
     }
 }

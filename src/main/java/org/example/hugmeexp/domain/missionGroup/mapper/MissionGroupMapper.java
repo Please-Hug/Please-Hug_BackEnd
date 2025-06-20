@@ -8,7 +8,6 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface MissionGroupMapper {
-    @Mapping(target = "teacherUsername", source = "missionGroup.teacher.username")
     MissionGroupResponse toMissionGroupResponse(MissionGroup missionGroup);
     @Mapping(target = "id", ignore = true)
     MissionGroup toEntity(MissionGroupRequest missionGroup);
