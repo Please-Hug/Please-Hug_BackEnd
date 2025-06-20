@@ -359,7 +359,7 @@ class MissionGroupControllerTest {
                 .findUserMissionByUsernameAndMissionGroup(username, missionGroupId))
                 .willReturn(List.of(challenge));
 
-        // UserDetails + Authentication 준비
+
         UserDetails userDetails = User.withUsername(username)
                 .password("dummy")
                 .authorities(new SimpleGrantedAuthority("ROLE_USER"))
@@ -367,14 +367,12 @@ class MissionGroupControllerTest {
         Authentication auth = new UsernamePasswordAuthenticationToken(
                 userDetails, userDetails.getPassword(), userDetails.getAuthorities());
 
-        // ★ 여기가 포인트! SecurityContextHolder 에 강제로 넣어준다.
         SecurityContext ctx = new SecurityContextImpl();
         ctx.setAuthentication(auth);
         SecurityContextHolder.setContext(ctx);
 
         // when & then
         mockMvc.perform(get(BASE_URL + "/{missionGroupId}/challenges", missionGroupId)
-                        // .principal(auth) 도 여전히 넣어줘도 무방합니다.
                         .principal(auth))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value(
