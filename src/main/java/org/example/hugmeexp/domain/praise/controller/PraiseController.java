@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.praise.dto.PraiseRequestDTO;
 import org.example.hugmeexp.domain.praise.dto.PraiseResponseDTO;
+import org.example.hugmeexp.domain.praise.dto.PraiseSearchRequestDTO;
 import org.example.hugmeexp.domain.praise.service.PraiseService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.example.hugmeexp.domain.user.entity.User;
@@ -60,11 +61,13 @@ public class PraiseController {
     @Operation(summary = "날짜 기준 칭찬 게시물 조회", description = "날짜, 로그인 유저 여부(me), 키워드(keyword)로 칭찬을 조회합니다")
     @GetMapping("/search")
     public ResponseEntity<Response<List<PraiseResponseDTO>>> getDatePraises(
-            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate startDate,
-            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate endDate,
-            @RequestParam(name = "me", required = false)boolean me,
-            @RequestParam(name = "keyword",required = false) String keyword,
+            @ModelAttribute PraiseSearchRequestDTO praiseSearchRequestDTO,
             @AuthenticationPrincipal CustomUserDetails userDetails){
+
+        LocalDate startDate = praiseSearchRequestDTO.getStartDate();
+        LocalDate endDate = praiseSearchRequestDTO.getEndDate();
+        boolean me = praiseSearchRequestDTO.isMe();
+        String keyword = praiseSearchRequestDTO.getKeyword();
 
         log.info("Received praise search request: startDate={}, endDate={}", startDate, endDate);
 
@@ -129,7 +132,7 @@ public class PraiseController {
     }
 
 
-    /* 칭찬 칭찬 비율 */
+    /* 칭찬 칭찬 비율(한달동안 받은 칭찬 종류 각각 비율) */
     /* 칭찬 최근 칭찬 유저 */
 
 }
