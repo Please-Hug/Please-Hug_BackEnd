@@ -5,12 +5,14 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.user.enums.UserRole;
 import org.example.hugmeexp.domain.user.exception.InvalidValueException;
 import org.example.hugmeexp.global.entity.BaseEntity;
 
 import static jakarta.persistence.CascadeType.*;
 
+@Slf4j
 @Getter
 @Entity
 @Table(name = "users")
@@ -93,6 +95,7 @@ public class User extends BaseEntity {
     // 구름조각 증가
     public void increasePoint(int value) {
         if(value <= 0) throw new InvalidValueException("양수만 요청할 수 있습니다.");
+        log.info("point increase - user: {}({}) {} -> {}", this.username, this.name, this.point, this.point + value);
         this.point += value;
     }
 
@@ -100,12 +103,14 @@ public class User extends BaseEntity {
     public void decreasePoint(int value) {
         if(value <= 0) throw new InvalidValueException("양수만 요청할 수 있습니다.");
         if(this.getPoint() - value < 0) throw new InvalidValueException("구름조각은 음수가 될 수 없습니다.");
+        log.info("point decrease - user: {}({}) {} -> {}", this.username, this.name, this.point, this.point - value);
         this.point -= value;
     }
 
     // 경험치 증가
     public void increaseExp(int value) {
         if(value <= 0) throw new InvalidValueException("양수만 요청할 수 있습니다.");
+        log.info("exp increase - user: {}({}) {} -> {}", this.username, this.name, this.exp, this.exp + value);
         this.exp += value;
     }
 
@@ -139,6 +144,10 @@ public class User extends BaseEntity {
     // 프로필 이미지가 이미 등록되어있는지 확인하는 메서드
     public boolean isRegisterProfileImage() {
         return this.profileImage != null;
+    }
+
+    public void deleteProfileImage() {
+        this.profileImage = null;
     }
 
     // 프로필 이미지의 전체 경로를 리턴하는 메서드

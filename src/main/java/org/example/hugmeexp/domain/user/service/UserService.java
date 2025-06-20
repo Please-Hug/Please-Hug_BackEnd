@@ -125,6 +125,31 @@ public class UserService {
         return absolutePath;
     }
 
+    // 프로필 이미지 삭제
+    @Transactional
+    public void deleteProfileImage(User user) {
+        User findUser = findById(user.getId());
+
+        if (!findUser.isRegisterProfileImage()) {
+            throw new ProfileImageNotFoundException("삭제할 프로필 이미지가 없습니다.");
+        }
+
+        // 기존 이미지 파일 경로
+        String imagePath = findUser.getFullProfileImagePath();
+        File imageFile = new File(imagePath);
+
+        // 이미지 삭제
+        if (imageFile.exists() && !imageFile.delete()) {
+            throw new RuntimeException("Failed to delete profile image from storage.");
+        }
+
+        // 연관 엔티티 끊기, orphanRemoval로 인해 DB에서 삭제됨
+        findUser.deleteProfileImage();
+
+        log.info("Profile image deleted successfully - user: {} ({}) / image path: {}", findUser.getUsername(), findUser.getName(), imagePath);
+    }
+
+
     // username을 바탕으로 삭제
     @Transactional
     public void deleteByUsername(String username){
@@ -162,8 +187,9 @@ public class UserService {
         File oldFile = new File(oldPath);
 
         if (oldFile.exists() && !oldFile.delete()) {
-            throw new RuntimeException("Failed to delete the existing profile image.");
+            throw new RuntimeException("Failed to delete profile image from storage.");
         }
+
         log.info("Previous profile image deleted successfully - user: {} ({}) / image path: {}", user.getUsername(), user.getName(), oldFile);
     }
 
