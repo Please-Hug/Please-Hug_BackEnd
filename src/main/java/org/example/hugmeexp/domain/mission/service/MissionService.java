@@ -1,8 +1,7 @@
 package org.example.hugmeexp.domain.mission.service;
-
-import jakarta.transaction.Transactional;
 import org.example.hugmeexp.domain.mission.dto.request.MissionRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionResponse;
+import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.entity.UserMission;
 import org.example.hugmeexp.domain.mission.enums.UserMissionState;
 
@@ -23,7 +22,7 @@ public interface MissionService {
 
     List<MissionResponse> getMissionsByMissionGroupId(Long missionGroupId);
 
-    UserMission challengeMission(String username, Long missionId);
+    UserMissionResponse challengeMission(String username, Long missionId);
 
     void changeUserMissionState(Long userMissionId, UserMissionState newProgress);
 }

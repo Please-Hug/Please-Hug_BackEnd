@@ -3,7 +3,8 @@ package org.example.hugmeexp.domain.missionGroup.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.example.hugmeexp.domain.mission.entity.UserMission;
+import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
+import org.example.hugmeexp.domain.mission.mapper.UserMissionMapper;
 import org.example.hugmeexp.domain.mission.repository.UserMissionRepository;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
@@ -27,6 +28,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     private final UserRepository userRepository;
     private final UserMissionRepository userMissionRepository;
     private final MissionGroupMapper missionGroupMapper;
+    private final UserMissionMapper userMissionMapper;
 
     @Override
     public List<MissionGroupResponse> getAllMissionGroups() {
@@ -120,7 +122,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     }
 
     @Override
-    public List<UserMission> findUserMissionByUsernameAndMissionGroup(String username, Long missionGroupId) {
+    public List<UserMissionResponse> findUserMissionByUsernameAndMissionGroup(String username, Long missionGroupId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(UserNotFoundException::new);
 
@@ -130,6 +132,9 @@ public class MissionGroupServiceImpl implements MissionGroupService {
         UserMissionGroup userMissionGroup = userMissionGroupRepository.findByUserAndMissionGroup(user, missionGroup)
                 .orElseThrow(UserMissionGroupNotFoundException::new);
 
-        return userMissionRepository.findByUserAndUserMissionGroup(user, userMissionGroup);
+        return userMissionRepository.findByUserAndUserMissionGroup(user, userMissionGroup)
+                .stream()
+                .map(userMissionMapper::toUserMissionResponse)
+                .toList();
     }
 }

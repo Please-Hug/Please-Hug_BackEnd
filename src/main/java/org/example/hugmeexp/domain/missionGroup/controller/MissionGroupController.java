@@ -2,6 +2,7 @@ package org.example.hugmeexp.domain.missionGroup.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.entity.UserMission;
 import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
@@ -74,7 +75,7 @@ public class MissionGroupController {
 
     @GetMapping("/{missionGroupId}/challenges")
     public ResponseEntity<Response<?>> getMissionGroupChallenges(@PathVariable Long missionGroupId, @AuthenticationPrincipal UserDetails userDetails) {
-        List<UserMission> challenges = missionGroupService.findUserMissionByUsernameAndMissionGroup(userDetails.getUsername(), missionGroupId);
+        List<UserMissionResponse> challenges = missionGroupService.findUserMissionByUsernameAndMissionGroup(userDetails.getUsername(), missionGroupId);
         return ResponseEntity.ok().body(Response.builder().data(challenges).message("사용자 " + userDetails.getUsername() + "의 미션 그룹 " + missionGroupId + " 도전 목록을 가져왔습니다.").build());
     }
 }

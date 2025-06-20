@@ -1,6 +1,5 @@
 package org.example.hugmeexp.domain.missionGroup.service;
-
-import jakarta.transaction.Transactional;
+import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.entity.UserMission;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
@@ -21,5 +20,5 @@ public interface MissionGroupService {
 
     void removeUserFromMissionGroup(Long userId, Long missionGroupId);
 
-    List<UserMission> findUserMissionByUsernameAndMissionGroup(String username, Long missionGroupId);
+    List<UserMissionResponse> findUserMissionByUsernameAndMissionGroup(String username, Long missionGroupId);
 }

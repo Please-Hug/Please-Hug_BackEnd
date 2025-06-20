@@ -4,12 +4,14 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.mission.dto.request.MissionRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionResponse;
+import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.entity.Mission;
 import org.example.hugmeexp.domain.mission.entity.UserMission;
 import org.example.hugmeexp.domain.mission.enums.UserMissionState;
 import org.example.hugmeexp.domain.mission.exception.MissionNotFoundException;
 import org.example.hugmeexp.domain.mission.exception.UserMissionNotFoundException;
 import org.example.hugmeexp.domain.mission.mapper.MissionMapper;
+import org.example.hugmeexp.domain.mission.mapper.UserMissionMapper;
 import org.example.hugmeexp.domain.mission.repository.MissionRepository;
 import org.example.hugmeexp.domain.mission.repository.UserMissionRepository;
 import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
@@ -34,6 +36,7 @@ public class MissionServiceImpl implements MissionService {
     private final UserMissionGroupRepository userMissionGroupRepository;
     private final UserRepository userRepository;
     private final MissionMapper missionMapper;
+    private final UserMissionMapper userMissionMapper;
 
     @Override
     @Transactional
@@ -125,7 +128,7 @@ public class MissionServiceImpl implements MissionService {
 
     @Override
     @Transactional
-    public UserMission challengeMission(String username, Long missionId) {
+    public UserMissionResponse challengeMission(String username, Long missionId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(UserNotFoundException::new);
 
@@ -144,7 +147,7 @@ public class MissionServiceImpl implements MissionService {
                 .progress(UserMissionState.NOT_STARTED)
                 .build();
 
-        return userMissionRepository.save(userMission);
+        return userMissionMapper.toUserMissionResponse(userMissionRepository.save(userMission));
     }
 
     @Override
