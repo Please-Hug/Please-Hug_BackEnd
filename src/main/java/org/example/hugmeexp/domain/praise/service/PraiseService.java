@@ -2,9 +2,11 @@ package org.example.hugmeexp.domain.praise.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.praise.dto.PraiseRatioResponseDTO;
 import org.example.hugmeexp.domain.praise.dto.PraiseRequestDTO;
 import org.example.hugmeexp.domain.praise.dto.PraiseResponseDTO;
 import org.example.hugmeexp.domain.praise.entity.Praise;
+import org.example.hugmeexp.domain.praise.enums.PraiseType;
 import org.example.hugmeexp.domain.praise.exception.UserNotFoundInPraiseException;
 import org.example.hugmeexp.domain.praise.mapper.PraiseMapper;
 import org.example.hugmeexp.domain.praise.repository.CommentRepository;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -153,5 +156,36 @@ public class PraiseService {
                 .limit(i)
                 .collect(Collectors.toList());
 
+    }
+
+    /* 칭찬 칭찬 비율(한달동안 받은 칭찬 종류 각각 비율) */
+    public List<PraiseRatioResponseDTO> getPraiseRatioForLastMonth(Long userId) {
+
+        // 한 달 날짜 범위 설정
+        LocalDateTime endDateTime = LocalDateTime.now();
+        LocalDateTime startDateTime = endDateTime.minusMonths(1);
+
+        // 칭찬 타입 별로 count
+        List<Object[]> result = praiseRepository.countPraiseTypeByUserInMonth(userId,startDateTime,endDateTime);
+
+        // 총 받은 칭찬 개수 계산
+        int total = result.stream()
+                .mapToInt(row ->((Long) row[1]).intValue())
+                .sum();
+
+        // 받은 칭찬이 없으면 빈 리스트 반환
+        if (total == 0){
+            return Collections.emptyList();
+        }
+
+        // 비율 계산 후 DTO 변환
+        return result.stream()
+                .map(row ->{
+                    PraiseType type = (PraiseType) row[0];
+                    Long count = (Long) row[1];
+                    int percentage = (int) Math.round(count*100.0/total);
+                    return PraiseRatioResponseDTO.from(type,percentage);
+                })
+                .collect(Collectors.toList());
     }
 }
