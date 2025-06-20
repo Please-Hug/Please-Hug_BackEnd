@@ -3,7 +3,6 @@ package org.example.hugmeexp.domain.mission.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.hugmeexp.domain.mission.enums.UserMissionState;
-import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
 import org.example.hugmeexp.domain.missionGroup.entity.UserMissionGroup;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.global.entity.BaseEntity;

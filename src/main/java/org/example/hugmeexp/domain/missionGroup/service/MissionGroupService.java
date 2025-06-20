@@ -1,6 +1,5 @@
 package org.example.hugmeexp.domain.missionGroup.service;
 import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
-import org.example.hugmeexp.domain.mission.entity.UserMission;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
 import java.util.List;
