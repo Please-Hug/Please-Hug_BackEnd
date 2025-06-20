@@ -1,6 +1,7 @@
 package org.example.hugmeexp.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.user.dto.request.UserUpdateRequest;
 import org.example.hugmeexp.domain.user.dto.response.UserInfoResponse;
 import org.example.hugmeexp.domain.user.exception.*;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -97,40 +99,30 @@ public class UserService {
     // 프로필 이미지 등록
     @Transactional
     public String registerProfileImage(User user, MultipartFile file) {
+        log.info("Profile image update requested - user: {} ({})", user.getUsername(), user.getName());
         User findUser = findById(user.getId());
 
-        // 프로젝트 루트 경로
+        // 프로젝트 디렉터리 하위 /profile-images/을 프로필 이미지 디렉터리로 설정
         String projectPath = System.getProperty("user.dir");
         String directoryPath = projectPath + "/profile-images/";
 
-        // 디렉토리 생성
-        File directory = new File(directoryPath);
-        if (!directory.exists() && !directory.mkdirs()) {
-            throw new RuntimeException("Failed to create the /profile-images/ directory.");
-        }
+        // 프로필 이미지 디렉터리가 없다면 생성
+        createDirectoryIfNotExists(directoryPath);
 
-        // 기존 이미지 삭제
-        if (findUser.isRegisterProfileImage()) {
-            String oldPath = findUser.getFullProfileImagePath();
-            File oldFile = new File(oldPath);
-            if (oldFile.exists() && !oldFile.delete()) {
-                throw new RuntimeException("Failed to delete the existing profile image.");
-            }
-        }
+        // 기존 프로필 이미지가 있다면 삭제
+        deleteExistingProfileImage(findUser);
 
-        // 이미지 등록
+        // 확장자 추출 및 프로필 이미지 엔티티 등록
         String extension = extractExtension(file.getOriginalFilename());
         findUser.registerProfileImage(directoryPath, extension);
-        String newAbsolutePath = findUser.getFullProfileImagePath();
 
-        // 파일 저장
-        try {
-            file.transferTo(new File(newAbsolutePath));
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to save the profile image.", e);
-        }
+        // 스토리지에 프로필 이미지 저장
+        String absolutePath = findUser.getFullProfileImagePath();
+        saveFile(file, absolutePath);
+        log.info("Profile image updated successfully - user: {} ({}) / image path: {}", user.getUsername(), user.getName(), absolutePath);
 
-        return newAbsolutePath;
+        // 프로필 이미지 경로 리턴
+        return absolutePath;
     }
 
     // username을 바탕으로 삭제
@@ -154,4 +146,33 @@ public class UserService {
         return ext.toLowerCase();
     }
 
+    // 프로필 이미지 디렉터리가 없다면 생성
+    private void createDirectoryIfNotExists(String directoryPath) {
+        File directory = new File(directoryPath);
+        if (!directory.exists() && !directory.mkdirs()) {
+            throw new RuntimeException("Failed to create the /profile-images/ directory.");
+        }
+    }
+
+    // 기존 프로필 이미지가 있다면 삭제
+    private void deleteExistingProfileImage(User user) {
+        if (!user.isRegisterProfileImage()) return;
+
+        String oldPath = user.getFullProfileImagePath();
+        File oldFile = new File(oldPath);
+
+        if (oldFile.exists() && !oldFile.delete()) {
+            throw new RuntimeException("Failed to delete the existing profile image.");
+        }
+        log.info("Previous profile image deleted successfully - user: {} ({}) / image path: {}", user.getUsername(), user.getName(), oldFile);
+    }
+
+    // 스토리지에 프로필 이미지 저장
+    private void saveFile(MultipartFile file, String absolutePath) {
+        try {
+            file.transferTo(new File(absolutePath));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save the profile image.", e);
+        }
+    }
 }
