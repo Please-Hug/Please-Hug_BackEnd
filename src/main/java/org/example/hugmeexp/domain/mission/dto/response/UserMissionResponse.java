@@ -2,17 +2,16 @@ package org.example.hugmeexp.domain.mission.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
-import org.example.hugmeexp.domain.mission.entity.Mission;
 import org.example.hugmeexp.domain.mission.enums.UserMissionState;
-import org.example.hugmeexp.domain.missionGroup.entity.UserMissionGroup;
-import org.example.hugmeexp.domain.user.entity.User;
+import org.example.hugmeexp.domain.missionGroup.dto.response.UserMissionGroupResponse;
+import org.example.hugmeexp.domain.user.dto.response.UserSimpleResponse;
 
 @Data
 @Builder(toBuilder = true)
 public class UserMissionResponse {
     private Long id;
-    private User user;
-    private Mission mission;
-    private UserMissionGroup userMissionGroup;
+    private UserSimpleResponse user;
+    private MissionResponse mission;
+    private UserMissionGroupResponse userMissionGroup;
     private UserMissionState progress;
 }

@@ -12,6 +12,7 @@ import org.example.hugmeexp.domain.missionGroup.exception.*;
 import org.example.hugmeexp.domain.missionGroup.mapper.MissionGroupMapper;
 import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepository;
 import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepository;
+import org.example.hugmeexp.domain.user.dto.response.UserSimpleResponse;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.junit.jupiter.api.DisplayName;
@@ -64,6 +65,10 @@ class MissionGroupServiceTest {
     @Test
     @DisplayName("모든 미션 그룹을 조회한다 - 성공")
     void getAllMissionGroups() {
+        UserSimpleResponse teacher1 = new UserSimpleResponse(
+                "teacher1", "Teacher One", "");
+        UserSimpleResponse teacher2 = new UserSimpleResponse(
+                "teacher2", "Teacher Two", "");
         // Given
         MissionGroup group1 = mock(MissionGroup.class);
         MissionGroup group2 = mock(MissionGroup.class);
@@ -71,13 +76,13 @@ class MissionGroupServiceTest {
                 .builder()
                 .id(1L)
                 .name("Group1")
-                .teacherUsername("teacher1")
+                .teacher(teacher1)
                 .build();
         MissionGroupResponse response2 = MissionGroupResponse
                 .builder()
                 .id(2L)
                 .name("Group2")
-                .teacherUsername("teacher2")
+                .teacher(teacher2)
                 .build();
         when(missionGroupRepository.findAll()).thenReturn(List.of(group1, group2));
         when(missionGroupMapper.toMissionGroupResponse(group1)).thenReturn(response1);
@@ -97,6 +102,9 @@ class MissionGroupServiceTest {
     @DisplayName("새로운 미션 그룹을 생성한다 - 성공")
     void createMissionGroup() {
         // Given
+        UserSimpleResponse teacher = new UserSimpleResponse(
+                "teacher1", "Teacher One", "");
+
         User user1 = User.createUser("teacher1", "password", "Teacher One", "1234");
 
         MissionGroupRequest request = MissionGroupRequest
@@ -112,7 +120,7 @@ class MissionGroupServiceTest {
         MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
                 .id(3L)
                 .name("New Group")
-                .teacherUsername("teacher1")
+                .teacher(teacher)
                 .build();
 
         when(missionGroupRepository.save(any(MissionGroup.class))).thenReturn(savedGroup);
@@ -123,7 +131,7 @@ class MissionGroupServiceTest {
 
         // Then
         assertEquals("New Group", result.getName());
-        assertEquals("teacher1", result.getTeacherUsername());
+        assertEquals("teacher1", result.getTeacher().getUsername());
         verify(missionGroupRepository, times(1)).save(any(MissionGroup.class));
     }
 
@@ -131,13 +139,16 @@ class MissionGroupServiceTest {
     @DisplayName("ID로 미션 그룹을 조회한다 - 존재O")
     void getMissionById_found() {
         // Given
+        UserSimpleResponse teacher = new UserSimpleResponse(
+                "teacher1", "Teacher One", "");
+
         Long id = 1L;
         MissionGroup group = mock(MissionGroup.class);
         MissionGroupResponse expectedResponse = MissionGroupResponse
                 .builder()
                 .id(id)
                 .name("Existing Group")
-                .teacherUsername("teacher1")
+                .teacher(teacher)
                 .build();
 
         when(missionGroupRepository.findById(id)).thenReturn(Optional.of(group));
@@ -168,6 +179,9 @@ class MissionGroupServiceTest {
     @Test
     @DisplayName("미션 그룹을 업데이트한다 - 성공")
     void updateMissionGroup_success() {
+        UserSimpleResponse teacherResponse = new UserSimpleResponse(
+                "teacher", "Teacher One", "");
+
         Long id = 1L;
         // Given
         User teacher = User.createUser("teacher", "1234", "teacher", "1234");
@@ -188,7 +202,7 @@ class MissionGroupServiceTest {
                 .builder()
                 .id(id)
                 .name("Updated Group")
-                .teacherUsername("teacher")
+                .teacher(teacherResponse)
                 .build();
 
         when(missionGroupRepository.findById(id)).thenReturn(Optional.of(existingGroup));
@@ -201,7 +215,7 @@ class MissionGroupServiceTest {
 
         // Then
         assertEquals("Updated Group", result.getName());
-        assertEquals("teacher", result.getTeacherUsername());
+        assertEquals("teacher", result.getTeacher().getUsername());
         verify(missionGroupRepository).save(argThat(group ->
                 group.getName().equals("Updated Group") &&
                         group.getTeacher().getUsername().equals("teacher")

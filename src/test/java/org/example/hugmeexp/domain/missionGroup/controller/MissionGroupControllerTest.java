@@ -13,6 +13,7 @@ import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundEx
 import org.example.hugmeexp.domain.missionGroup.exception.NotExistsUserMissionGroupException;
 import org.example.hugmeexp.domain.missionGroup.exception.UserNotFoundException;
 import org.example.hugmeexp.domain.missionGroup.service.MissionGroupService;
+import org.example.hugmeexp.domain.user.dto.response.UserSimpleResponse;
 import org.example.hugmeexp.global.common.exception.ExceptionController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -79,11 +80,14 @@ class MissionGroupControllerTest {
     @DisplayName("모든 미션 그룹 조회 - 성공")
     void getAllMissionGroups_ShouldReturnList() throws Exception {
         // Given
+        UserSimpleResponse teacher = new UserSimpleResponse(
+                "teacher1", "Teacher One", "");
+
         MissionGroupResponse missionGroupResponse = MissionGroupResponse
                 .builder()
                 .id(TEST_ID)
                 .name("Test Group")
-                .teacherUsername("teacher1")
+                .teacher(teacher)
                 .build();
         given(missionGroupService.getAllMissionGroups())
                 .willReturn(List.of(missionGroupResponse));
@@ -97,6 +101,9 @@ class MissionGroupControllerTest {
     @Test
     @DisplayName("미션 그룹 생성 - 성공")
     void createMissionGroup_ShouldReturnCreated() throws Exception {
+        UserSimpleResponse teacher = new UserSimpleResponse(
+                "teacher1", "Teacher One", "");
+
         // Given
         MissionGroupRequest request = MissionGroupRequest
                 .builder()
@@ -107,7 +114,7 @@ class MissionGroupControllerTest {
                 .builder()
                 .id(TEST_ID)
                 .name("New Group")
-                .teacherUsername("teacher1")
+                .teacher(teacher)
                 .build();
 
         given(missionGroupService.createMissionGroup(request))
@@ -124,12 +131,15 @@ class MissionGroupControllerTest {
     @Test
     @DisplayName("ID로 미션 그룹 조회 - 성공")
     void getMissionGroupById_ShouldReturnOk() throws Exception {
+        UserSimpleResponse teacher = new UserSimpleResponse(
+                "teacher1", "Teacher One", "");
+
         // Given
         MissionGroupResponse response = MissionGroupResponse
                 .builder()
                 .id(TEST_ID)
                 .name("Test Group")
-                .teacherUsername("teacher1")
+                .teacher(teacher)
                 .build();
         given(missionGroupService.getMissionById(TEST_ID))
                 .willReturn(response);
@@ -161,6 +171,8 @@ class MissionGroupControllerTest {
     @Test
     @DisplayName("미션 그룹 수정 - 성공")
     void updateMissionGroup_ShouldReturnOk() throws Exception {
+        UserSimpleResponse teacher = new UserSimpleResponse(
+                "teacher2", "Teacher One", "");
         // Given
         MissionGroupRequest request = MissionGroupRequest
                 .builder()
@@ -171,7 +183,7 @@ class MissionGroupControllerTest {
                 .builder()
                 .id(TEST_ID)
                 .name("Updated Group")
-                .teacherUsername("teacher2")
+                .teacher(teacher)
                 .build();
 
         given(missionGroupService.updateMissionGroup(eq(TEST_ID), any(MissionGroupRequest.class)))
@@ -184,7 +196,7 @@ class MissionGroupControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(TEST_ID))
                 .andExpect(jsonPath("$.data.name").value("Updated Group"))
-                .andExpect(jsonPath("$.data.teacherUsername").value("teacher2"));
+                .andExpect(jsonPath("$.data.teacher.username").value("teacher2"));
     }
 
     @Test
