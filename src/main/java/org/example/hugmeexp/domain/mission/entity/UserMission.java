@@ -8,7 +8,7 @@ import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.global.entity.BaseEntity;
 
 @Entity
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "mission_id", "mission_group_id"})})
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "mission_id", "user_mission_group_id"})})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -27,6 +27,7 @@ public class UserMission extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private UserMissionGroup userMissionGroup;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     private UserMissionState progress;
 }
