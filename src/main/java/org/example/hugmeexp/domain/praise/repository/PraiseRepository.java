@@ -40,4 +40,15 @@ public interface PraiseRepository extends JpaRepository<Praise, Long> {
             "AND p.createdAt BETWEEN :startDateTime AND :endDateTime "+
             "GROUP BY p.praiseType")
     List<Object[]> countPraiseTypeByUserInMonth(Long userId, LocalDateTime startDateTime, LocalDateTime endDateTime);
+
+    /* 최근 칭찬 보낸 유저 조회 */
+    @Query("SELECT p FROM Praise p "+
+            "WHERE p.receiver.id = :userId "+
+            "AND p.createdAt IN (" +
+            "   SELECT MAX(p2.createdAt) FROM Praise p2 " +
+            "   WHERE p2.receiver.id = :userId " +
+            "   GROUP BY p2.sender.id" +
+            ") " +
+            "ORDER BY p.createdAt DESC")
+    List<Praise> findLatestPraisePerSender(Long userId);
 }
