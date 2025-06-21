@@ -2,7 +2,6 @@ package org.example.hugmeexp.global.infra.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.domain.user.service.UserService;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.global.infra.auth.dto.request.LoginRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RegisterRequest;
@@ -12,15 +11,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /*
-    AuthService는 중재자 패턴(Mediator Pattern)을 구현한 서비스 클래스로, 인증 관련 모든 비즈니스 로직을 통합 관리
-    세부 구현은 UserService와 TokenService에 위임
+    AuthService는 중재자 패턴(Mediator Pattern)을 구현한 서비스 클래스로, 회원가입, 로그인, 인증 관련 모든 비즈니스 로직을 통합 관리
+    세부 구현은 CredentialService와 TokenService에 위임
 */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService
 {
-    private final UserService userService;
+    private final CredentialService credentialService;
     private final TokenService tokenService;
 
     // 회원가입
@@ -28,7 +27,7 @@ public class AuthService
     public AuthResponse registerAndAuthenticate(RegisterRequest request)
     {
         // 1. 사용자 등록
-        User user = userService.registerNewUser(request);
+        User user = credentialService.registerNewUser(request);
 
         // 2. 토큰 생성 및 저장
         String accessToken = tokenService.createAccessToken(user.getUsername(), user.getRole());
@@ -45,7 +44,7 @@ public class AuthService
     // 로그인
     public AuthResponse login(LoginRequest request) {
         // 1. 사용자 검증
-        User user = userService.login(request);
+        User user = credentialService.login(request);
 
         // 2. 기존 리프레시 토큰이 있다면 무효화
         String oldRefreshToken = tokenService.getRefreshToken(user.getUsername());
