@@ -196,8 +196,15 @@ public class PraiseService {
 
         List<Praise> latestPraises = praiseRepository.findLatestPraisePerSender(userId);
 
+        // 칭찬 받은게 없을 경우
+        if (latestPraises.isEmpty()) {
+            log.info("No recent praises found for user: {}", userId);
+            return Collections.emptyList();
+        }
+
         // 중복 제거된 보낸 유저 3명만 추출
         return latestPraises.stream()
+                .sorted(Comparator.comparing(Praise::getCreatedAt).reversed())
                 .map(Praise::getSender)
                 .distinct()
                 .limit(3)
