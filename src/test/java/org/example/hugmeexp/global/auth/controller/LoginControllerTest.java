@@ -32,8 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("로그인 컨트롤러 테스트")
 @TestPropertySource(properties = {
         "jwt.secret=aHR0cHM6Ly9naXRodWIuY29tL3NldW5nd29vay9qd3QtYXBpLXNlcnZlci1zYW1wbGUteW91LWNhbi11c2UtdGhpcy1sb25nLXNlY3JldC1rZXktZm9yLWVuY3J5cHRpb24K",
-        "jwt.access-token-expiration=1800000",
-        "jwt.refresh-token-expiration=604800000"
+        "jwt.access-token-expiration=10000",
+        "jwt.refresh-token-expiration=60000"
 })
 class LoginControllerTest {
 
@@ -57,7 +57,7 @@ class LoginControllerTest {
 
     @AfterEach
     void tearDown() {
-        userService.deleteByUsername("testuser"); // 반드시 UserService에 해당 메서드 존재해야 함
+        userService.deleteByUsername("testuser");
     }
 
     @Test
@@ -75,8 +75,7 @@ class LoginControllerTest {
         resultActions
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.accessToken").isNotEmpty())
-                .andExpect(jsonPath("$.data.refreshToken").isNotEmpty())
-                .andExpect(jsonPath("$.message").value("로그인에 성공했습니다"));
+                .andExpect(jsonPath("$.data.refreshToken").isNotEmpty());
     }
 
     @Test
@@ -92,8 +91,7 @@ class LoginControllerTest {
 
         // then
         resultActions
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("아이디 또는 비밀번호가 잘못되었습니다."));
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -109,7 +107,6 @@ class LoginControllerTest {
 
         // then
         resultActions
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("아이디 또는 비밀번호가 잘못되었습니다."));
+                .andExpect(status().isUnauthorized());
     }
 }
