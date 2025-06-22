@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.praise.dto.PraiseRatioResponseDTO;
 import org.example.hugmeexp.domain.praise.dto.PraiseRequestDTO;
 import org.example.hugmeexp.domain.praise.dto.PraiseResponseDTO;
+import org.example.hugmeexp.domain.praise.dto.RecentPraiseSenderResponseDTO;
 import org.example.hugmeexp.domain.praise.entity.Praise;
 import org.example.hugmeexp.domain.praise.enums.PraiseType;
 import org.example.hugmeexp.domain.praise.exception.UserNotFoundInPraiseException;
@@ -35,6 +36,7 @@ public class PraiseService {
     private final CommentRepository commentRepository;
     private final PraiseEmojiReactionRepository praiseEmojiReactionRepository;
     private final UserRepository userRepository;
+
 
     /* 칭찬 생성 */
     public PraiseResponseDTO createPraise(PraiseRequestDTO praiseRequestDTO, User senderId) {
@@ -186,6 +188,27 @@ public class PraiseService {
                     int percentage = (int) Math.round(count*100.0/total);
                     return PraiseRatioResponseDTO.from(type,percentage);
                 })
+                .collect(Collectors.toList());
+    }
+
+    /* 최근 칭찬 보낸 유저 조회 */
+    public List<RecentPraiseSenderResponseDTO> getRecentPraiseSenders(Long userId) {
+
+        List<Praise> latestPraises = praiseRepository.findLatestPraisePerSender(userId);
+
+        // 칭찬 받은게 없을 경우
+        if (latestPraises.isEmpty()) {
+            log.info("No recent praises found for user: {}", userId);
+            return Collections.emptyList();
+        }
+
+        // 중복 제거된 보낸 유저 3명만 추출
+        return latestPraises.stream()
+                .sorted(Comparator.comparing(Praise::getCreatedAt).reversed())
+                .map(Praise::getSender)
+                .distinct()
+                .limit(3)
+                .map(RecentPraiseSenderResponseDTO::from)
                 .collect(Collectors.toList());
     }
 }
