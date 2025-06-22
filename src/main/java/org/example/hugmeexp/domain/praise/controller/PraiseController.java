@@ -173,4 +173,22 @@ public class PraiseController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    /* 칭찬 상세 조회 */
+    @Operation(summary = "칭찬 상세 조회", description = "칭찬 게시물 한 개를 조회합니다.")
+    @GetMapping("/{praiseId}")
+    public ResponseEntity<Response<PraiseDetailResponseDTO>> getPraiseDetail(
+            @PathVariable Long praiseId
+    ){
+        log.info("Received request for praise detail: praiseId={}",praiseId);
+
+        PraiseDetailResponseDTO praiseDetail = praiseService.getPraiseDetail(praiseId);
+
+        Response<PraiseDetailResponseDTO> response = Response.<PraiseDetailResponseDTO>builder()
+                .message("조회 완료")
+                .data(praiseDetail)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
 }
