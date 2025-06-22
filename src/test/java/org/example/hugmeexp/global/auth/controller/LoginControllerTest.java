@@ -51,12 +51,7 @@ class LoginControllerTest {
 
     @BeforeEach
     void setUp() {
-        RegisterRequest request = new RegisterRequest();
-        request.setUsername("testuser");
-        request.setPassword("testpassword1!");
-        request.setName("홍길동");
-        request.setPhoneNumber("010-1234-5678");
-
+        RegisterRequest request = new RegisterRequest("testuser", "testpassword1!", "홍길동", "010-1234-5678");
         credentialService.registerNewUser(request);
     }
 
@@ -69,9 +64,7 @@ class LoginControllerTest {
     @DisplayName("로그인 성공시 토큰이 응답된다.")
     void shouldReturnTokens_whenLoginIsSuccessful() throws Exception {
         // given
-        LoginRequest request = new LoginRequest();
-        request.setUsername("testuser");
-        request.setPassword("testpassword1!");
+        LoginRequest request = new LoginRequest("testuser", "testpassword1!");
 
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/login")
@@ -90,9 +83,7 @@ class LoginControllerTest {
     @DisplayName("존재하지 않는 아이디를 입력하면 실패한다.")
     void shouldFailLogin_whenUserDoesNotExist() throws Exception {
         // given
-        LoginRequest request = new LoginRequest();
-        request.setUsername("notexist");
-        request.setPassword("testpassword1!");
+        LoginRequest request = new LoginRequest("notexist", "testpassword1!");
 
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/login")
@@ -109,9 +100,7 @@ class LoginControllerTest {
     @DisplayName("틀린 비밀번호를 입력하면 실패한다.")
     void shouldFailLogin_whenPasswordIsIncorrect() throws Exception {
         // given
-        LoginRequest request = new LoginRequest();
-        request.setUsername("testuser");
-        request.setPassword("wrongpassword");
+        LoginRequest request = new LoginRequest("testuser", "wrongpassword");
 
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/login")

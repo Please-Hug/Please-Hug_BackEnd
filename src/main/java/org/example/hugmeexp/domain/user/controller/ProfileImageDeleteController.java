@@ -23,6 +23,6 @@ public class ProfileImageDeleteController {
         User user = userDetails.getUser();
         userService.deleteProfileImage(user);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent().build(); // 204 No Content
     }
 }
