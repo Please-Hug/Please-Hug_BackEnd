@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.hugmeexp.domain.praise.entity.Praise;
+import org.example.hugmeexp.domain.praise.entity.PraiseReceiver;
 import org.example.hugmeexp.domain.praise.enums.PraiseType;
 
 import java.time.LocalDateTime;
@@ -26,11 +27,16 @@ public class PraiseResponseDTO {
     private Map<String, Integer> emojiReactionCount;    // 이모지별 반응 수
     private LocalDateTime createdAt;    // 작성 시간
 
-    public static PraiseResponseDTO from(Praise praise, long commentCount, Map<String, Integer> emojiReactionCount){
+    public static PraiseResponseDTO from(Praise praise, List<PraiseReceiver> receivers, long commentCount, Map<String, Integer> emojiReactionCount){
+
+        List<String> receiverNames = receivers.stream()
+                .map(praiseReceiver -> praiseReceiver.getReceiver().getName())
+                .toList();
+
         return PraiseResponseDTO.builder()
                 .id(praise.getId())
                 .senderName(praise.getSender().getName())
-                .receiverName(List.of(praise.getReceiver().getName()))
+                .receiverName(receiverNames)
                 .content(praise.getContent())
                 .type(praise.getPraiseType())
                 .commentCount(commentCount)

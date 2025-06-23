@@ -23,9 +23,10 @@ public class Praise extends BaseEntity {
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;    // 칭찬 보낸 사람 이름
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receiver_id", nullable = false)
-    private User receiver;    // 칭찬 받은 사람 이름
+    // 중간 엔티티 설정 후 주석처리
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "receiver_id", nullable = false)
+//    private User receiver;    // 칭찬 받은 사람 이름
 
     @Column(nullable = false)
     private String content;    // 칭찬 내용
@@ -33,6 +34,5 @@ public class Praise extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "praise_type", nullable = false)
     private PraiseType praiseType;    // 칭찬 타입
-
 
 }
