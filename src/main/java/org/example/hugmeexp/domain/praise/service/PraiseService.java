@@ -2,19 +2,15 @@ package org.example.hugmeexp.domain.praise.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.domain.praise.dto.PraiseRatioResponseDTO;
-import org.example.hugmeexp.domain.praise.dto.PraiseRequestDTO;
-import org.example.hugmeexp.domain.praise.dto.PraiseResponseDTO;
-import org.example.hugmeexp.domain.praise.dto.RecentPraiseSenderResponseDTO;
+import org.example.hugmeexp.domain.praise.dto.*;
 import org.example.hugmeexp.domain.praise.entity.Praise;
+import org.example.hugmeexp.domain.praise.entity.PraiseComment;
 import org.example.hugmeexp.domain.praise.entity.PraiseReceiver;
 import org.example.hugmeexp.domain.praise.enums.PraiseType;
+import org.example.hugmeexp.domain.praise.exception.PraiseNotFoundException;
 import org.example.hugmeexp.domain.praise.exception.UserNotFoundInPraiseException;
 import org.example.hugmeexp.domain.praise.mapper.PraiseMapper;
-import org.example.hugmeexp.domain.praise.repository.CommentRepository;
-import org.example.hugmeexp.domain.praise.repository.PraiseEmojiReactionRepository;
-import org.example.hugmeexp.domain.praise.repository.PraiseReceiverRepository;
-import org.example.hugmeexp.domain.praise.repository.PraiseRepository;
+import org.example.hugmeexp.domain.praise.repository.*;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.stereotype.Service;
@@ -41,6 +37,7 @@ public class PraiseService {
     private final PraiseEmojiReactionRepository praiseEmojiReactionRepository;
     private final UserRepository userRepository;
     private final PraiseReceiverRepository praiseReceiverRepository;
+    private final CommentEmojiReactionRepository commentEmojiReactionRepository;
 
 
     /* 칭찬 생성 */
@@ -269,5 +266,39 @@ public class PraiseService {
                 .limit(3)
                 .map(RecentPraiseSenderResponseDTO::from)
                 .collect(Collectors.toList());
+    }
+
+    /* 칭찬 상세 조회 */
+    public PraiseDetailResponseDTO getPraiseDetail(Long praiseId) {
+
+        // 칭찬 엔티티 조회
+        Praise praise = praiseRepository.findById(praiseId).orElseThrow(() -> new PraiseNotFoundException());
+
+        // 칭찬 받은 사람 리스트 조회
+        List<PraiseReceiver> receiverList = praiseReceiverRepository.findByPraise(praise);
+
+        // 댓글 목록 조회
+        List<PraiseComment> commentList = commentRepository.findByPraise(praise);
+
+        // 이모지 반응 수 조회
+        List<Object[]> counts = praiseEmojiReactionRepository.countGroupedByEmoji(praise);
+        Map<String, Integer> emojiCount = counts.stream()
+                .collect(Collectors.toMap(
+                        row -> (String) row[0],
+                        row -> ((Long) row[1]).intValue()
+                ));
+
+        // 댓글 별 이모지 반응 수 조회
+        Map<Long, Map<String, Integer>> commentEmojiMap = commentList.stream()
+                .collect(Collectors.toMap(
+                        PraiseComment::getId,
+                        comment -> {
+                            List<Object[]> emojiData = commentEmojiReactionRepository.countGroupedByEmoji(comment);
+                            return emojiData.stream().collect(Collectors.toMap(
+                                    row -> (String) row[0],
+                                    row -> ((Long) row[1]).intValue()));
+                        }));
+
+        return PraiseDetailResponseDTO.from(praise,receiverList,commentList,emojiCount,commentEmojiMap);
     }
 }
