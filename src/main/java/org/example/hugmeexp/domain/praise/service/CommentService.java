@@ -5,22 +5,25 @@ import org.example.hugmeexp.domain.praise.dto.CommentRequestDTO;
 import org.example.hugmeexp.domain.praise.dto.CommentResponseDTO;
 import org.example.hugmeexp.domain.praise.entity.PraiseComment;
 import org.example.hugmeexp.domain.praise.entity.Praise;
+import org.example.hugmeexp.domain.praise.exception.CommentNotFoundException;
 import org.example.hugmeexp.domain.praise.exception.PraiseNotFoundException;
 import org.example.hugmeexp.domain.praise.mapper.CommentMapper;
 import org.example.hugmeexp.domain.praise.repository.CommentRepository;
 import org.example.hugmeexp.domain.praise.repository.PraiseRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class CommentService {
 
-    public final CommentMapper commentMapper;
-    public final CommentRepository commentRepository;
-    public final PraiseRepository praiseRepository;
+    private final CommentMapper commentMapper;
+    private final CommentRepository commentRepository;
+    private final PraiseRepository praiseRepository;
 
     /* 댓글 작성 */
+    @Transactional
     public CommentResponseDTO createComment(Long praiseId, CommentRequestDTO commentRequestDTO, User commentWriter) {
 
         // Praise 엔티티 조회
@@ -37,8 +40,13 @@ public class CommentService {
     }
 
     /* 댓글 삭제 */
+    @Transactional
     public void deleteComment(Long commentId) {
 
+        // 댓글 존재 여부 확인
+        if (!commentRepository.existsById(commentId)){
+            throw new CommentNotFoundException();
+        }
         commentRepository.deleteById(commentId);
     }
 }

@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "PraiseComment" , description = "칭찬댓글 관련 API")
 public class CommentController {
 
-    public final CommentService commentService;
+    private final CommentService commentService;
 
     /* 댓글 작성 */
     @Operation(summary = "칭찬댓글 생성", description = "칭찬 게시물에 새로운 댓글을 생성합니다")
@@ -43,18 +43,17 @@ public class CommentController {
         return ResponseEntity.ok(response);
     }
 
-//    /* 댓글 삭제 */
-//    @DeleteMapping("/{commentId}")
-//    public ResponseEntity<ApiResponse<Void>> deleteComment(@PathVariable Long commentId){
-//
-//        commentService.deleteComment(commentId);
-//
-//        ApiResponse<Void> response = ApiResponse.<Void>builder()
-//                .status(HttpStatus.NO_CONTENT.value())
-//                .message("댓글 삭제 완료")
-//                .data(null)
-//                .build();
-//
-//        return ResponseEntity.ok(response);
-//    }
+    /* 댓글 삭제 */
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<Response<Void>> deleteComment(@PathVariable Long commentId){
+
+        commentService.deleteComment(commentId);
+
+        Response<Void> response = Response.<Void>builder()
+                .message("댓글 삭제 완료")
+                .data(null)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 }
