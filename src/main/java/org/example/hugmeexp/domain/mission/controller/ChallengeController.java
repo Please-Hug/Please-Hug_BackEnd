@@ -18,7 +18,7 @@ public class ChallengeController {
     private final MissionService missionService;
 
     @PatchMapping("/{challengeId}")
-    public ResponseEntity<Response<?>> updateChallengeState(@PathVariable Long challengeId, @Valid @RequestParam UserMissionState newProgress) {
+    public ResponseEntity<Response<?>> updateChallengeState(@PathVariable Long challengeId, @RequestParam UserMissionState newProgress) {
         missionService.changeUserMissionState(challengeId, newProgress);
         return ResponseEntity.ok(Response.builder()
                 .message("챌린지 상태가 성공적으로 업데이트되었습니다.")
