@@ -115,7 +115,7 @@ public class ExceptionController {
     }
 
     @ExceptionHandler(MissingServletRequestPartException.class)
-    public ResponseEntity<?> handleMissingServletRequestPartException(MissingServletRequestPartException ex) {
+    public ResponseEntity<?> handleMissingServletRequestPartException(MissingServletRequestPartException ignored) {
         // 예외 메시지에 필요한 내용을 추출하거나 커스텀 메시지로 반환
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)

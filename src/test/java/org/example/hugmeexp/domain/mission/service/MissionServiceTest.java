@@ -595,9 +595,7 @@ class MissionServiceTest {
         when(userMissionSubmissionRepository.existsByUserMission(userMission)).thenReturn(true);
 
         // When & Then
-        assertThrows(AlreadyExistsUserMissionSubmissionException.class, () -> {
-            missionService.submitChallenge(userMissionId, request, file);
-        });
+        assertThrows(AlreadyExistsUserMissionSubmissionException.class, () -> missionService.submitChallenge(userMissionId, request, file));
 
         // save 메서드가 호출되지 않았는지 검증
         verify(userMissionSubmissionRepository, never()).save(any(Submission.class));
@@ -614,9 +612,7 @@ class MissionServiceTest {
         when(userMissionRepository.findById(userMissionId)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThrows(UserMissionNotFoundException.class, () -> {
-            missionService.submitChallenge(userMissionId, request, file);
-        });
+        assertThrows(UserMissionNotFoundException.class, () -> missionService.submitChallenge(userMissionId, request, file));
     }
 
     @Test
@@ -641,9 +637,7 @@ class MissionServiceTest {
 
         // When & Then
         // RuntimeException인 SubmissionFileUploadException이 발생하는지 확인
-        assertThrows(SubmissionFileUploadException.class, () -> {
-            missionService.submitChallenge(userMissionId, request, mockFile);
-        });
+        assertThrows(SubmissionFileUploadException.class, () -> missionService.submitChallenge(userMissionId, request, mockFile));
 
         // @Transactional에 의해 롤백되므로 save는 호출되지만 커밋되지 않음.
         // 테스트에서는 save가 호출되었는지 여부만 확인할 수 있음.
@@ -683,9 +677,7 @@ class MissionServiceTest {
         when(userMissionSubmissionRepository.findByUserMission(userMission)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThrows(SubmissionNotFoundException.class, () -> {
-            missionService.getSubmissionByMissionId(userMissionId);
-        });
+        assertThrows(SubmissionNotFoundException.class, () -> missionService.getSubmissionByMissionId(userMissionId));
     }
 
     @Test
@@ -729,9 +721,7 @@ class MissionServiceTest {
         when(userMissionSubmissionRepository.findByUserMission(userMission)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThrows(SubmissionNotFoundException.class, () -> {
-            missionService.updateSubmissionFeedback(userMissionId, request);
-        });
+        assertThrows(SubmissionNotFoundException.class, () -> missionService.updateSubmissionFeedback(userMissionId, request));
 
         // save 메서드가 호출되지 않았는지 검증
         verify(userMissionSubmissionRepository, never()).save(any(Submission.class));
