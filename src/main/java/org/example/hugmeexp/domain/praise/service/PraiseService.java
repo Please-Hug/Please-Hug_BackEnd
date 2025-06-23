@@ -10,10 +10,7 @@ import org.example.hugmeexp.domain.praise.enums.PraiseType;
 import org.example.hugmeexp.domain.praise.exception.PraiseNotFoundException;
 import org.example.hugmeexp.domain.praise.exception.UserNotFoundInPraiseException;
 import org.example.hugmeexp.domain.praise.mapper.PraiseMapper;
-import org.example.hugmeexp.domain.praise.repository.CommentRepository;
-import org.example.hugmeexp.domain.praise.repository.PraiseEmojiReactionRepository;
-import org.example.hugmeexp.domain.praise.repository.PraiseReceiverRepository;
-import org.example.hugmeexp.domain.praise.repository.PraiseRepository;
+import org.example.hugmeexp.domain.praise.repository.*;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.stereotype.Service;
@@ -40,6 +37,7 @@ public class PraiseService {
     private final PraiseEmojiReactionRepository praiseEmojiReactionRepository;
     private final UserRepository userRepository;
     private final PraiseReceiverRepository praiseReceiverRepository;
+    private final CommentEmojiReactionRepository commentEmojiReactionRepository;
 
 
     /* 칭찬 생성 */
@@ -290,6 +288,17 @@ public class PraiseService {
                         row -> ((Long) row[1]).intValue()
                 ));
 
-        return PraiseDetailResponseDTO.from(praise,receiverList,commentList,emojiCount);
+        // 댓글 별 이모지 반응 수 조회
+        Map<Long, Map<String, Integer>> commentEmojiMap = commentList.stream()
+                .collect(Collectors.toMap(
+                        PraiseComment::getId,
+                        comment -> {
+                            List<Object[]> emojiData = commentEmojiReactionRepository.countGroupedByEmoji(comment);
+                            return emojiData.stream().collect(Collectors.toMap(
+                                    row -> (String) row[0],
+                                    row -> ((Long) row[1]).intValue()));
+                        }));
+
+        return PraiseDetailResponseDTO.from(praise,receiverList,commentList,emojiCount,commentEmojiMap);
     }
 }

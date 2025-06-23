@@ -13,7 +13,6 @@ import org.example.hugmeexp.domain.user.entity.User;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor
@@ -32,11 +31,17 @@ public class PraiseDetailResponseDTO {
     private List<CommentResponseDTO> comments;     // 댓글 리스트
 //    private String profileImageUrl;
 
-    public static PraiseDetailResponseDTO from(Praise praise, List<PraiseReceiver> receivers, List<PraiseComment> commentList, Map<String, Integer> emojiReactions){
+    public static PraiseDetailResponseDTO from(Praise praise, List<PraiseReceiver> receivers, List<PraiseComment> commentList, Map<String, Integer> emojiReactions, Map<Long, Map<String,Integer>> commentEmojiMap){
 
         List<String> receiverNames = receivers.stream()
                 .map(praiseReceiver -> praiseReceiver.getReceiver().getName())
                 .toList();
+
+        List<CommentResponseDTO> commentResponse = commentList.stream()
+                .map(comment -> {Map<String,Integer> emojis = commentEmojiMap.getOrDefault(comment.getId(),Map.of());
+            return CommentResponseDTO.from(comment, emojis);
+        }).toList();
+
 
         return PraiseDetailResponseDTO.builder()
                 .id(praise.getId())
@@ -47,7 +52,7 @@ public class PraiseDetailResponseDTO {
                 .createdAt(praise.getCreatedAt())
                 .emojiReactions(emojiReactions)
                 .commentCount(commentList.size())
-                .comments(commentList.stream().map(CommentResponseDTO::from).collect(Collectors.toList()))
+                .comments(commentResponse)
                 .build();
     }
 }
