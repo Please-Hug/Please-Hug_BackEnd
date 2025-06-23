@@ -6,8 +6,7 @@ import org.example.hugmeexp.domain.mission.entity.Submission;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper (componentModel = "spring",
-uses = {UserMissionMapper.class})
+@Mapper(componentModel = "spring")
 public interface UserMissionSubmissionMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "userMission", ignore = true)
