@@ -22,7 +22,7 @@ public class PraiseDetailResponseDTO {
 
     private Long id;    // 칭찬 ID
     private String senderName;    // 칭찬을 보낸 사람
-    private List<String> receiverName;    // 칭찬을 받은 사람
+    private List<String> receiverNames;    // 칭찬을 받은 사람
     private String content;    // 칭찬 내용
     private PraiseType type;    // 칭찬 타입
     private LocalDateTime createdAt;    // 칭찬을 작성한 시간
@@ -46,7 +46,7 @@ public class PraiseDetailResponseDTO {
         return PraiseDetailResponseDTO.builder()
                 .id(praise.getId())
                 .senderName(praise.getSender().getName())
-                .receiverName(receiverNames)
+                .receiverNames(receiverNames)
                 .content(praise.getContent())
                 .type(praise.getPraiseType())
                 .createdAt(praise.getCreatedAt())

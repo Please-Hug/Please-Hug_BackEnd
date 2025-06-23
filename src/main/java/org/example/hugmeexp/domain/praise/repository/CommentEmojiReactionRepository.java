@@ -13,6 +13,6 @@ public interface CommentEmojiReactionRepository extends JpaRepository<CommentEmo
 
     /* 댓글에 달린 이모지를 종류별로 그룹핑하여 개수 반환 */
     @Query("SELECT r.emoji, COUNT(r) FROM CommentEmojiReaction r " +
-            "WHERE r.commentId = :comment GROUP BY r.emoji")
+            "WHERE r.comment = :comment GROUP BY r.emoji")
     List<Object[]> countGroupedByEmoji(PraiseComment comment);
 }
