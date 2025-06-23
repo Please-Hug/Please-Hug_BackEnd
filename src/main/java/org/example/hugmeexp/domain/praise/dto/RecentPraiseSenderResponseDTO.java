@@ -18,5 +18,6 @@ public class RecentPraiseSenderResponseDTO {
         return RecentPraiseSenderResponseDTO.builder()
                 .name(user.getName())
                 .build();
+
     }
 }

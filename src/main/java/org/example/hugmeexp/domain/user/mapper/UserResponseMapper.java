@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.user.mapper;
 
+import org.example.hugmeexp.domain.user.dto.response.ProfileImageResponse;
 import org.example.hugmeexp.domain.user.dto.response.UserInfoResponse;
 import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
 import org.example.hugmeexp.domain.user.entity.User;
@@ -22,6 +23,12 @@ public class UserResponseMapper {
                 user.getFullProfileImagePath(),
                 user.getUsername(),
                 user.getName()
+        );
+    }
+
+    public static ProfileImageResponse toProfileImageResponse(User user) {
+        return new ProfileImageResponse(
+                user.getFullProfileImagePath()
         );
     }
 }

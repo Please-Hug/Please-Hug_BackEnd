@@ -3,14 +3,15 @@ package org.example.hugmeexp.domain.user.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
+@Builder
 @Getter
-@Setter
-@NoArgsConstructor
+@AllArgsConstructor
 public class UserUpdateRequest {
+
     @NotBlank
     @Size(min = 2, max = 32)
     private String name;

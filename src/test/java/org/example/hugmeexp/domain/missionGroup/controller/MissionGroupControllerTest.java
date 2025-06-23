@@ -13,7 +13,7 @@ import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundEx
 import org.example.hugmeexp.domain.missionGroup.exception.NotExistsUserMissionGroupException;
 import org.example.hugmeexp.domain.missionGroup.exception.UserNotFoundException;
 import org.example.hugmeexp.domain.missionGroup.service.MissionGroupService;
-import org.example.hugmeexp.domain.user.dto.response.UserSimpleResponse;
+import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
 import org.example.hugmeexp.global.common.exception.ExceptionController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -80,7 +80,7 @@ class MissionGroupControllerTest {
     @DisplayName("모든 미션 그룹 조회 - 성공")
     void getAllMissionGroups_ShouldReturnList() throws Exception {
         // Given
-        UserSimpleResponse teacher = new UserSimpleResponse(
+        UserProfileResponse teacher = new UserProfileResponse(
                 "teacher1", "Teacher One", "");
 
         MissionGroupResponse missionGroupResponse = MissionGroupResponse
@@ -101,7 +101,7 @@ class MissionGroupControllerTest {
     @Test
     @DisplayName("미션 그룹 생성 - 성공")
     void createMissionGroup_ShouldReturnCreated() throws Exception {
-        UserSimpleResponse teacher = new UserSimpleResponse(
+        UserProfileResponse teacher = new UserProfileResponse(
                 "teacher1", "Teacher One", "");
 
         // Given
@@ -131,7 +131,7 @@ class MissionGroupControllerTest {
     @Test
     @DisplayName("ID로 미션 그룹 조회 - 성공")
     void getMissionGroupById_ShouldReturnOk() throws Exception {
-        UserSimpleResponse teacher = new UserSimpleResponse(
+        UserProfileResponse teacher = new UserProfileResponse(
                 "teacher1", "Teacher One", "");
 
         // Given
@@ -171,8 +171,8 @@ class MissionGroupControllerTest {
     @Test
     @DisplayName("미션 그룹 수정 - 성공")
     void updateMissionGroup_ShouldReturnOk() throws Exception {
-        UserSimpleResponse teacher = new UserSimpleResponse(
-                "teacher2", "Teacher One", "");
+        UserProfileResponse teacher = new UserProfileResponse(
+                "teacher2", "teacher2", "");
         // Given
         MissionGroupRequest request = MissionGroupRequest
                 .builder()

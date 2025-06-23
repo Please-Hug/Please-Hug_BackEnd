@@ -26,11 +26,11 @@ public class ProfileImageRegisterController {
             @RequestPart("file") MultipartFile file, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         User user = userDetails.getUser();
-        String fullPath = userService.registerProfileImage(user, file);
+        ProfileImageResponse result = userService.registerProfileImage(user, file);
 
         return ResponseEntity.ok(Response.<ProfileImageResponse>builder()
                 .message("프로필 이미지가 등록되었습니다.")
-                .data(new ProfileImageResponse(fullPath))
+                .data(result)
                 .build());
     }
 }

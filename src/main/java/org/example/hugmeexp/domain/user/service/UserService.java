@@ -2,7 +2,9 @@ package org.example.hugmeexp.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.user.dto.request.ChangeRoleRequest;
 import org.example.hugmeexp.domain.user.dto.request.UserUpdateRequest;
+import org.example.hugmeexp.domain.user.dto.response.ProfileImageResponse;
 import org.example.hugmeexp.domain.user.dto.response.UserInfoResponse;
 import org.example.hugmeexp.domain.user.exception.*;
 import org.example.hugmeexp.domain.user.mapper.UserResponseMapper;
@@ -41,8 +43,9 @@ public class UserService {
     }
 
     // username을 바탕으로 User 리턴
-    public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(UserNotFoundException::new);
     }
 
     // phoneNumber를 바탕으로 User 리턴
@@ -50,12 +53,19 @@ public class UserService {
         return userRepository.findByPhoneNumber(phoneNumber);
     }
 
+    // UserRole 변경
+    @Transactional
+    public void changeUserRole(ChangeRoleRequest request) {
+        User findUser = findByUsername(request.getUsername());
+        findUser.changeRole(request.getRole());
+        log.info("User role changed successfully - user: {}({}) / role: {}", findUser.getUsername(), findUser.getName(), findUser.getRole());
+    }
+
     // 경험치 증가
     @Transactional
     public void increaseExp(User user, int value) {
         // @AuthenticationPrincipal로 받은 User 객체는 영속 상태가 아니므로 영속성 컨텍스트에 넣어야 함.
         User findUser = findById(user.getId());
-
         findUser.increaseExp(value);
     }
 
@@ -64,7 +74,6 @@ public class UserService {
     public void increasePoint(User user, int value) {
         // @AuthenticationPrincipal로 받은 User 객체는 영속 상태가 아니므로 영속성 컨텍스트에 넣어야 함.
         User findUser = findById(user.getId());
-
         findUser.increasePoint(value);
     }
 
@@ -73,7 +82,6 @@ public class UserService {
     public void decreasePoint(User user, int value) {
         // @AuthenticationPrincipal로 받은 User 객체는 영속 상태가 아니므로 영속성 컨텍스트에 넣어야 함.
         User findUser = findById(user.getId());
-
         findUser.decreasePoint(value);
     }
 
@@ -98,7 +106,7 @@ public class UserService {
 
     // 프로필 이미지 등록
     @Transactional
-    public String registerProfileImage(User user, MultipartFile file) {
+    public ProfileImageResponse registerProfileImage(User user, MultipartFile file) {
         log.info("Profile image update requested - user: {} ({})", user.getUsername(), user.getName());
         User findUser = findById(user.getId());
 
@@ -122,7 +130,7 @@ public class UserService {
         log.info("Profile image updated successfully - user: {} ({}) / image path: {}", user.getUsername(), user.getName(), absolutePath);
 
         // 프로필 이미지 경로 리턴
-        return absolutePath;
+        return UserResponseMapper.toProfileImageResponse(findUser);
     }
 
     // 프로필 이미지 삭제

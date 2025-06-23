@@ -102,7 +102,7 @@ public class User extends BaseEntity {
     // 구름조각 감소
     public void decreasePoint(int value) {
         if(value <= 0) throw new InvalidValueException("양수만 요청할 수 있습니다.");
-        if(this.getPoint() - value < 0) throw new InvalidValueException("구름조각은 음수가 될 수 없습니다.");
+        if(this.point - value < 0) throw new InvalidValueException("구름조각은 음수가 될 수 없습니다.");
         log.info("point decrease - user: {}({}) {} -> {}", this.username, this.name, this.point, this.point - value);
         this.point -= value;
     }
