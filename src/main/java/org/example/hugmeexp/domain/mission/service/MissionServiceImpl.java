@@ -3,18 +3,22 @@ package org.example.hugmeexp.domain.mission.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.mission.dto.request.MissionRequest;
+import org.example.hugmeexp.domain.mission.dto.request.SubmissionFeedbackRequest;
+import org.example.hugmeexp.domain.mission.dto.request.SubmissionUploadRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionResponse;
+import org.example.hugmeexp.domain.mission.dto.response.SubmissionResponse;
 import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.entity.Mission;
 import org.example.hugmeexp.domain.mission.entity.UserMission;
+import org.example.hugmeexp.domain.mission.entity.Submission;
 import org.example.hugmeexp.domain.mission.enums.UserMissionState;
-import org.example.hugmeexp.domain.mission.exception.AlreadyExistsUserMissionException;
-import org.example.hugmeexp.domain.mission.exception.MissionNotFoundException;
-import org.example.hugmeexp.domain.mission.exception.UserMissionNotFoundException;
+import org.example.hugmeexp.domain.mission.exception.*;
 import org.example.hugmeexp.domain.mission.mapper.MissionMapper;
 import org.example.hugmeexp.domain.mission.mapper.UserMissionMapper;
+import org.example.hugmeexp.domain.mission.mapper.UserMissionSubmissionMapper;
 import org.example.hugmeexp.domain.mission.repository.MissionRepository;
 import org.example.hugmeexp.domain.mission.repository.UserMissionRepository;
+import org.example.hugmeexp.domain.mission.repository.UserMissionSubmissionRepository;
 import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
 import org.example.hugmeexp.domain.missionGroup.entity.UserMissionGroup;
 import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
@@ -22,11 +26,17 @@ import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepositor
 import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
+
 import org.example.hugmeexp.domain.missionGroup.exception.UserNotFoundException;
 import org.example.hugmeexp.domain.missionGroup.exception.UserMissionGroupNotFoundException;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +48,11 @@ public class MissionServiceImpl implements MissionService {
     private final UserRepository userRepository;
     private final MissionMapper missionMapper;
     private final UserMissionMapper userMissionMapper;
+    private final UserMissionSubmissionRepository userMissionSubmissionRepository;
+    private final UserMissionSubmissionMapper userMissionSubmissionMapper;
+
+    @Value("${file.submission-upload-dir}")
+    private String uploadDir;
 
     @Override
     @Transactional
@@ -164,5 +179,78 @@ public class MissionServiceImpl implements MissionService {
         userMission.setProgress(newProgress);
 
         userMissionRepository.save(userMission);
+    }
+
+    @Override
+    @Transactional
+    public void submitChallenge(Long userMissionId, SubmissionUploadRequest submissionUploadRequest, MultipartFile file) {
+        UserMission userMission = userMissionRepository.findById(userMissionId)
+                .orElseThrow(UserMissionNotFoundException::new);
+
+        if (userMissionSubmissionRepository.existsByUserMission(userMission)) {
+            throw new AlreadyExistsUserMissionSubmissionException();
+        }
+
+        Submission submission = userMissionSubmissionMapper.toEntity(submissionUploadRequest);
+
+        submission.setUserMission(userMission);
+
+        String safeFileName = getSafeFileName(file);
+
+        // UUID를 사용하여 파일 이름을 안전하게 생성 및 중복 방지
+        String fileName = UUID.randomUUID().toString();
+        File destinationFile = new File(uploadDir, fileName);
+
+        submission.setFileName(fileName);
+        submission.setOriginalFileName(safeFileName); // 복원될 파일명
+
+        userMissionSubmissionRepository.save(submission);
+        // 파일 전송되기 전에 저장하고 파일 전송이 실패하면 롤백되므로(SubmissionFileUploadException)
+        // 고아 파일, 고아 레코드가 남지 않을 것임
+
+        try {
+            file.transferTo(destinationFile);
+        } catch (IOException e) {
+            throw new SubmissionFileUploadException("파일 저장 중 오류가 발생했습니다."); // RuntimeException을 던져서 IOException이 나더라도 롤백되게 함
+        }
+    }
+
+    private static String getSafeFileName(MultipartFile file) {
+        if (file == null || file.isEmpty())
+        {
+            throw new SubmissionFileUploadException("파일이 비어있거나 존재하지 않습니다.");
+        } else if (
+            file.getOriginalFilename() == null ||
+            file.getOriginalFilename().isEmpty() ||
+            !file.getOriginalFilename().contains(".")
+        ) {
+            throw new SubmissionFileUploadException("파일 확장자가 없습니다.");
+        }
+
+        String originalFilename = file.getOriginalFilename();
+
+        return new File(originalFilename).getName();
+    }
+
+    @Override
+    public SubmissionResponse getSubmissionByMissionId(Long userMissionId) {
+        UserMission userMission = userMissionRepository.findById(userMissionId)
+                .orElseThrow(UserMissionNotFoundException::new);
+
+        Submission submission = userMissionSubmissionRepository.findByUserMission(userMission)
+                .orElseThrow(SubmissionNotFoundException::new);
+
+        return userMissionSubmissionMapper.toSubmissionResponse(submission);
+    }
+
+    @Override
+    @Transactional
+    public void updateSubmissionFeedback(Long userMissionId, SubmissionFeedbackRequest submissionFeedbackRequest) {
+        UserMission userMission = userMissionRepository.findById(userMissionId)
+                .orElseThrow(UserMissionNotFoundException::new);
+        Submission submission = userMissionSubmissionRepository.findByUserMission(userMission)
+                .orElseThrow(SubmissionNotFoundException::new);
+        submission.setFeedback(submissionFeedbackRequest.getFeedback());
+        userMissionSubmissionRepository.save(submission);
     }
 }
