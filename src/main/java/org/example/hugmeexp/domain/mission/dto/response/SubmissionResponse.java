@@ -1,7 +1,6 @@
 package org.example.hugmeexp.domain.mission.dto.response;
 
 import lombok.*;
-import org.example.hugmeexp.domain.mission.entity.UserMission;
 
 @Data
 @NoArgsConstructor
@@ -10,7 +9,7 @@ import org.example.hugmeexp.domain.mission.entity.UserMission;
 public class SubmissionResponse {
     private Long id;
 
-    private UserMission userMission;
+    private UserMissionResponse userMission;
 
     private String fileName;
 
