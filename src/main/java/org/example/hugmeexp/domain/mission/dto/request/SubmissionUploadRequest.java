@@ -8,8 +8,7 @@ import org.hibernate.validator.constraints.Length;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@Getter
-@Setter
+// Removed redundant @Getter and @Setter annotations
 public class SubmissionUploadRequest {
     @NotBlank
     @Length(min = 1, max = 65535)
