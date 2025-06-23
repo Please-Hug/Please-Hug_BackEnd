@@ -42,4 +42,7 @@ public interface PraiseReceiverRepository extends JpaRepository<PraiseReceiver, 
             "   GROUP BY pr2.praise.sender.id) " +
             "ORDER BY pr.praise.createdAt DESC")
     List<Praise> findLatestPraisePerSender(Long userId);
+
+    /* 칭찬 상세 조회에 대한 칭찬 받은 사람 리스트 조회 */
+    List<PraiseReceiver> findByPraise(Praise praise);
 }
