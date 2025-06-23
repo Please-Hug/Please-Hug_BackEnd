@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.example.hugmeexp.global.BaseEntity;
+import org.example.hugmeexp.global.entity.BaseEntity;
 
 @Getter
 @Entity
