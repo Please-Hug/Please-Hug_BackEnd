@@ -10,6 +10,7 @@ import org.example.hugmeexp.domain.mission.entity.Mission;
 import org.example.hugmeexp.domain.mission.entity.Submission;
 import org.example.hugmeexp.domain.mission.entity.UserMission;
 import org.example.hugmeexp.domain.mission.enums.Difficulty;
+import org.example.hugmeexp.domain.mission.enums.FileUploadType;
 import org.example.hugmeexp.domain.mission.enums.UserMissionState;
 import org.example.hugmeexp.domain.mission.exception.*;
 import org.example.hugmeexp.domain.mission.mapper.MissionMapper;
@@ -18,6 +19,7 @@ import org.example.hugmeexp.domain.mission.mapper.UserMissionSubmissionMapper;
 import org.example.hugmeexp.domain.mission.repository.MissionRepository;
 import org.example.hugmeexp.domain.mission.repository.UserMissionRepository;
 import org.example.hugmeexp.domain.mission.repository.UserMissionSubmissionRepository;
+import org.example.hugmeexp.domain.mission.util.FileUploadUtils;
 import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
 import org.example.hugmeexp.domain.missionGroup.entity.UserMissionGroup;
 import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
@@ -31,12 +33,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -54,6 +53,7 @@ import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("미션 서비스 테스트")
 class MissionServiceTest {
 
     @Mock
@@ -547,38 +547,42 @@ class MissionServiceTest {
         String originalFileName = "test-image.png";
         String content = "file content";
 
-        // 서비스의 uploadDir 필드를 임시 디렉토리로 설정
-        // 실제 코드에서는 @Value 등으로 주입되므로, 테스트에서는 ReflectionTestUtils를 사용해 강제로 값을 주입합니다.
-        ReflectionTestUtils.setField(missionService, "uploadDir", tempDir.toString());
+        try (MockedStatic<FileUploadUtils> mockedStatic = Mockito.mockStatic(FileUploadUtils.class)) {
+            FileUploadType fileUploadType = FileUploadType.MISSION_UPLOADS;
+            mockedStatic.when(() -> FileUploadUtils.getUploadDir(fileUploadType))
+                    .thenReturn(tempDir);
+            mockedStatic.when(() -> FileUploadUtils.getSafeFileName(originalFileName))
+                    .thenReturn(originalFileName);
 
-        UserMission userMission = UserMission.builder().id(userMissionId).build();
-        SubmissionUploadRequest request = new SubmissionUploadRequest("제출 제목", "제출 내용");
-        MultipartFile file = new MockMultipartFile("file", originalFileName, "image/png", content.getBytes());
-        Submission submission = Submission.builder().build();
+            UserMission userMission = UserMission.builder().id(userMissionId).build();
+            SubmissionUploadRequest request = new SubmissionUploadRequest("제출 제목", "제출 내용");
+            MultipartFile file = new MockMultipartFile("file", originalFileName, "image/png", content.getBytes());
+            Submission submission = Submission.builder().build();
 
-        when(userMissionRepository.findById(userMissionId)).thenReturn(Optional.of(userMission));
-        when(userMissionSubmissionRepository.existsByUserMission(userMission)).thenReturn(false);
-        when(userMissionSubmissionMapper.toEntity(request)).thenReturn(submission);
+            when(userMissionRepository.findById(userMissionId)).thenReturn(Optional.of(userMission));
+            when(userMissionSubmissionRepository.existsByUserMission(userMission)).thenReturn(false);
+            when(userMissionSubmissionMapper.toEntity(request)).thenReturn(submission);
 
-        // When
-        missionService.submitChallenge(userMissionId, request, file);
+            // When
+            missionService.submitChallenge(userMissionId, request, file);
 
-        // Then
-        // 1. submission이 저장되었는지 검증
-        ArgumentCaptor<Submission> submissionCaptor = ArgumentCaptor.forClass(Submission.class);
-        verify(userMissionSubmissionRepository).save(submissionCaptor.capture());
+            // Then
+            // 1. submission이 저장되었는지 검증
+            ArgumentCaptor<Submission> submissionCaptor = ArgumentCaptor.forClass(Submission.class);
+            verify(userMissionSubmissionRepository).save(submissionCaptor.capture());
 
-        // 2. 저장된 submission의 필드들이 올바르게 설정되었는지 검증
-        Submission savedSubmission = submissionCaptor.getValue();
-        assertThat(savedSubmission.getUserMission()).isEqualTo(userMission);
-        assertThat(savedSubmission.getOriginalFileName()).isEqualTo(originalFileName);
-        // UUID는 예측 불가능하므로 null이 아닌지만 확인
-        assertThat(savedSubmission.getFileName()).isNotNull();
+            // 2. 저장된 submission의 필드들이 올바르게 설정되었는지 검증
+            Submission savedSubmission = submissionCaptor.getValue();
+            assertThat(savedSubmission.getUserMission()).isEqualTo(userMission);
+            assertThat(savedSubmission.getOriginalFileName()).isEqualTo(originalFileName);
+            // UUID는 예측 불가능하므로 null이 아닌지만 확인
+            assertThat(savedSubmission.getFileName()).isNotNull();
 
-        // 3. 실제 파일이 임시 디렉토리에 저장되었는지 검증
-        File savedFile = new File(tempDir.toString(), savedSubmission.getFileName());
-        assertThat(savedFile).exists();
-        assertThat(savedFile).hasContent(content);
+            // 3. 실제 파일이 임시 디렉토리에 저장되었는지 검증
+            File savedFile = new File(tempDir.toString(), savedSubmission.getFileName());
+            assertThat(savedFile).exists();
+            assertThat(savedFile).hasContent(content);
+        }
     }
 
     @Test
@@ -618,30 +622,38 @@ class MissionServiceTest {
     @Test
     @DisplayName("파일 저장 중 IOException 발생 시 SubmissionFileUploadException으로 전환되어 던져진다 - 실패")
     void submitChallenge_Fail_WhenIoExceptionOccurs() throws IOException {
-        // Given
-        Long userMissionId = 1L;
-        UserMission userMission = UserMission.builder().id(userMissionId).build();
-        SubmissionUploadRequest request = new SubmissionUploadRequest("제목", "내용");
-        Submission submission = Submission.builder().build();
 
-        // transferTo() 메서드에서 IOException을 던지도록 조작된 Mock MultipartFile
-        MultipartFile mockFile = mock(MultipartFile.class);
-        when(mockFile.getOriginalFilename()).thenReturn("valid.name.txt");
-        doThrow(new IOException("Disk is full")).when(mockFile).transferTo(any(File.class));
+        try (MockedStatic<FileUploadUtils> mockedStatic = Mockito.mockStatic(FileUploadUtils.class)) {
+            FileUploadType fileUploadType = FileUploadType.MISSION_UPLOADS;
+            mockedStatic.when(() -> FileUploadUtils.getUploadDir(fileUploadType))
+                    .thenReturn(tempDir);
+            mockedStatic.when(() -> FileUploadUtils.getSafeFileName(any(String.class)))
+                    .thenReturn("valid.name.txt");
 
-        ReflectionTestUtils.setField(missionService, "uploadDir", "/invalid/path");
+            // Given
+            Long userMissionId = 1L;
+            UserMission userMission = UserMission.builder().id(userMissionId).build();
+            SubmissionUploadRequest request = new SubmissionUploadRequest("제목", "내용");
+            Submission submission = Submission.builder().build();
 
-        when(userMissionRepository.findById(userMissionId)).thenReturn(Optional.of(userMission));
-        when(userMissionSubmissionRepository.existsByUserMission(userMission)).thenReturn(false);
-        when(userMissionSubmissionMapper.toEntity(request)).thenReturn(submission);
+            // transferTo() 메서드에서 IOException을 던지도록 조작된 Mock MultipartFile
+            MultipartFile mockFile = mock(MultipartFile.class);
+            when(mockFile.getOriginalFilename()).thenReturn("valid.name.txt");
+            doThrow(new IOException("Disk is full")).when(mockFile).transferTo(any(File.class));
 
-        // When & Then
-        // RuntimeException인 SubmissionFileUploadException이 발생하는지 확인
-        assertThrows(SubmissionFileUploadException.class, () -> missionService.submitChallenge(userMissionId, request, mockFile));
 
-        // @Transactional에 의해 롤백되므로 save는 호출되지만 커밋되지 않음.
-        // 테스트에서는 save가 호출되었는지 여부만 확인할 수 있음.
-        verify(userMissionSubmissionRepository).save(any(Submission.class));
+            when(userMissionRepository.findById(userMissionId)).thenReturn(Optional.of(userMission));
+            when(userMissionSubmissionRepository.existsByUserMission(userMission)).thenReturn(false);
+            when(userMissionSubmissionMapper.toEntity(request)).thenReturn(submission);
+
+            // When & Then
+            // RuntimeException인 SubmissionFileUploadException이 발생하는지 확인
+            assertThrows(SubmissionFileUploadException.class, () -> missionService.submitChallenge(userMissionId, request, mockFile));
+
+            // @Transactional에 의해 롤백되므로 save는 호출되지만 커밋되지 않음.
+            // 테스트에서는 save가 호출되었는지 여부만 확인할 수 있음.
+            verify(userMissionSubmissionRepository).save(any(Submission.class));
+        }
     }
 
 
