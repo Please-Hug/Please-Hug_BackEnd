@@ -4,17 +4,21 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryCreateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryUpdateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.CommentCreateRequest;
 import org.example.hugmeexp.domain.studydiary.service.StudyDiaryService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/studydiaries")
@@ -22,24 +26,38 @@ public class StudyDiaryController {
 
     private final StudyDiaryService studyDiaryService;
 
+    @SecurityRequirement(name = "JWT")
     @Operation(summary = "배움일기 목록 조회")
     @GetMapping
     public ResponseEntity<Response<Object>> getStudyDiaries(
-            @RequestParam(required = false) String sort,
-            Pageable pageable) {
-        
-        Object studyDiaries = studyDiaryService.getStudyDiaries(sort, pageable);
+            @PageableDefault(
+                size = 10,              // 기본 페이지 크기
+                page = 0,               // 기본 페이지 번호 (0부터 시작)
+                sort = "createdAt",     // 기본 정렬 필드
+                direction = Sort.Direction.DESC  // 기본 정렬 방향
+            ) Pageable pageable,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+//        log.info("조회 테스트 : {}", userDetails.getUsername());
+        Object studyDiaries = studyDiaryService.getStudyDiaries(pageable);
         return ResponseEntity.ok(Response.<Object>builder()
                 .message("배움일기 목록을 성공적으로 조회했습니다.")
                 .data(studyDiaries)
                 .build());
     }
 
+    @SecurityRequirement(name = "JWT")
     @Operation(summary = "배움일기 검색")
     @GetMapping("/search")
     public ResponseEntity<Response<Object>> searchStudyDiaries(
             @RequestParam String keyword,
-            Pageable pageable) {
+            @PageableDefault(
+                    size = 10,              // 기본 페이지 크기
+                    page = 0,               // 기본 페이지 번호 (0부터 시작)
+                    sort = "createdAt",     // 기본 정렬 필드
+                    direction = Sort.Direction.DESC  // 기본 정렬 방향
+            ) Pageable pageable,
+            @AuthenticationPrincipal UserDetails userDetails) {
         
         Object searchResults = studyDiaryService.searchStudyDiaries(keyword, pageable);
         return ResponseEntity.ok(Response.<Object>builder()
@@ -48,9 +66,12 @@ public class StudyDiaryController {
                 .build());
     }
 
+    @SecurityRequirement(name = "JWT")
     @Operation(summary = "배움일기 상세 조회")
     @GetMapping("/{id}")
-    public ResponseEntity<Response<Object>> getStudyDiary(@PathVariable Long id) {
+    public ResponseEntity<Response<Object>> getStudyDiary(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
         
         Object studyDiary = studyDiaryService.getStudyDiary(id);
         return ResponseEntity.ok(Response.<Object>builder()
@@ -65,7 +86,12 @@ public class StudyDiaryController {
     public ResponseEntity<Response<Object>> getUserStudyDiaries(
             @PathVariable("user-id") Long userId,
             @AuthenticationPrincipal UserDetails userDetails,
-            Pageable pageable) {
+            @PageableDefault(
+                    size = 10,              // 기본 페이지 크기
+                    page = 0,               // 기본 페이지 번호 (0부터 시작)
+                    sort = "createdAt",     // 기본 정렬 필드
+                    direction = Sort.Direction.DESC  // 기본 정렬 방향
+            ) Pageable pageable) {
         
         Object userStudyDiaries = studyDiaryService.getUserStudyDiaries(userId, pageable);
         return ResponseEntity.ok(Response.<Object>builder()
