@@ -192,7 +192,7 @@ public class StudyDiaryService {
 
         StudyDiary createdStudyDiary = StudyDiary.builder()
                 .title(request.getTitle())
-                .content(request.getTitle())
+                .content(request.getContent())
                 .isCreated(false)
                 .user(user)
                 .build();
