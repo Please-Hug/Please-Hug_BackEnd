@@ -64,9 +64,7 @@ public class StudyDiaryService {
         StudyDiary studyDiary = studyDiaryRepository.findById(id)
                 .orElseThrow(StudyDiaryNotFoundException::new);
 
-        if(user.getId().equals(studyDiary.getUser().getId())){
-            throw new UnauthorizedAccessException();
-        }
+        checkUser(user, studyDiary);
 
         studyDiary.updateTitle(updateRequest.getTitle());
         studyDiary.updateContent(updateRequest.getContent());
@@ -82,9 +80,7 @@ public class StudyDiaryService {
         StudyDiary studyDiary = studyDiaryRepository.findById(id)
                 .orElseThrow(StudyDiaryNotFoundException::new);
 
-        if(user.getId().equals(studyDiary.getUser().getId())){
-            throw new UnauthorizedAccessException();
-        }
+        checkUser(user, studyDiary);
 
         studyDiaryRepository.delete(studyDiary);
     }
@@ -290,6 +286,12 @@ public class StudyDiaryService {
         }
 
         studyDiaryCommentRepository.delete(comment);
+    }
+
+    private void checkUser(User user, StudyDiary studyDiary) {
+        if(!user.getId().equals(studyDiary.getUser().getId())){
+            throw new UnauthorizedAccessException();
+        }
     }
 
 }
