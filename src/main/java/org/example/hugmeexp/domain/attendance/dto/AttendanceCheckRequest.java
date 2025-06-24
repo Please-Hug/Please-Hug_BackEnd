@@ -1,22 +1,14 @@
 package org.example.hugmeexp.domain.attendance.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class AttendanceCheckRequest {
-
-    private final Long userId;
-
-    public AttendanceCheckRequest(Long userId) {
-        this.userId = userId;
-    }
-
-    public static AttendanceCheckRequest ofCheck(Long userId) {
-        return AttendanceCheckRequest.builder()
-                .userId(userId)
-                .build();
-    }
-
+    private Long userId;
 }
