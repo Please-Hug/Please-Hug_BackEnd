@@ -3,7 +3,6 @@ package org.example.hugmeexp.domain.praise.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.domain.praise.dto.PraiseDetailResponseDTO;
 import org.example.hugmeexp.domain.praise.dto.PraiseEmojiReactionRequestDTO;
 import org.example.hugmeexp.domain.praise.dto.PraiseEmojiReactionResponseDTO;
 import org.example.hugmeexp.domain.praise.service.PraiseEmojiReactionService;
@@ -49,6 +48,9 @@ public class PraiseEmojiReactionController {
             @PathVariable Long emojiId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ){
+        log.info("Praise emoji reaction deletion request - praiseId: {}, emojiId: {}, userId: {}",
+                praiseId, emojiId, userDetails.getUser().getId());
+
         praiseEmojiReactionService.deleteEmojiReaction(praiseId,emojiId,userDetails.getUser());
 
         Response<Void> response = Response.<Void>builder()
