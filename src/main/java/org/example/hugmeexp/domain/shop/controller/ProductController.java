@@ -88,11 +88,4 @@ public class ProductController {
         List<OrderResponse> response = productService.getOrders(user, startDate, endDate);
         return ResponseEntity.ok().body(Response.builder().data(response).message("Successfully retrieved orders.").build());
     }
-
-//    // ===== 사용자 구매 테스트를 위한 포인트 증가 메서드 =====
-//    @PostMapping("/point")
-//    public void increasePoint(
-//            @AuthenticationPrincipal CustomUserDetails userDetails) {
-//        productService.increasePoint(userDetails.getUsername());
-//    }
 }
