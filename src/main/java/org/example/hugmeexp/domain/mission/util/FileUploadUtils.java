@@ -12,7 +12,7 @@ public final class FileUploadUtils {
 
     public static String getUploadDir(FileUploadType uploadType) {
         // 절대 경로와 현재 작업 경로 조합, 필요에 따라 수정 가능
-        Path uploadDir = Paths.get(uploadType.value(), System.getProperty("user.dir"));
+        Path uploadDir = Paths.get(System.getProperty("user.dir"), uploadType.value());
         if (!Files.exists(uploadDir) && !uploadDir.toFile().mkdirs()) {
             throw new SubmissionFileUploadException("업로드 디렉토리를 생성할 수 없습니다.");
         }
