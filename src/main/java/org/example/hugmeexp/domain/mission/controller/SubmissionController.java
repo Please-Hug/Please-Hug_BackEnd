@@ -49,8 +49,17 @@ public class SubmissionController {
 
         // 둘 모두 이미 검증된 파일명이지만 다시 한 번 검증
         String savedFileName = getSafeFileName(submissionResponse.getFileName());
-        String originalFileName = getSafeFileName(submissionResponse.getOriginalFileName()).replaceAll("[\"'/\\\\]", "_");
+        String originalFileName = getSafeFileName(submissionResponse.getOriginalFileName()).replaceAll("[^a-zA-Z0-9가-힣._-]", "_");;
         File file = new File(uploadDir, savedFileName);
+
+        try {
+            if (!file.getCanonicalPath().startsWith(new File(uploadDir).getCanonicalPath())) {
+                throw new SubMissionInternalException("잘못된 파일 경로입니다.");
+            }
+        } catch (IOException e) {
+            throw new SubMissionInternalException("파일 경로를 확인하는 중 오류가 발생했습니다.");
+        }
+
         String contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
         Resource resource = new FileSystemResource(file);

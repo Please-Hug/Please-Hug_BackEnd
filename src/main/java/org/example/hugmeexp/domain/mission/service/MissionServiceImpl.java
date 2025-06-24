@@ -229,7 +229,7 @@ public class MissionServiceImpl implements MissionService {
 
         String originalFilename = file.getOriginalFilename();
 
-        return new File(originalFilename).getName();
+        return new File(originalFilename).getName().replaceAll("[^a-zA-Z0-9가-힣._-]", "_");
     }
 
     @Override
