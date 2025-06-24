@@ -38,6 +38,7 @@ public class PraiseService {
     private final UserRepository userRepository;
     private final PraiseReceiverRepository praiseReceiverRepository;
     private final CommentEmojiReactionRepository commentEmojiReactionRepository;
+    private final CommentService commentService;
 
 
     /* 칭찬 생성 */
@@ -278,7 +279,7 @@ public class PraiseService {
         List<PraiseReceiver> receiverList = praiseReceiverRepository.findByPraise(praise);
 
         // 댓글 목록 조회
-        List<PraiseComment> commentList = commentRepository.findByPraise(praise);
+        List<PraiseComment> commentList = commentService.getCommentsByPraise(praise);
 
         // 이모지 반응 수 조회
         List<Object[]> counts = praiseEmojiReactionRepository.countGroupedByEmoji(praise);
