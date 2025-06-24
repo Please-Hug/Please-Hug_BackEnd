@@ -7,7 +7,6 @@ import org.example.hugmeexp.domain.attendance.dto.AttendanceCheckResponse;
 import org.example.hugmeexp.domain.attendance.dto.AttendanceStatusResponse;
 import org.example.hugmeexp.domain.attendance.service.AttendanceService;
 import org.example.hugmeexp.global.common.response.Response;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,12 +43,11 @@ public class AttendanceController {
      * - 성공 여부, 연속 출석 일수, 오늘의 출석 상태 등을 반환
      *
      * @param userId 사용자 ID
-     * @param request 출석 체크 요청 데이터
      * @return 출석 체크 응답
      */
     @PostMapping("/{userId}/check")
-    public ResponseEntity<Response<AttendanceCheckResponse>> checkAttendance(@PathVariable Long userId, @RequestBody AttendanceCheckRequest request) {
-        AttendanceCheckResponse data = attendanceService.checkAttendance(userId, request);
+    public ResponseEntity<Response<AttendanceCheckResponse>> checkAttendance(@PathVariable Long userId) {
+        AttendanceCheckResponse data = attendanceService.checkAttendance(userId);
         Response<AttendanceCheckResponse> response = Response.<AttendanceCheckResponse>builder()
                 .data(data)
                 .message("Attendance check success")
