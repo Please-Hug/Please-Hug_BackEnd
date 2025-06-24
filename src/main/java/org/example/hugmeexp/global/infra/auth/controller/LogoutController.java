@@ -17,12 +17,12 @@ public class LogoutController {
     private final AuthService authService;
 
     @PostMapping("/api/logout")
-    public ResponseEntity<Response<?>> logout(@RequestHeader(value = "Authorization") String authHeader) {
+    public ResponseEntity<Response<Void>> logout(@RequestHeader(value = "Authorization") String authHeader) {
         // 액세스 토큰 추출
         String accessToken = authHeader.substring(7);
         authService.logout(accessToken);
 
-        return ResponseEntity.ok(Response.builder()
+        return ResponseEntity.ok(Response.<Void>builder()
                 .message("로그아웃 되었습니다")
                 .build());
     }

@@ -5,8 +5,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class UserSimpleResponse {
-    private final String username;
-    private final String name;
-    private final String ProfileImagePath;
+public class ProfileImageResponse {
+    private final String profileImage;
 }

@@ -12,7 +12,7 @@ import org.example.hugmeexp.domain.missionGroup.exception.*;
 import org.example.hugmeexp.domain.missionGroup.mapper.MissionGroupMapper;
 import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepository;
 import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepository;
-import org.example.hugmeexp.domain.user.dto.response.UserSimpleResponse;
+import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.junit.jupiter.api.DisplayName;
@@ -65,9 +65,9 @@ class MissionGroupServiceTest {
     @Test
     @DisplayName("모든 미션 그룹을 조회한다 - 성공")
     void getAllMissionGroups() {
-        UserSimpleResponse teacher1 = new UserSimpleResponse(
+        UserProfileResponse teacher1 = new UserProfileResponse(
                 "teacher1", "Teacher One", "");
-        UserSimpleResponse teacher2 = new UserSimpleResponse(
+        UserProfileResponse teacher2 = new UserProfileResponse(
                 "teacher2", "Teacher Two", "");
         // Given
         MissionGroup group1 = mock(MissionGroup.class);
@@ -102,8 +102,8 @@ class MissionGroupServiceTest {
     @DisplayName("새로운 미션 그룹을 생성한다 - 성공")
     void createMissionGroup() {
         // Given
-        UserSimpleResponse teacher = new UserSimpleResponse(
-                "teacher1", "Teacher One", "");
+        UserProfileResponse teacher = new UserProfileResponse(
+                "teacher1", "teacher1", "");
 
         User user1 = User.createUser("teacher1", "password", "Teacher One", "1234");
 
@@ -139,7 +139,7 @@ class MissionGroupServiceTest {
     @DisplayName("ID로 미션 그룹을 조회한다 - 존재O")
     void getMissionById_found() {
         // Given
-        UserSimpleResponse teacher = new UserSimpleResponse(
+        UserProfileResponse teacher = new UserProfileResponse(
                 "teacher1", "Teacher One", "");
 
         Long id = 1L;
@@ -179,8 +179,8 @@ class MissionGroupServiceTest {
     @Test
     @DisplayName("미션 그룹을 업데이트한다 - 성공")
     void updateMissionGroup_success() {
-        UserSimpleResponse teacherResponse = new UserSimpleResponse(
-                "teacher", "Teacher One", "");
+        UserProfileResponse teacherResponse = new UserProfileResponse(
+                "teacher", "teacher", "");
 
         Long id = 1L;
         // Given

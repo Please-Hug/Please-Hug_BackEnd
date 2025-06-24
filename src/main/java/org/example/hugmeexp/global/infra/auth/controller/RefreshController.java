@@ -20,11 +20,11 @@ public class RefreshController
     private final AuthService authService;
 
     @PostMapping("/api/refresh")
-    public ResponseEntity<Response<?>> refresh(@Valid @RequestBody RefreshRequest request) {
+    public ResponseEntity<Response<AuthResponse>> refresh(@Valid @RequestBody RefreshRequest request) {
         // 서비스에 비즈니스 로직 위임
         AuthResponse result = authService.refreshTokens(request);
 
-        return ResponseEntity.ok(Response.builder()
+        return ResponseEntity.ok(Response.<AuthResponse>builder()
                 .message("리프레시 토큰이 갱신되었습니다")
                 .data(result)
                 .build());

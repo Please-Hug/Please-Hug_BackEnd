@@ -9,6 +9,8 @@ import org.example.hugmeexp.domain.user.entity.User;
 @Entity
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 @Table(name = "praise_comment")
 public class PraiseComment extends BaseEntity {
 
