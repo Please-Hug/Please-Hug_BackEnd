@@ -5,6 +5,6 @@ import org.springframework.http.HttpStatus;
 
 public class InvalidPraiseEmojiAccessException extends BaseCustomException {
     public InvalidPraiseEmojiAccessException() {
-        super(HttpStatus.BAD_REQUEST,"칭찬 게시물의 실제 반응와 일치하지 않습니다.",400);
+        super(HttpStatus.BAD_REQUEST,"칭찬 게시물의 실제 반응과 일치하지 않습니다.",400);
     }
 }
