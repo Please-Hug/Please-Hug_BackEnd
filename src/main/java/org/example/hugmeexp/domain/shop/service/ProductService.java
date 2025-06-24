@@ -104,7 +104,7 @@ public class ProductService {
         );
 
         // 구매자 포인트 및 상품 재고 감소
-        purchaser.increasePoint(product.getPrice() * (-1));
+        purchaser.decreasePoint(product.getPrice());
         product.decreaseQuantity();
 
         orderRepository.save(order);
@@ -158,12 +158,5 @@ public class ProductService {
                 .orderTime(order.getCreatedAt())
                 .receiverPhoneNumber(order.getReceiverPhoneNumber())
                 .build();
-    }
-
-    // ===== 테스트용 =====
-    public void increasePoint(String username) {
-        User user = userRepository.findByUsername(username).get();
-        user.increasePoint(100000);
-        userRepository.save(user);
     }
 }
