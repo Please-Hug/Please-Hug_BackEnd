@@ -49,7 +49,7 @@ public class SubmissionController {
         String savedFileName = FileUploadUtils.getSafeFileName(submissionResponse.getFileName());
         String originalFileName = FileUploadUtils.getSafeFileName(submissionResponse.getOriginalFileName());
 
-        String uploadDir = FileUploadUtils.getUploadDir(FileUploadType.MISSION_UPLOADS);
+        String uploadDir = FileUploadUtils.getUploadDir(FileUploadType.MISSION_UPLOADS).toString();
 
         File file = new File(uploadDir, savedFileName);
 
