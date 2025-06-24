@@ -4,9 +4,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.mission.dto.request.SubmissionFeedbackRequest;
 import org.example.hugmeexp.domain.mission.dto.response.SubmissionResponse;
+import org.example.hugmeexp.domain.mission.enums.FileUploadType;
 import org.example.hugmeexp.domain.mission.exception.SubMissionInternalException;
 import org.example.hugmeexp.domain.mission.exception.SubmissionNotFoundException;
 import org.example.hugmeexp.domain.mission.service.MissionService;
+import org.example.hugmeexp.domain.mission.util.FileUploadUtils;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
@@ -28,8 +30,6 @@ import java.nio.charset.StandardCharsets;
 public class SubmissionController {
     private final MissionService missionService;
 
-    @Value("${file.submission-upload-dir}")
-    private String uploadDir;
 
     @GetMapping("/{userMissionId}")
     public ResponseEntity<Response<?>> getSubmissionByMissionId(@PathVariable Long userMissionId) {
@@ -48,8 +48,11 @@ public class SubmissionController {
         }
 
         // 둘 모두 이미 검증된 파일명이지만 다시 한 번 검증
-        String savedFileName = getSafeFileName(submissionResponse.getFileName());
-        String originalFileName = getSafeFileName(submissionResponse.getOriginalFileName()).replaceAll("[^a-zA-Z0-9가-힣._-]", "_");;
+        String savedFileName = FileUploadUtils.getSafeFileName(submissionResponse.getFileName());
+        String originalFileName = FileUploadUtils.getSafeFileName(submissionResponse.getOriginalFileName());
+
+        String uploadDir = FileUploadUtils.getUploadDir(FileUploadType.MISSION_UPLOADS);
+
         File file = new File(uploadDir, savedFileName);
 
         try {
@@ -91,13 +94,5 @@ public class SubmissionController {
         return ResponseEntity.ok(Response.builder()
                 .message("제출 피드백이 성공적으로 업데이트되었습니다.")
                 .build());
-    }
-
-    private static String getSafeFileName(String fileName) {
-        if (fileName == null || fileName.isEmpty()) {
-            throw new SubMissionInternalException("파일 이름이 비어 있거나 null입니다.");
-        }
-
-        return StringUtils.getFilename(StringUtils.cleanPath(fileName));
     }
 }
