@@ -40,7 +40,7 @@ public class CommentController {
                 .data(result)
                 .build();
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /* 댓글 삭제 */
