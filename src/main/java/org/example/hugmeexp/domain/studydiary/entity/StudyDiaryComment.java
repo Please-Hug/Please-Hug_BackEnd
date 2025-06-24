@@ -15,7 +15,7 @@ public class StudyDiaryComment extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "studydiary_commment_id")
+    @Column(name = "studydiary_comment_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
