@@ -28,13 +28,10 @@ import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepositor
 import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 

@@ -10,14 +10,12 @@ import org.example.hugmeexp.domain.mission.exception.SubmissionNotFoundException
 import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.domain.mission.util.FileUploadUtils;
 import org.example.hugmeexp.global.common.response.Response;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
