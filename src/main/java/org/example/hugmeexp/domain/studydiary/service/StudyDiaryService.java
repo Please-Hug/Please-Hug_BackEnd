@@ -12,6 +12,7 @@ import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryWeekStatusR
 import org.example.hugmeexp.domain.studydiary.entity.StudyDiary;
 import org.example.hugmeexp.domain.studydiary.entity.StudyDiaryComment;
 import org.example.hugmeexp.domain.studydiary.exception.StudyDiaryNotFoundException;
+import org.example.hugmeexp.domain.studydiary.exception.UnauthorizedAccessException;
 import org.example.hugmeexp.domain.studydiary.exception.UserNotFoundForStudyDiaryException;
 import org.example.hugmeexp.domain.studydiary.exception.CommentNotFoundException;
 import org.example.hugmeexp.domain.studydiary.repository.StudyDiaryCommentRepository;
@@ -45,7 +46,7 @@ public class StudyDiaryService {
 
         StudyDiary createdStudyDiary = StudyDiary.builder()
                 .title(createRequest.getTitle())
-                .content(createRequest.getTitle())
+                .content(createRequest.getContent())
                 .likeCount(0)
                 .isCreated(true)
                 .user(user)
@@ -63,6 +64,10 @@ public class StudyDiaryService {
         StudyDiary studyDiary = studyDiaryRepository.findById(id)
                 .orElseThrow(StudyDiaryNotFoundException::new);
 
+        if(user.getId().equals(studyDiary.getUser().getId())){
+            throw new UnauthorizedAccessException();
+        }
+
         studyDiary.updateTitle(updateRequest.getTitle());
         studyDiary.updateContent(updateRequest.getContent());
 
@@ -77,10 +82,14 @@ public class StudyDiaryService {
         StudyDiary studyDiary = studyDiaryRepository.findById(id)
                 .orElseThrow(StudyDiaryNotFoundException::new);
 
+        if(user.getId().equals(studyDiary.getUser().getId())){
+            throw new UnauthorizedAccessException();
+        }
+
         studyDiaryRepository.delete(studyDiary);
     }
 
-    public Page<StudyDiaryFindAllResponse> getStudyDiaries(String sort, Pageable pageable) {
+    public Page<StudyDiaryFindAllResponse> getStudyDiaries(Pageable pageable) {
         Page<StudyDiary> studyDiaries = studyDiaryRepository.findByIsCreatedTrueOrderByCreatedAtDesc(pageable);
 
         //response로 전환
@@ -181,6 +190,7 @@ public class StudyDiaryService {
 //    public List<StudyDiary> getSimilarStudyDiaries(Long id) {
 //    }
 
+    @Transactional
     public Long saveDraft(StudyDiaryCreateRequest request, UserDetails userDetails) {
         User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(UserNotFoundForStudyDiaryException::new);
 
@@ -191,7 +201,9 @@ public class StudyDiaryService {
                 .user(user)
                 .build();
 
-        return createdStudyDiary.getId();
+        StudyDiary saved = studyDiaryRepository.save(createdStudyDiary);
+
+        return saved.getId();
     }
 
     public StudyDiaryWeekStatusResponse getWeekStatus(Long userId) {
@@ -207,7 +219,6 @@ public class StudyDiaryService {
                 .thursday(false)
                 .friday(false)
                 .saturday(false)
-                .sunday(false)
                 .todayStudyDiaryNum(0)
                 .totalLike(0)
                 .build();
@@ -273,6 +284,10 @@ public class StudyDiaryService {
         // 댓글 존재 여부 확인
         StudyDiaryComment comment = studyDiaryCommentRepository.findById(commentId)
                 .orElseThrow(CommentNotFoundException::new);
+
+        if(user.getId().equals(comment.getUser().getId())){
+            throw new UnauthorizedAccessException();
+        }
 
         studyDiaryCommentRepository.delete(comment);
     }
