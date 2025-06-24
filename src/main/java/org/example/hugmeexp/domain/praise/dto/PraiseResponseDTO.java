@@ -24,10 +24,10 @@ public class PraiseResponseDTO {
     private String content;    // 칭찬 내용
     private PraiseType type;    // 칭찬 타입
     private long commentCount;    // 댓글 개수
-    private Map<String, Integer> emojiReactionCount;    // 이모지별 반응 수
+    private List<EmojiReactionGroupDTO> emojis;    // 이모지별 반응 수
     private LocalDateTime createdAt;    // 작성 시간
 
-    public static PraiseResponseDTO from(Praise praise, List<PraiseReceiver> receivers, long commentCount, Map<String, Integer> emojiReactionCount){
+    public static PraiseResponseDTO from(Praise praise, List<PraiseReceiver> receivers, long commentCount, List<EmojiReactionGroupDTO> emojis){
 
         List<String> receiverNames = receivers.stream()
                 .map(praiseReceiver -> praiseReceiver.getReceiver().getName())
@@ -40,7 +40,7 @@ public class PraiseResponseDTO {
                 .content(praise.getContent())
                 .type(praise.getPraiseType())
                 .commentCount(commentCount)
-                .emojiReactionCount(emojiReactionCount)
+                .emojis(emojis)
                 .createdAt(praise.getCreatedAt())
                 .build();
     }
