@@ -19,17 +19,17 @@ public class PraiseEmojiReactionResponseDTO {
     private List<String> reactedBy;    // 반응을 남긴 사람
     private Long praiseId;    // 칭찬 게시물
 
-    public static PraiseEmojiReactionResponseDTO from(PraiseEmojiReaction praiseEmojiReaction, List<PraiseEmojiReaction> praiseEmojiReactionList){
+    public static PraiseEmojiReactionResponseDTO from(PraiseEmojiReaction savedReaction, List<PraiseEmojiReaction> sameEmojiReactions){
 
-        List<String> reactedBy = praiseEmojiReactionList.stream()
+        List<String> reactedBy = sameEmojiReactions.stream()
                 .map(reaction -> reaction.getReactorWriter().getName())
                 .distinct()
                 .toList();
         return PraiseEmojiReactionResponseDTO.builder()
-                .id(praiseEmojiReaction.getId())
-                .emoji(praiseEmojiReaction.getEmoji())
+                .id(savedReaction.getId())
+                .emoji(savedReaction.getEmoji())
                 .reactedBy(reactedBy)
-                .praiseId(praiseEmojiReaction.getPraise().getId())
+                .praiseId(savedReaction.getPraise().getId())
                 .build();
     }
 }

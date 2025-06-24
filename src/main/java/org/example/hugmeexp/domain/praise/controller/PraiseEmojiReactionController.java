@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.praise.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.praise.dto.PraiseDetailResponseDTO;
@@ -25,7 +26,7 @@ public class PraiseEmojiReactionController {
     @PostMapping("/{praiseId}/emojis")
     public ResponseEntity<Response<PraiseEmojiReactionResponseDTO>> addEmojiReaction(
             @PathVariable Long praiseId,
-            @RequestBody PraiseEmojiReactionRequestDTO praiseEmojiReactionRequestDTO,
+            @Valid @RequestBody PraiseEmojiReactionRequestDTO praiseEmojiReactionRequestDTO,
             @AuthenticationPrincipal CustomUserDetails userDetails
             ){
         log.info("Praise emoji reaction creation request - praiseId: {}, userId: {}, emoji: {}",
