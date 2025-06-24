@@ -549,7 +549,7 @@ class MissionServiceTest {
 
         try (MockedStatic<FileUploadUtils> mockedStatic = Mockito.mockStatic(FileUploadUtils.class)) {
             FileUploadType fileUploadType = FileUploadType.MISSION_UPLOADS;
-            mockedStatic.when(() -> FileUploadUtils.getUploadDir(fileUploadType))
+            mockedStatic.when(() -> FileUploadUtils.getUploadPath(fileUploadType))
                     .thenReturn(tempDir);
             mockedStatic.when(() -> FileUploadUtils.getSafeFileName(originalFileName))
                     .thenReturn(originalFileName);
@@ -625,7 +625,7 @@ class MissionServiceTest {
 
         try (MockedStatic<FileUploadUtils> mockedStatic = Mockito.mockStatic(FileUploadUtils.class)) {
             FileUploadType fileUploadType = FileUploadType.MISSION_UPLOADS;
-            mockedStatic.when(() -> FileUploadUtils.getUploadDir(fileUploadType))
+            mockedStatic.when(() -> FileUploadUtils.getUploadPath(fileUploadType))
                     .thenReturn(tempDir);
             mockedStatic.when(() -> FileUploadUtils.getSafeFileName(any(String.class)))
                     .thenReturn("valid.name.txt");

@@ -11,8 +11,7 @@ import java.nio.file.*;
 public final class FileUploadUtils {
     private FileUploadUtils() {}
 
-    public static Path getUploadDir(FileUploadType uploadType) {
-        // 절대 경로와 현재 작업 경로 조합, 필요에 따라 수정 가능
+    public static Path getUploadPath(FileUploadType uploadType) {
         Path uploadDir = Paths.get(System.getProperty("user.dir"), uploadType.value());
         if (!Files.exists(uploadDir)) {
             try {
@@ -25,10 +24,28 @@ public final class FileUploadUtils {
     }
 
     public static String getSafeFileName(String fileName) {
+        // 파일 이름이 null이거나 비어 있는지 확인
         if (fileName == null || fileName.isEmpty()) {
             throw new SubMissionInternalException("파일 이름이 비어 있거나 null입니다.");
         }
 
-        return StringUtils.getFilename(StringUtils.cleanPath(fileName));
+        // 위험한 문자 패턴 검증
+        if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")) {
+            throw new SubMissionInternalException("허용되지 않는 문자가 포함된 파일명입니다.");
+        }
+
+        // 파일명 길이 제한
+        if (fileName.length() > 255) {
+            throw new SubMissionInternalException("파일명이 너무 깁니다.");
+        }
+
+        String cleanedFileName = StringUtils.getFilename(StringUtils.cleanPath(fileName));
+
+        // 최종 검증
+        if (cleanedFileName == null || cleanedFileName.isEmpty()) {
+            throw new SubMissionInternalException("유효하지 않은 파일명입니다.");
+        }
+
+        return cleanedFileName;
     }
 }

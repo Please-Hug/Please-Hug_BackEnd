@@ -189,7 +189,7 @@ public class MissionServiceImpl implements MissionService {
             throw new AlreadyExistsUserMissionSubmissionException();
         }
 
-        String uploadDir = FileUploadUtils.getUploadDir(FileUploadType.MISSION_UPLOADS).toString();
+        String uploadDir = FileUploadUtils.getUploadPath(FileUploadType.MISSION_UPLOADS).toString();
 
         Submission submission = userMissionSubmissionMapper.toEntity(submissionUploadRequest);
 
