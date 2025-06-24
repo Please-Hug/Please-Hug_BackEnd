@@ -8,7 +8,6 @@ import org.hibernate.validator.constraints.Length;
 public class StudyDiaryCreateRequest {
 
     @NotNull(message = "공백일 수 없습니다.")
-    @Length()
     private String title;
 
     @NotNull(message = "공백일 수 없습니다.")
