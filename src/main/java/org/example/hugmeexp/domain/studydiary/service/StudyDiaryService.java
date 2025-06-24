@@ -281,7 +281,7 @@ public class StudyDiaryService {
         StudyDiaryComment comment = studyDiaryCommentRepository.findById(commentId)
                 .orElseThrow(CommentNotFoundException::new);
 
-        if(user.getId().equals(comment.getUser().getId())){
+        if(!user.getId().equals(comment.getUser().getId())){
             throw new UnauthorizedAccessException();
         }
 
