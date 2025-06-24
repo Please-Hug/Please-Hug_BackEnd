@@ -41,4 +41,22 @@ public class PraiseEmojiReactionController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    /* 칭찬 게시물에 반응 삭제 */
+    @DeleteMapping("/{praiseId}/emojis/{emojiId}")
+    public ResponseEntity<Response<Void>> deleteEmojiReaction(
+            @PathVariable Long praiseId,
+            @PathVariable Long emojiId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ){
+        praiseEmojiReactionService.deleteEmojiReaction(praiseId,emojiId,userDetails.getUser());
+
+        Response<Void> response = Response.<Void>builder()
+                .message("칭찬 게시물 반응 삭제 완료")
+                .data(null)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
 }

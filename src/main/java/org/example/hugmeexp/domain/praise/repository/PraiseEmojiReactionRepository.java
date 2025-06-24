@@ -23,8 +23,9 @@ public interface PraiseEmojiReactionRepository extends JpaRepository<PraiseEmoji
     /* 특정 칭찬 글에 달린 모든 이모지 반응을 조회 */
     List<PraiseEmojiReaction> findByPraise(Praise praise);
 
-    /* 특정 칭찬 글에서 특정 이모징 ㅔ대한 반응만 조회 */
+    /* 특정 칭찬 글에서 특정 이모지에 대한 반응만 조회 */
     List<PraiseEmojiReaction> findByPraiseAndEmoji(Praise praise, String emoji);
 
+    /* 특정 이모지로 이미 반응한 적이 있는지 여부 반환 */
     boolean existsByPraiseAndReactorWriterAndEmoji(Praise praise, User reactorWriter, String emoji);
 }

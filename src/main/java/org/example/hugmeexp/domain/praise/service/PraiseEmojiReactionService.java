@@ -6,9 +6,7 @@ import org.example.hugmeexp.domain.praise.dto.PraiseEmojiReactionRequestDTO;
 import org.example.hugmeexp.domain.praise.dto.PraiseEmojiReactionResponseDTO;
 import org.example.hugmeexp.domain.praise.entity.Praise;
 import org.example.hugmeexp.domain.praise.entity.PraiseEmojiReaction;
-import org.example.hugmeexp.domain.praise.exception.DuplicateEmojiReactionException;
-import org.example.hugmeexp.domain.praise.exception.InvalidEmojiException;
-import org.example.hugmeexp.domain.praise.exception.PraiseNotFoundException;
+import org.example.hugmeexp.domain.praise.exception.*;
 import org.example.hugmeexp.domain.praise.mapper.PraiseEmojiReactionMapper;
 import org.example.hugmeexp.domain.praise.repository.PraiseEmojiReactionRepository;
 import org.example.hugmeexp.domain.praise.repository.PraiseRepository;
@@ -65,4 +63,24 @@ public class PraiseEmojiReactionService {
         return PraiseEmojiReactionResponseDTO.from(saved, sameEmojiReactions);
     }
 
+    /* 칭찬 게시물에 반응 삭제 */
+    @Transactional
+    public void deleteEmojiReaction(Long praiseId, Long emojiId, User user) {
+
+        // 이모지 반응 조회
+        PraiseEmojiReaction reaction = praiseEmojiReactionRepository.findById(emojiId)
+                .orElseThrow(() -> new PraiseEmojiReactionNotFoundException());
+
+        // URL 의 praiseId 와 실제 반응의 praiseId 일치 여부 확인
+        if(!reaction.getPraise().getId().equals(praiseId)){
+            throw new InvalidPraiseEmojiAccessException();
+        }
+
+        // 본인만 삭제할 수 있도록 작성자 확인
+        if (!reaction.getReactorWriter().getId().equals(user.getId())){
+            throw new UnauthorizedEmojiDeleteException();
+        }
+
+        praiseEmojiReactionRepository.delete(reaction);
+    }
 }
