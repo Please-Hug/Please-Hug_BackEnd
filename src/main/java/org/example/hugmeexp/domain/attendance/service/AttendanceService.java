@@ -1,8 +1,7 @@
 package org.example.hugmeexp.domain.attendance.service;
 
-import jakarta.persistence.EntityNotFoundException;
+
 import lombok.RequiredArgsConstructor;
-import org.example.hugmeexp.domain.attendance.dto.AttendanceCheckRequest;
 import org.example.hugmeexp.domain.attendance.dto.AttendanceCheckResponse;
 import org.example.hugmeexp.domain.attendance.dto.AttendanceStatusResponse;
 import org.example.hugmeexp.domain.attendance.entity.Attendance;
