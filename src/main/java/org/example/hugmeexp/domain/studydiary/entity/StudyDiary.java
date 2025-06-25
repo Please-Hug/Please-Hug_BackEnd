@@ -26,6 +26,9 @@ public class StudyDiary extends BaseEntity {
     @OneToMany(mappedBy = "studyDiary", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StudyDiaryComment> comments;
 
+    @OneToMany(mappedBy = "studyDiary", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StudyDiaryLike> likes;
+
     private String title;
 
     private String content;
@@ -34,12 +37,15 @@ public class StudyDiary extends BaseEntity {
 
     private int likeCount;
 
-    // 수정 메소드들 (더티 체킹 활용)
     public void updateTitle(String title) {
         this.title = title;
     }
 
     public void updateContent(String content) {
         this.content = content;
+    }
+
+    public void updateLikeCount(int likeCount) {
+        this.likeCount = likeCount;
     }
 }
