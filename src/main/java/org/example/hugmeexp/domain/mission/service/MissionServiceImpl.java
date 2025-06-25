@@ -247,6 +247,29 @@ public class MissionServiceImpl implements MissionService {
         Submission submission = userMissionSubmissionRepository.findByUserMission(userMission)
                 .orElseThrow(SubmissionNotFoundException::new);
         submission.setFeedback(submissionFeedbackRequest.getFeedback());
+        userMission.setProgress(UserMissionState.FEEDBACK_COMPLETED);
+        userMissionRepository.save(userMission);
         userMissionSubmissionRepository.save(submission);
+    }
+
+    @Override
+    @Transactional
+    public void receiveReward(Long userMissionId, String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(UserNotFoundException::new);
+        UserMission userMission = userMissionRepository.findById(userMissionId)
+                .orElseThrow(UserMissionNotFoundException::new);
+        Mission mission = userMission.getMission();
+        if (userMission.getProgress() == UserMissionState.REWARD_RECEIVED) {
+            throw new AlreadyReceivedRewardException();
+        }
+        if (userMission.getProgress() != UserMissionState.FEEDBACK_COMPLETED) {
+            throw new InvalidUserMissionStateException();
+        }
+        userMission.setProgress(UserMissionState.REWARD_RECEIVED);
+        user.increasePoint(mission.getRewardPoint());
+        user.increaseExp(mission.getRewardExp());
+        userMissionRepository.save(userMission);
+        userRepository.save(user);
     }
 }

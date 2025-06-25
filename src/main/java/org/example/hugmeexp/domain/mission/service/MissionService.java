@@ -34,4 +34,6 @@ public interface MissionService {
     SubmissionResponse getSubmissionByMissionId(Long userMissionId);
 
     void updateSubmissionFeedback(Long userMissionId, SubmissionFeedbackRequest submissionFeedbackRequest);
+
+    void receiveReward(Long userMissionId, String username);
 }
