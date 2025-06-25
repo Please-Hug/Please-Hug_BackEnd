@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -43,7 +44,7 @@ class AttendanceControllerTest {
     void getAttendanceStatus() throws Exception {
         // given
         Long userId = 1L;
-        boolean[] attendanceStatus = {true, false, false, false, false, false, false};
+        List<Boolean> attendanceStatus = List.of(true, false, false, false, false, false, false);
         int continuousDay = 1;
         LocalDate today = LocalDate.of(2024, 6, 19);
         AttendanceStatusResponse response = AttendanceStatusResponse.of(attendanceStatus, continuousDay, today);
@@ -64,8 +65,9 @@ class AttendanceControllerTest {
         // given
         Long userId = 1L;
         AttendanceCheckRequest request = new AttendanceCheckRequest(userId);
-        AttendanceCheckResponse response = AttendanceCheckResponse.of(true, 2, 100);
-        Mockito.when(attendanceService.checkAttendance(eq(userId), any(AttendanceCheckRequest.class))).thenReturn(response);
+//        AttendanceCheckResponse response = AttendanceCheckResponse.of(true, 2, 100);
+        AttendanceCheckResponse response = new AttendanceCheckResponse(true, 2, 100);
+        Mockito.when(attendanceService.checkAttendance(eq(userId))).thenReturn(response); //any(AttendanceCheckRequest.class)
 
         // when & then
         mockMvc.perform(post("/api/v1/attendance/check")
