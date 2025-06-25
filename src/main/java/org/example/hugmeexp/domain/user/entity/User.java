@@ -146,13 +146,30 @@ public class User extends BaseEntity {
         return this.profileImage != null;
     }
 
-    // ProfileImage 연관관계를 끝는 메서드
+    // ProfileImage 연관관계를 끊는 메서드
     public void deleteProfileImage() {
         this.profileImage = null;
     }
 
     // 프로필 이미지의 전체 경로를 리턴하는 메서드
-    public String getFullProfileImagePath() {
+    public String getStoredProfileImagePath() {
         return (profileImage != null) ? profileImage.getPath() + profileImage.getUuid() + profileImage.getExtension() : null;
+    }
+
+    public String getPublicProfileImageUrl() {
+        if (profileImage == null) return null;
+
+        String internalPath = profileImage.getPath();
+        String uuid = profileImage.getUuid();
+        String ext = profileImage.getExtension();
+
+        String fullPath = internalPath + uuid + ext;
+
+        // "/application" 제거
+        if (fullPath.startsWith("/application")) {
+            return fullPath.substring("/application".length());
+        }
+
+        return fullPath;
     }
 }

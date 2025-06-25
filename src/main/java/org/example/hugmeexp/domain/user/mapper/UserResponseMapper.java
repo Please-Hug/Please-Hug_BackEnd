@@ -10,7 +10,7 @@ public class UserResponseMapper {
     // UserInfoResponse DTO 리턴
     public static UserInfoResponse toUserInfoResponse(User user) {
         return new UserInfoResponse(
-                user.getFullProfileImagePath(),
+                user.getPublicProfileImageUrl(),
                 user.getName(),
                 user.getDescription(),
                 user.getPhoneNumber()
@@ -20,7 +20,7 @@ public class UserResponseMapper {
     // UserProfileResponse DTO 리턴
     public static UserProfileResponse toUserProfileResponse(User user) {
         return new UserProfileResponse(
-                user.getFullProfileImagePath(),
+                user.getPublicProfileImageUrl(),
                 user.getUsername(),
                 user.getName()
         );
@@ -28,7 +28,7 @@ public class UserResponseMapper {
 
     public static ProfileImageResponse toProfileImageResponse(User user) {
         return new ProfileImageResponse(
-                user.getFullProfileImagePath()
+                user.getPublicProfileImageUrl()
         );
     }
 }
