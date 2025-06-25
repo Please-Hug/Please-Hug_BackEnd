@@ -47,6 +47,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -102,6 +103,9 @@ class MissionServiceTest {
             .order(1)
             .missionGroupId(SAMPLE_ID)
             .build();
+
+    private static final Long UM_ID     = 1L;
+    private static final String USERNAME = "testUser";
 
     @Test
     @DisplayName("미션을 정상적으로 생성한다 - 성공")
@@ -737,5 +741,125 @@ class MissionServiceTest {
 
         // save 메서드가 호출되지 않았는지 검증
         verify(userMissionSubmissionRepository, never()).save(any(Submission.class));
+    }
+
+    @Test
+    @DisplayName("피드백 완료 상태에서 보상을 정상적으로 수령한다 - 성공")
+    void receiveReward_Success() {
+        // Given
+        User user = User.builder()
+                .username(USERNAME)
+                .build();
+        Mission mission = Mission.builder()
+                .rewardPoint(100)
+                .rewardExp(50)
+                .build();
+        UserMission um = UserMission.builder()
+                .id(UM_ID)
+                .mission(mission)
+                .progress(UserMissionState.FEEDBACK_COMPLETED)
+                .build();
+
+        when(userRepository.findByUsername(USERNAME))
+                .thenReturn(Optional.of(user));
+        when(userMissionRepository.findById(UM_ID))
+                .thenReturn(Optional.of(um));
+
+        // When
+        missionService.receiveReward(UM_ID, USERNAME);
+
+        // Then
+        // 1) 상태 변경
+        assertEquals(UserMissionState.REWARD_RECEIVED, um.getProgress());
+        // 2) 포인트·EXP 증가
+        assertEquals(100, user.getPoint());
+        assertEquals(50,  user.getExp());
+        // 3) 저장 호출
+        verify(userMissionRepository).save(um);
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    @DisplayName("사용자가 없으면 UserNotFoundException 발생 - 실패")
+    void receiveReward_Fail_UserNotFound() {
+        // Given
+        when(userRepository.findByUsername(USERNAME))
+                .thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(UserNotFoundException.class,
+                () -> missionService.receiveReward(UM_ID, USERNAME));
+
+        verify(userMissionRepository, never()).findById(any());
+        verify(userMissionRepository, never()).save(any());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("유저 미션이 없으면 UserMissionNotFoundException 발생 - 실패")
+    void receiveReward_Fail_UserMissionNotFound() {
+        // Given
+        User user = User.builder().username(USERNAME).build();
+        when(userRepository.findByUsername(USERNAME))
+                .thenReturn(Optional.of(user));
+        when(userMissionRepository.findById(UM_ID))
+                .thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(UserMissionNotFoundException.class,
+                () -> missionService.receiveReward(UM_ID, USERNAME));
+
+        verify(userMissionRepository, never()).save(any());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("이미 보상을 수령한 경우 AlreadyReceivedRewardException 발생 - 실패")
+    void receiveReward_Fail_AlreadyReceived() {
+        // Given
+        User user = User.builder().username(USERNAME).build();
+        Mission mission = Mission.builder().rewardPoint(10).rewardExp(5).build();
+        UserMission um = UserMission.builder()
+                .id(UM_ID)
+                .mission(mission)
+                .progress(UserMissionState.REWARD_RECEIVED)
+                .build();
+
+        when(userRepository.findByUsername(USERNAME))
+                .thenReturn(Optional.of(user));
+        when(userMissionRepository.findById(UM_ID))
+                .thenReturn(Optional.of(um));
+
+        // When & Then
+        assertThrows(AlreadyReceivedRewardException.class,
+                () -> missionService.receiveReward(UM_ID, USERNAME));
+
+        verify(userMissionRepository, never()).save(any());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("피드백 완료 상태가 아니면 InvalidUserMissionStateException 발생 - 실패")
+    void receiveReward_Fail_InvalidState() {
+        // Given
+        User user = User.builder().username(USERNAME).build();
+        Mission mission = Mission.builder().rewardPoint(10).rewardExp(5).build();
+        UserMission um = UserMission.builder()
+                .id(UM_ID)
+                .mission(mission)
+                .progress(UserMissionState.NOT_STARTED)  // 잘못된 상태
+                .build();
+
+        when(userRepository.findByUsername(USERNAME))
+                .thenReturn(Optional.of(user));
+        when(userMissionRepository.findById(UM_ID))
+                .thenReturn(Optional.of(um));
+
+        // When & Then
+        assertThrows(InvalidUserMissionStateException.class,
+                () -> missionService.receiveReward(UM_ID, USERNAME));
+
+        verify(userMissionRepository, never()).save(any());
+        verify(userRepository, never()).save(any());
     }
 }

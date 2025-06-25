@@ -16,6 +16,8 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
@@ -91,6 +93,15 @@ public class SubmissionController {
         missionService.updateSubmissionFeedback(userMissionId, submissionFeedbackRequest);
         return ResponseEntity.ok(Response.builder()
                 .message("제출 피드백이 성공적으로 업데이트되었습니다.")
+                .build());
+    }
+
+    @PostMapping("/{userMissionId}/reward")
+    public ResponseEntity<Response<?>> receiveReward(@PathVariable Long userMissionId,
+                                                     @AuthenticationPrincipal UserDetails userDetails) {
+        missionService.receiveReward(userMissionId, userDetails.getUsername());
+        return ResponseEntity.ok(Response.builder()
+                .message("보상이 성공적으로 수령되었습니다.")
                 .build());
     }
 }
