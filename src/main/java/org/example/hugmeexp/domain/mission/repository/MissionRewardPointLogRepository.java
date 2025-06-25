@@ -11,6 +11,6 @@ import java.util.Date;
 import java.util.List;
 
 public interface MissionRewardPointLogRepository extends JpaRepository<MissionRewardPointLog, Long> {
-    @Query("SELECT m FROM MissionRewardExpLog m WHERE m.userMission.user.id = :userId AND m.createdAt BETWEEN :startDateTime AND :endDateTime")
-    List<MissionRewardExpLog> findByUserIdAndCreatedAtBetween(Long userId, LocalDateTime startDateTime, LocalDateTime endDateTime);
+    @Query("SELECT m FROM MissionRewardPointLog m WHERE m.userMission.user.id = :userId AND m.createdAt BETWEEN :startDateTime AND :endDateTime")
+    List<MissionRewardPointLog> findByUserIdAndCreatedAtBetween(Long userId, LocalDateTime startDateTime, LocalDateTime endDateTime);
 }
