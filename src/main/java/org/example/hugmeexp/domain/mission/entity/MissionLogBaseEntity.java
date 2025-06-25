@@ -22,4 +22,8 @@ public class MissionLogBaseEntity extends BaseEntity {
         this.userMission = userMission;
         this.note = note;
     }
+
+    public MissionLogBaseEntity() {
+        super();
+    }
 }
