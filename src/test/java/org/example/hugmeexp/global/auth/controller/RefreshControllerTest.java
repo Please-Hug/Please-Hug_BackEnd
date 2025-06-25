@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("리프레시 토큰 컨트롤러 테스트")
 @TestPropertySource(properties = {
         "jwt.secret=aHR0cHM6Ly9naXRodWIuY29tL3NldW5nd29vay9qd3QtYXBpLXNlcnZlci1zYW1wbGUteW91LWNhbi11c2UtdGhpcy1sb25nLXNlY3JldC1rZXktZm9yLWVuY3J5cHRpb24K",
-        "jwt.access-token-expiration=10000",
+        "jwt.access-token-expiration=1000",
         "jwt.refresh-token-expiration=60000"
 })
 class RefreshControllerTest {

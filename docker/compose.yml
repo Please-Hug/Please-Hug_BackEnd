@@ -1,0 +1,66 @@
+services:
+  goormexp:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: goorm-exp
+    container_name: goormexp
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+    ports:
+      - "8080:8080"
+    networks:
+      - goorm-network
+    volumes:
+      - goorm-application-volume:/application
+
+  mysql:
+    image: mysql:8.4
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "10001:3306"
+    volumes:
+      - goorm-db-volume:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - goorm-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "10002:6379"
+    networks:
+      - goorm-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+networks:
+  goorm-network:
+    driver: bridge
+
+volumes:
+  goorm-application-volume:
+  goorm-db-volume:

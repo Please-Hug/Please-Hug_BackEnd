@@ -125,7 +125,7 @@ public class UserService {
         findUser.registerProfileImage(directoryPath, extension);
 
         // 스토리지에 프로필 이미지 저장
-        String absolutePath = findUser.getFullProfileImagePath();
+        String absolutePath = findUser.getStoredProfileImagePath();
         saveFile(file, absolutePath);
         log.info("Profile image updated successfully - user: {} ({}) / image path: {}", user.getUsername(), user.getName(), absolutePath);
 
@@ -143,7 +143,7 @@ public class UserService {
         }
 
         // 기존 이미지 파일 경로
-        String imagePath = findUser.getFullProfileImagePath();
+        String imagePath = findUser.getStoredProfileImagePath();
         File imageFile = new File(imagePath);
 
         // 이미지 삭제
@@ -190,7 +190,7 @@ public class UserService {
     private void deleteExistingProfileImage(User user) {
         if (!user.isRegisterProfileImage()) return;
 
-        String oldPath = user.getFullProfileImagePath();
+        String oldPath = user.getStoredProfileImagePath();
         File oldFile = new File(oldPath);
 
         if (oldFile.exists() && !oldFile.delete()) {

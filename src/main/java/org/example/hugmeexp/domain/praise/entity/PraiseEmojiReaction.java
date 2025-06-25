@@ -27,7 +27,7 @@ public class PraiseEmojiReaction extends BaseEntity {
     @JoinColumn(name = "reaction_writer_id", nullable = false)
     private User reactorWriter;    // 반응한 사람 이름
 
-    @Column(nullable = false, length = 1)
+    @Column(nullable = false, length = 10)
     private String emoji;    // 이모지 값
 
 }

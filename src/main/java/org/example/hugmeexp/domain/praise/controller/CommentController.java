@@ -40,14 +40,16 @@ public class CommentController {
                 .data(result)
                 .build();
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /* 댓글 삭제 */
-    @DeleteMapping("/{commentId}")
-    public ResponseEntity<Response<Void>> deleteComment(@PathVariable Long commentId){
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<Response<Void>> deleteComment(
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal CustomUserDetails userDetails){
 
-        commentService.deleteComment(commentId);
+        commentService.deleteComment(commentId, userDetails.getUser());
 
         Response<Void> response = Response.<Void>builder()
                 .message("댓글 삭제 완료")
@@ -56,4 +58,5 @@ public class CommentController {
 
         return ResponseEntity.ok(response);
     }
+
 }

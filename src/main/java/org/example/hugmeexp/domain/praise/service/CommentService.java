@@ -6,6 +6,7 @@ import org.example.hugmeexp.domain.praise.dto.CommentResponseDTO;
 import org.example.hugmeexp.domain.praise.entity.PraiseComment;
 import org.example.hugmeexp.domain.praise.entity.Praise;
 import org.example.hugmeexp.domain.praise.exception.CommentNotFoundException;
+import org.example.hugmeexp.domain.praise.exception.ForbiddenCommentAccessException;
 import org.example.hugmeexp.domain.praise.exception.PraiseNotFoundException;
 import org.example.hugmeexp.domain.praise.mapper.CommentMapper;
 import org.example.hugmeexp.domain.praise.repository.CommentRepository;
@@ -13,6 +14,8 @@ import org.example.hugmeexp.domain.praise.repository.PraiseRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -41,12 +44,20 @@ public class CommentService {
 
     /* 댓글 삭제 */
     @Transactional
-    public void deleteComment(Long commentId) {
+    public void deleteComment(Long commentId, User requester) {
 
-        // 댓글 존재 여부 확인
-        if (!commentRepository.existsById(commentId)){
-            throw new CommentNotFoundException();
+        PraiseComment comment = commentRepository.findById(commentId).orElseThrow(() -> new CommentNotFoundException());
+
+        // 로그인한 유저가 삭제하는 것인지 검증
+        if (!comment.getCommentWriter().getId().equals(requester.getId())){
+            throw new ForbiddenCommentAccessException();
         }
-        commentRepository.deleteById(commentId);
+
+        commentRepository.delete(comment);
+    }
+
+    /* 댓글 조회 */
+    public List<PraiseComment> getCommentsByPraise(Praise praise){
+        return commentRepository.findByPraise(praise);
     }
 }

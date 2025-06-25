@@ -26,12 +26,12 @@ public class PraiseDetailResponseDTO {
     private String content;    // 칭찬 내용
     private PraiseType type;    // 칭찬 타입
     private LocalDateTime createdAt;    // 칭찬을 작성한 시간
-    private Map<String, Integer> emojiReactions;    // 이모지별 반응 수
+    private List<EmojiReactionGroupDTO> emojiReactions;    // 이모지별 반응 수
     private int commentCount;    // 댓글 수
     private List<CommentResponseDTO> comments;     // 댓글 리스트
 //    private String profileImageUrl;
 
-    public static PraiseDetailResponseDTO from(Praise praise, List<PraiseReceiver> receivers, List<PraiseComment> commentList, Map<String, Integer> emojiReactions, Map<Long, Map<String,Integer>> commentEmojiMap){
+    public static PraiseDetailResponseDTO from(Praise praise, List<PraiseReceiver> receivers, List<PraiseComment> commentList, List<EmojiReactionGroupDTO> emojiReactions, Map<Long, Map<String,Integer>> commentEmojiMap){
 
         List<String> receiverNames = receivers.stream()
                 .map(praiseReceiver -> praiseReceiver.getReceiver().getName())

@@ -12,6 +12,8 @@ import org.example.hugmeexp.domain.shop.exception.ProductNotFoundException;
 import org.example.hugmeexp.domain.shop.mapper.ProductMapper;
 import org.example.hugmeexp.domain.shop.repository.ProductImageRepository;
 import org.example.hugmeexp.domain.shop.repository.ProductRepository;
+import org.example.hugmeexp.domain.user.entity.User;
+import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,6 +29,7 @@ public class ProductAdminService {
 
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
+    private final UserRepository userRepository;
     private final ProductMapper productMapper;
 
     /**
@@ -135,8 +138,8 @@ public class ProductAdminService {
         // 확장자 추출
         String extension = getExtension(image.getOriginalFilename());
 
-        // 파일 저장 경로 (임시 디렉터리 '\AppData\Local\Temp\app-uploads\', 없다면 생성)
-        Path uploadDirPath = Paths.get(System.getProperty("java.io.tmpdir"), "app-uploads");
+        // 파일 저장 경로
+        Path uploadDirPath = Paths.get(System.getProperty("user.dir"), "product-images");
 
         // 확장자와 저장 경로를 통해 ProductImage 엔티티 생성 및 Product 엔티티와 매핑
         try {
@@ -182,5 +185,12 @@ public class ProductAdminService {
         } catch (IOException e) {
             log.error("Failed to delete image file for product ID: {}", product.getId(), e);
         }
+    }
+
+    // ===== 테스트용 =====
+    public void increasePoint(String username) {
+        User user = userRepository.findByUsername(username).get();
+        user.increasePoint(100000);
+        userRepository.save(user);
     }
 }
