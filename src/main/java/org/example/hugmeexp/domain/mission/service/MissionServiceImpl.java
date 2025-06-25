@@ -11,6 +11,7 @@ import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.entity.Mission;
 import org.example.hugmeexp.domain.mission.entity.UserMission;
 import org.example.hugmeexp.domain.mission.entity.Submission;
+import org.example.hugmeexp.domain.mission.enums.FileUploadType;
 import org.example.hugmeexp.domain.mission.enums.UserMissionState;
 import org.example.hugmeexp.domain.mission.exception.*;
 import org.example.hugmeexp.domain.mission.mapper.MissionMapper;
@@ -19,6 +20,7 @@ import org.example.hugmeexp.domain.mission.mapper.UserMissionSubmissionMapper;
 import org.example.hugmeexp.domain.mission.repository.MissionRepository;
 import org.example.hugmeexp.domain.mission.repository.UserMissionRepository;
 import org.example.hugmeexp.domain.mission.repository.UserMissionSubmissionRepository;
+import org.example.hugmeexp.domain.mission.util.FileUploadUtils;
 import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
 import org.example.hugmeexp.domain.missionGroup.entity.UserMissionGroup;
 import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
@@ -26,7 +28,6 @@ import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepositor
 import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -50,9 +51,6 @@ public class MissionServiceImpl implements MissionService {
     private final UserMissionMapper userMissionMapper;
     private final UserMissionSubmissionRepository userMissionSubmissionRepository;
     private final UserMissionSubmissionMapper userMissionSubmissionMapper;
-
-    @Value("${file.submission-upload-dir}")
-    private String uploadDir;
 
     @Override
     @Transactional
@@ -191,11 +189,26 @@ public class MissionServiceImpl implements MissionService {
             throw new AlreadyExistsUserMissionSubmissionException();
         }
 
+        String uploadDir = FileUploadUtils.getUploadPath(FileUploadType.MISSION_UPLOADS).toString();
+
         Submission submission = userMissionSubmissionMapper.toEntity(submissionUploadRequest);
 
         submission.setUserMission(userMission);
 
-        String safeFileName = getSafeFileName(file);
+        if (file == null || file.isEmpty())
+        {
+            throw new SubmissionFileUploadException("파일이 비어있거나 존재하지 않습니다.");
+        } else if (
+                file.getOriginalFilename() == null ||
+                        file.getOriginalFilename().isEmpty() ||
+                        !file.getOriginalFilename().contains(".")
+        ) {
+            throw new SubmissionFileUploadException("파일 확장자가 없습니다.");
+        }
+
+        String originalFilename = file.getOriginalFilename();
+
+        String safeFileName = FileUploadUtils.getSafeFileName(originalFilename);
 
         // UUID를 사용하여 파일 이름을 안전하게 생성 및 중복 방지
         String fileName = UUID.randomUUID().toString();
@@ -213,23 +226,6 @@ public class MissionServiceImpl implements MissionService {
         } catch (IOException e) {
             throw new SubmissionFileUploadException("파일 저장 중 오류가 발생했습니다."); // RuntimeException을 던져서 IOException이 나더라도 롤백되게 함
         }
-    }
-
-    private static String getSafeFileName(MultipartFile file) {
-        if (file == null || file.isEmpty())
-        {
-            throw new SubmissionFileUploadException("파일이 비어있거나 존재하지 않습니다.");
-        } else if (
-            file.getOriginalFilename() == null ||
-            file.getOriginalFilename().isEmpty() ||
-            !file.getOriginalFilename().contains(".")
-        ) {
-            throw new SubmissionFileUploadException("파일 확장자가 없습니다.");
-        }
-
-        String originalFilename = file.getOriginalFilename();
-
-        return new File(originalFilename).getName().replaceAll("[^a-zA-Z0-9가-힣._-]", "_");
     }
 
     @Override
