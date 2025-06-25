@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CommentEmojiReactionController {
 
-    public final CommentEmojiReactionService commentEmojiReactionService;
+    private final CommentEmojiReactionService commentEmojiReactionService;
 
     /* 댓글에 반응 생성 */
     @PostMapping("/{praiseId}/comments/{commentId}/emojis")

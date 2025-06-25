@@ -7,10 +7,7 @@ import org.example.hugmeexp.domain.praise.dto.CommentEmojiReactionResponseDTO;
 import org.example.hugmeexp.domain.praise.entity.PraiseComment;
 import org.example.hugmeexp.domain.praise.entity.Praise;
 import org.example.hugmeexp.domain.praise.entity.CommentEmojiReaction;
-import org.example.hugmeexp.domain.praise.exception.CommentNotFoundException;
-import org.example.hugmeexp.domain.praise.exception.DuplicateEmojiReactionException;
-import org.example.hugmeexp.domain.praise.exception.InvalidEmojiException;
-import org.example.hugmeexp.domain.praise.exception.PraiseNotFoundException;
+import org.example.hugmeexp.domain.praise.exception.*;
 import org.example.hugmeexp.domain.praise.mapper.CommentEmojiReactionMapper;
 import org.example.hugmeexp.domain.praise.repository.CommentEmojiReactionRepository;
 import org.example.hugmeexp.domain.praise.repository.CommentRepository;
@@ -38,8 +35,6 @@ public class CommentEmojiReactionService {
     @Transactional
     public CommentEmojiReactionResponseDTO createCommentReaction(Long praiseId, Long commentId, @Valid CommentEmojiReactionRequestDTO commentEmojiReactionRequestDTO, User user) {
 
-        // 칭찬 존재 여부 확인
-        Praise praise = praiseRepository.findById(praiseId).orElseThrow(()->new PraiseNotFoundException());
 
         // 이모지 형식 검증
         String emoji = commentEmojiReactionRequestDTO.getEmoji();
@@ -47,8 +42,18 @@ public class CommentEmojiReactionService {
             throw new InvalidEmojiException();
         }
 
+        // 칭찬 존재 여부 확인
+        if (!praiseRepository.existsById(praiseId)) {
+            throw new PraiseNotFoundException();
+        }
+
         // 댓글 존재 여부 확인
         PraiseComment comment = commentRepository.findById(commentId).orElseThrow(()-> new CommentNotFoundException());
+
+        // 댓글이 해당 칭찬에 속하는지 확인
+        if (!comment.getPraise().getId().equals(praiseId)){
+            throw new MismatchedPraiseCommentException();
+        }
 
         // 반응 중복 확인
         boolean alreadyExists = commentEmojiReactionRepository.existsByCommentAndReactorWriterAndEmoji(comment,user,commentEmojiReactionRequestDTO.getEmoji());
