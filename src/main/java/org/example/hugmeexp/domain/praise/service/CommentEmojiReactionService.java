@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.praise.dto.CommentEmojiReactionRequestDTO;
 import org.example.hugmeexp.domain.praise.dto.CommentEmojiReactionResponseDTO;
 import org.example.hugmeexp.domain.praise.entity.PraiseComment;
-import org.example.hugmeexp.domain.praise.entity.Praise;
 import org.example.hugmeexp.domain.praise.entity.CommentEmojiReaction;
 import org.example.hugmeexp.domain.praise.exception.*;
 import org.example.hugmeexp.domain.praise.mapper.CommentEmojiReactionMapper;
@@ -68,5 +67,32 @@ public class CommentEmojiReactionService {
 
         return CommentEmojiReactionResponseDTO.from(commentEmojiReaction);
 
+    }
+
+    /* 댓글 반응 삭제 */
+    @Transactional
+    public void deleteCommentReaction(Long praiseId, Long commentId, Long emojiId, User user) {
+
+        // 이모지 반응 존재 확인
+        CommentEmojiReaction commentEmojiReaction = commentEmojiReactionRepository.findById(emojiId)
+                .orElseThrow(()-> new CommentEmojiReactionNotFoundException());
+
+        // 댓글과 반응 연결 확인
+        if(!commentEmojiReaction.getComment().getId().equals(commentId)){
+            throw new MismatchedCommentReactionException();
+        }
+
+        // 댓글이 해당 칭찬에 속하는지 확인
+        if(!commentEmojiReaction.getComment().getPraise().getId().equals(praiseId)){
+            throw new MismatchedPraiseCommentException();
+        }
+
+        // 작성자 본인 확인
+        if(!commentEmojiReaction.getReactorWriter().getId().equals(user.getId())){
+            throw new UnauthorizedEmojiDeleteException();
+        }
+
+        // 삭제
+        commentEmojiReactionRepository.delete(commentEmojiReaction);
     }
 }

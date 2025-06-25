@@ -41,19 +41,23 @@ public class CommentEmojiReactionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /* 반응 삭제 */
-//    @DeleteMapping
-//    public ResponseEntity<Response<Void>> deleteReaction(@PathVariable Long reactionId){
-//
-//        log.info("반응 삭제 요청 : {}", reactionId);
-//
-//        commentEmojiReactionService.deleteReaction(reactionId);
-//
-//        Response<Void> response = Response.<Void>builder()
-//                .message("반응 삭제 완료")
-//                .data(null)
-//                .build();
-//
-//        return ResponseEntity.ok(response);
-//    }
+    /* 댓글 반응 삭제 */
+    @DeleteMapping("/{praiseId}/comments/{commentId}/emojis/{emojiId}")
+    public ResponseEntity<Response<Void>> deleteReaction(
+            @PathVariable Long praiseId,
+            @PathVariable Long commentId,
+            @PathVariable Long emojiId,
+            @AuthenticationPrincipal CustomUserDetails userDetails){
+
+        log.info("반응 삭제 요청 : {}", emojiId);
+
+        commentEmojiReactionService.deleteCommentReaction(praiseId,commentId,emojiId,userDetails.getUser());
+
+        Response<Void> response = Response.<Void>builder()
+                .message("반응 삭제 완료")
+                .data(null)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 }
