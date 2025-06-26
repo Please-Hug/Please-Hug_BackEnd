@@ -8,6 +8,7 @@ import org.example.hugmeexp.domain.qeust.dto.QuestResponse;
 import org.example.hugmeexp.domain.qeust.dto.UserQuestResponse;
 import org.example.hugmeexp.domain.qeust.entity.Quest;
 import org.example.hugmeexp.domain.qeust.entity.UserQuest;
+import org.example.hugmeexp.domain.qeust.enums.QuestType;
 import org.example.hugmeexp.domain.qeust.exception.QuestDeletedException;
 import org.example.hugmeexp.domain.qeust.exception.QuestNotFoundException;
 import org.example.hugmeexp.domain.qeust.exception.UserNotFoundInQuestException;
@@ -139,11 +140,11 @@ public class QuestAdminService {
      */
     public void initQuest() {
         QuestRequest[] requests = new QuestRequest[]{
-                new QuestRequest("출석체크 하기", "http://출석체크"),
-                new QuestRequest("배움일기 작성하기", "http://배움일기"),
-                new QuestRequest("일일 퀘스트 완료하기", "http://퀘스트"),
-                new QuestRequest("미션 리워드 받기", "http://미션"),
-                new QuestRequest("칭찬 작성하기", "http://칭찬")
+                new QuestRequest("출석체크 하기", "http://출석체크", QuestType.ATTENDANCE),
+                new QuestRequest("일일 퀘스트 완료하기", "http://퀘스트", QuestType.QUEST_CLEAR),
+                new QuestRequest("미션 리워드 받기", "http://미션", QuestType.MISSION_REWARD),
+                new QuestRequest("배움일기 작성하기", "http://배움일기", QuestType.WRITE_DIARY),
+                new QuestRequest("칭찬 댓글달기", "http://칭찬", QuestType.PRAISE_COMMENT)
         };
 
         for (QuestRequest request : requests) {
@@ -164,5 +165,4 @@ public class QuestAdminService {
 
         return response;
     }
-
 }
