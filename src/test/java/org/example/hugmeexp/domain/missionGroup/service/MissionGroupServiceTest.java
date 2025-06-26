@@ -66,9 +66,9 @@ class MissionGroupServiceTest {
     @DisplayName("모든 미션 그룹을 조회한다 - 성공")
     void getAllMissionGroups() {
         UserProfileResponse teacher1 = new UserProfileResponse(
-                "teacher1", "Teacher One", "");
+                "", "teacher1", "Teacher One");
         UserProfileResponse teacher2 = new UserProfileResponse(
-                "teacher2", "Teacher Two", "");
+                "", "teacher2", "Teacher Two");
         // Given
         MissionGroup group1 = mock(MissionGroup.class);
         MissionGroup group2 = mock(MissionGroup.class);
@@ -103,7 +103,7 @@ class MissionGroupServiceTest {
     void createMissionGroup() {
         // Given
         UserProfileResponse teacher = new UserProfileResponse(
-                "teacher1", "teacher1", "");
+                "", "teacher1", "teacher1");
 
         User user1 = User.createUser("teacher1", "password", "Teacher One", "1234");
 
@@ -140,7 +140,7 @@ class MissionGroupServiceTest {
     void getMissionById_found() {
         // Given
         UserProfileResponse teacher = new UserProfileResponse(
-                "teacher1", "Teacher One", "");
+                "", "teacher1", "Teacher One");
 
         Long id = 1L;
         MissionGroup group = mock(MissionGroup.class);
@@ -180,7 +180,7 @@ class MissionGroupServiceTest {
     @DisplayName("미션 그룹을 업데이트한다 - 성공")
     void updateMissionGroup_success() {
         UserProfileResponse teacherResponse = new UserProfileResponse(
-                "teacher", "teacher", "");
+                "", "teacher", "teacher");
 
         Long id = 1L;
         // Given

@@ -81,7 +81,7 @@ class MissionGroupControllerTest {
     void getAllMissionGroups_ShouldReturnList() throws Exception {
         // Given
         UserProfileResponse teacher = new UserProfileResponse(
-                "teacher1", "Teacher One", "");
+                "", "teacher1", "Teacher One");
 
         MissionGroupResponse missionGroupResponse = MissionGroupResponse
                 .builder()
@@ -102,7 +102,7 @@ class MissionGroupControllerTest {
     @DisplayName("미션 그룹 생성 - 성공")
     void createMissionGroup_ShouldReturnCreated() throws Exception {
         UserProfileResponse teacher = new UserProfileResponse(
-                "teacher1", "Teacher One", "");
+                "", "teacher1", "Teacher One");
 
         // Given
         MissionGroupRequest request = MissionGroupRequest
@@ -132,7 +132,7 @@ class MissionGroupControllerTest {
     @DisplayName("ID로 미션 그룹 조회 - 성공")
     void getMissionGroupById_ShouldReturnOk() throws Exception {
         UserProfileResponse teacher = new UserProfileResponse(
-                "teacher1", "Teacher One", "");
+                "", "teacher1", "Teacher One");
 
         // Given
         MissionGroupResponse response = MissionGroupResponse
@@ -172,7 +172,7 @@ class MissionGroupControllerTest {
     @DisplayName("미션 그룹 수정 - 성공")
     void updateMissionGroup_ShouldReturnOk() throws Exception {
         UserProfileResponse teacher = new UserProfileResponse(
-                "teacher2", "teacher2", "");
+                "", "teacher2", "teacher2");
         // Given
         MissionGroupRequest request = MissionGroupRequest
                 .builder()
