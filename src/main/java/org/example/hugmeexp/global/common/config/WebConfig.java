@@ -10,10 +10,10 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**") // 요청 URL이 /api/** 경로일 것
+        registry.addMapping("/**") // 모든 요청 URL 허용
                 .allowedOrigins("http://localhost:3000", "http://localhost:5173") // 요청 출처가 3000, 5173 포트 일 것
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH") // HTTP 메서드가 GET, POST, PUT, DELETE, PATCH 중 하나일 것
-                .allowedHeaders("Authorization", "Content-Type") // Authorization, Content-Type 헤더 허용
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS") // HTTP 허용 메서드
+                .allowedHeaders("*") // 모든 헤더 허용
                 .allowCredentials(true); // 인증 정보(쿠키 또는 헤더)를 포함하는 요청을 허용
     }
 
