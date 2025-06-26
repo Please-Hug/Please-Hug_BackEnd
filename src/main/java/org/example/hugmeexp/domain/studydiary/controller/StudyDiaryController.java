@@ -225,4 +225,18 @@ public class StudyDiaryController {
                 .data(null)
                 .build());
     }
+
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "배움일기 좋아요 토글", description = "좋아요가 없으면 추가, 있으면 삭제합니다.")
+    @PostMapping("/{id}/like")
+    public ResponseEntity<Response<Object>> toggleLike(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        Object totalLike = Integer.valueOf(studyDiaryService.toggleLike(id, userDetails));
+        return ResponseEntity.ok(Response.<Object>builder()
+                .message("좋아요 상태가 성공적으로 변경되었습니다.")
+                .data(totalLike)
+                .build());
+    }
 }
