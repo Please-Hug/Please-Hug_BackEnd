@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class StudyDiaryLikeCreateRequest {
-    @NotNull(message = "공백일 수 없습니다.")
+    @NotNull(message = "배움일기 ID는 필수입니다.")
     private Long studyDiaryId;
 }

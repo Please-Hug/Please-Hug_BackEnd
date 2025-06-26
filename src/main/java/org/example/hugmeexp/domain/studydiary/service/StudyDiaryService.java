@@ -17,6 +17,8 @@ import org.example.hugmeexp.domain.studydiary.exception.UserNotFoundForStudyDiar
 import org.example.hugmeexp.domain.studydiary.exception.CommentNotFoundException;
 import org.example.hugmeexp.domain.studydiary.repository.StudyDiaryCommentRepository;
 import org.example.hugmeexp.domain.studydiary.repository.StudyDiaryRepository;
+import org.example.hugmeexp.domain.studydiary.repository.StudyDiaryLikeRepository;
+import org.example.hugmeexp.domain.studydiary.entity.StudyDiaryLike;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.springframework.data.domain.Page;
@@ -29,6 +31,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -39,6 +42,7 @@ public class StudyDiaryService {
     private final UserRepository userRepository;
     private final StudyDiaryRepository studyDiaryRepository;
     private final StudyDiaryCommentRepository studyDiaryCommentRepository;
+    private final StudyDiaryLikeRepository studyDiaryLikeRepository;
 
     @Transactional
     public Long createStudyDiary(StudyDiaryCreateRequest createRequest, UserDetails userDetails){
@@ -286,6 +290,42 @@ public class StudyDiaryService {
         }
 
         studyDiaryCommentRepository.delete(comment);
+    }
+
+    @Transactional
+    public int toggleLike(Long studyDiaryId, UserDetails userDetails) {
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(UserNotFoundForStudyDiaryException::new);
+
+        StudyDiary studyDiary = studyDiaryRepository.findById(studyDiaryId)
+                .orElseThrow(StudyDiaryNotFoundException::new);
+
+        // 이미 좋아요를 눌렀는지 확인
+        Optional<StudyDiaryLike> existingLike = studyDiary.getLikes()
+                .stream().filter(like -> like.getUser().getId().equals(user.getId()))
+                .findFirst();
+
+        boolean isLiked;
+        if (existingLike.isPresent()) {
+            // 좋아요 취소
+            studyDiaryLikeRepository.delete(existingLike.get());
+            isLiked = false;
+            // likeCount 감소
+            studyDiary.updateLikeCount(studyDiary.getLikeCount() - 1);
+        } else {
+            // 좋아요 추가
+            StudyDiaryLike newLike = StudyDiaryLike.builder()
+                    .studyDiary(studyDiary)
+                    .user(user)
+                    .build();
+            studyDiaryLikeRepository.save(newLike);
+            isLiked = true;
+            // likeCount 증가
+            studyDiary.updateLikeCount(studyDiary.getLikeCount() + 1);
+        }
+
+        // 최신 좋아요 개수 조회
+        return studyDiary.getLikeCount();
     }
 
     private void checkUser(User user, StudyDiary studyDiary) {
