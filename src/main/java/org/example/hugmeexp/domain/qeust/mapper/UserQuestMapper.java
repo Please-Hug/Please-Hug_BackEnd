@@ -11,6 +11,9 @@ public interface UserQuestMapper {
     @Mapping(source = "id", target = "userQuestId")
     @Mapping(source = "user.username", target = "username")
     @Mapping(source = "quest.name", target = "questName")
-    @Mapping(expression = "java(userQuest.isCompleted() ? \"완료\" : \"진행중\")", target = "progress")
+    @Mapping(
+            expression = "java(userQuest.isCompleted() ? \"완료됨\" : (userQuest.isCompletable() ? \"완료 가능\" : \"진행중\"))",
+            target = "progress"
+    )
     UserQuestResponse toResponse(UserQuest userQuest);
 }
