@@ -9,8 +9,8 @@ import org.example.hugmeexp.domain.attendance.exception.AttendanceAlreadyChecked
 import org.example.hugmeexp.domain.attendance.exception.AttendanceUserNotFoundException;
 import org.example.hugmeexp.domain.attendance.policy.RewardPolicy;
 import org.example.hugmeexp.domain.attendance.repository.AttendanceRepository;
-import org.example.hugmeexp.global.common.repository.UserRepository;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.entity.User;
+import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
