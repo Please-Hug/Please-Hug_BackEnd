@@ -16,17 +16,20 @@ public interface ProductMapper {
     @Named("toImageUrl")
     static String toImageUrl(ProductImage image) {
 
-        String internalPath = image.getPath();
-        String uuid = image.getUuid();
-        String ext = image.getExtension();
+        if (image == null) return null;
+        else {
+            String internalPath = image.getPath();
+            String uuid = image.getUuid();
+            String ext = image.getExtension();
 
-        String fullPath = internalPath + "/" + uuid + "." + ext;
+            String fullPath = internalPath + "/" + uuid + "." + ext;
 
-        // "/application" 제거
-        if (fullPath.startsWith("/application")) {
-            return fullPath.substring("/application".length());
+            // "/application" 제거
+            if (fullPath.startsWith("/application")) {
+                return fullPath.substring("/application".length());
+            }
+
+            return fullPath;
         }
-
-        return fullPath;
     }
 }
