@@ -2,7 +2,6 @@ package org.example.hugmeexp.domain.missionGroup.mapper;
 
 import org.example.hugmeexp.domain.missionGroup.dto.response.UserMissionGroupResponse;
 import org.example.hugmeexp.domain.missionGroup.entity.UserMissionGroup;
-import org.example.hugmeexp.domain.user.mapper.ProfileImageMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
