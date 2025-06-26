@@ -6,9 +6,7 @@ import org.example.hugmeexp.domain.mission.dto.request.SubmissionUploadRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionResponse;
 import org.example.hugmeexp.domain.mission.dto.response.SubmissionResponse;
 import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
-import org.example.hugmeexp.domain.mission.entity.Mission;
-import org.example.hugmeexp.domain.mission.entity.Submission;
-import org.example.hugmeexp.domain.mission.entity.UserMission;
+import org.example.hugmeexp.domain.mission.entity.*;
 import org.example.hugmeexp.domain.mission.enums.Difficulty;
 import org.example.hugmeexp.domain.mission.enums.FileUploadType;
 import org.example.hugmeexp.domain.mission.enums.UserMissionState;
@@ -16,9 +14,7 @@ import org.example.hugmeexp.domain.mission.exception.*;
 import org.example.hugmeexp.domain.mission.mapper.MissionMapper;
 import org.example.hugmeexp.domain.mission.mapper.UserMissionMapper;
 import org.example.hugmeexp.domain.mission.mapper.UserMissionSubmissionMapper;
-import org.example.hugmeexp.domain.mission.repository.MissionRepository;
-import org.example.hugmeexp.domain.mission.repository.UserMissionRepository;
-import org.example.hugmeexp.domain.mission.repository.UserMissionSubmissionRepository;
+import org.example.hugmeexp.domain.mission.repository.*;
 import org.example.hugmeexp.domain.mission.util.FileUploadUtils;
 import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
 import org.example.hugmeexp.domain.missionGroup.entity.UserMissionGroup;
@@ -29,6 +25,7 @@ import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepositor
 import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepository;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.example.hugmeexp.domain.user.entity.User;
+import org.example.hugmeexp.domain.user.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -86,6 +83,17 @@ class MissionServiceTest {
 
     @Mock
     private UserMissionSubmissionMapper userMissionSubmissionMapper;
+
+    @Mock
+    private MissionRewardExpLogRepository userMissionRewardExpRepository;
+    @Mock
+    private MissionRewardPointLogRepository userMissionRewardPointRepository;
+    @Mock
+    private UserMissionStateLogRepository userMissionStateLogRepository;
+
+    @Mock
+    private UserService userService;
+
 
     @TempDir
     Path tempDir;
@@ -487,7 +495,7 @@ class MissionServiceTest {
 
 
     @Test
-    @DisplayName("UserMission 상태를 정상적으로 변경한다 - 성공")
+    @DisplayName("UserMission 상태를 완료로 변경한다 - 성공")
     void changeUserMissionState_Success() {
         // given
         Long userMissionId = 55L;
@@ -498,6 +506,8 @@ class MissionServiceTest {
 
         when(userMissionRepository.findById(userMissionId))
                 .thenReturn(Optional.of(existing));
+        when(userMissionStateLogRepository.save(any()))
+                .thenReturn(mock(UserMissionStateLog.class));
 
         // when
         missionService.changeUserMissionState(userMissionId, UserMissionState.COMPLETED);
@@ -764,7 +774,26 @@ class MissionServiceTest {
                 .thenReturn(Optional.of(user));
         when(userMissionRepository.findById(UM_ID))
                 .thenReturn(Optional.of(um));
-
+        when(userMissionRewardExpRepository.save(any()))
+                .thenReturn(mock(MissionRewardExpLog.class));
+        when(userMissionRewardPointRepository.save(any()))
+                .thenReturn(mock(MissionRewardPointLog.class));
+        when(userMissionStateLogRepository.save(any()))
+                .thenReturn(mock(UserMissionStateLog.class));
+        doAnswer(invocation -> {
+            User u = invocation.getArgument(0);
+            Integer exp = invocation.getArgument(1);
+            u.increaseExp(exp);
+            return null;
+        }).when(userService)
+                .increaseExp(eq(user), eq(50));
+        doAnswer(invocation -> {
+            User u = invocation.getArgument(0);
+            Integer point = invocation.getArgument(1);
+            u.increasePoint(point);
+            return null;
+        }).when(userService)
+                .increasePoint(eq(user), eq(100));
         // When
         missionService.receiveReward(UM_ID, USERNAME);
 
@@ -774,9 +803,6 @@ class MissionServiceTest {
         // 2) 포인트·EXP 증가
         assertEquals(100, user.getPoint());
         assertEquals(50,  user.getExp());
-        // 3) 저장 호출
-        verify(userMissionRepository).save(um);
-        verify(userRepository).save(user);
     }
 
     @Test

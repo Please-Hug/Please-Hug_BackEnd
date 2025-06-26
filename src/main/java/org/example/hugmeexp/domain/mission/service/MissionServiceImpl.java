@@ -8,18 +8,16 @@ import org.example.hugmeexp.domain.mission.dto.request.SubmissionUploadRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionResponse;
 import org.example.hugmeexp.domain.mission.dto.response.SubmissionResponse;
 import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
-import org.example.hugmeexp.domain.mission.entity.Mission;
-import org.example.hugmeexp.domain.mission.entity.UserMission;
-import org.example.hugmeexp.domain.mission.entity.Submission;
+import org.example.hugmeexp.domain.mission.dto.response.UserMissionStateLogResponse;
+import org.example.hugmeexp.domain.mission.entity.*;
 import org.example.hugmeexp.domain.mission.enums.FileUploadType;
 import org.example.hugmeexp.domain.mission.enums.UserMissionState;
 import org.example.hugmeexp.domain.mission.exception.*;
 import org.example.hugmeexp.domain.mission.mapper.MissionMapper;
 import org.example.hugmeexp.domain.mission.mapper.UserMissionMapper;
+import org.example.hugmeexp.domain.mission.mapper.UserMissionStateLogMapper;
 import org.example.hugmeexp.domain.mission.mapper.UserMissionSubmissionMapper;
-import org.example.hugmeexp.domain.mission.repository.MissionRepository;
-import org.example.hugmeexp.domain.mission.repository.UserMissionRepository;
-import org.example.hugmeexp.domain.mission.repository.UserMissionSubmissionRepository;
+import org.example.hugmeexp.domain.mission.repository.*;
 import org.example.hugmeexp.domain.mission.util.FileUploadUtils;
 import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
 import org.example.hugmeexp.domain.missionGroup.entity.UserMissionGroup;
@@ -28,12 +26,16 @@ import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepositor
 import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.example.hugmeexp.domain.user.service.UserService;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.example.hugmeexp.domain.missionGroup.exception.UserNotFoundException;
 import org.example.hugmeexp.domain.missionGroup.exception.UserMissionGroupNotFoundException;
@@ -51,6 +53,11 @@ public class MissionServiceImpl implements MissionService {
     private final UserMissionMapper userMissionMapper;
     private final UserMissionSubmissionRepository userMissionSubmissionRepository;
     private final UserMissionSubmissionMapper userMissionSubmissionMapper;
+    private final UserService userService;
+    private final MissionRewardExpLogRepository missionRewardExpLogRepository;
+    private final MissionRewardPointLogRepository missionRewardPointLogRepository;
+    private final UserMissionStateLogRepository userMissionStateLogRepository;
+    private final UserMissionStateLogMapper userMissionStateLogMapper;
 
     @Override
     @Transactional
@@ -164,6 +171,11 @@ public class MissionServiceImpl implements MissionService {
                 .userMissionGroup(userMissionGroup)
                 .progress(UserMissionState.NOT_STARTED)
                 .build();
+        userMissionStateLogRepository.save(UserMissionStateLog.builder()
+                .userMission(userMission)
+                .prevState(UserMissionState.NOT_STARTED)
+                .nextState(UserMissionState.NOT_STARTED)
+                .build());
 
         return userMissionMapper.toUserMissionResponse(userMissionRepository.save(userMission));
     }
@@ -173,7 +185,11 @@ public class MissionServiceImpl implements MissionService {
     public void changeUserMissionState(Long userMissionId, UserMissionState newProgress) {
         UserMission userMission = userMissionRepository.findById(userMissionId)
                 .orElseThrow(UserMissionNotFoundException::new);
-
+        userMissionStateLogRepository.save(UserMissionStateLog.builder()
+                .userMission(userMission)
+                .prevState(userMission.getProgress())
+                .nextState(newProgress)
+                .build());
         userMission.setProgress(newProgress);
 
         userMissionRepository.save(userMission);
@@ -195,8 +211,7 @@ public class MissionServiceImpl implements MissionService {
 
         submission.setUserMission(userMission);
 
-        if (file == null || file.isEmpty())
-        {
+        if (file == null || file.isEmpty()) {
             throw new SubmissionFileUploadException("파일이 비어있거나 존재하지 않습니다.");
         } else if (
                 file.getOriginalFilename() == null ||
@@ -266,10 +281,38 @@ public class MissionServiceImpl implements MissionService {
         if (userMission.getProgress() != UserMissionState.FEEDBACK_COMPLETED) {
             throw new InvalidUserMissionStateException();
         }
+        userMissionStateLogRepository.save(UserMissionStateLog.builder()
+                .userMission(userMission)
+                .prevState(userMission.getProgress())
+                .nextState(UserMissionState.REWARD_RECEIVED)
+                .build());
         userMission.setProgress(UserMissionState.REWARD_RECEIVED);
-        user.increasePoint(mission.getRewardPoint());
-        user.increaseExp(mission.getRewardExp());
-        userMissionRepository.save(userMission);
-        userRepository.save(user);
+
+        missionRewardExpLogRepository.save(
+                MissionRewardExpLog.builder()
+                        .userMission(userMission)
+                        .prevExp(user.getExp())
+                        .nextExp(user.getExp() + mission.getRewardExp())
+                        .note("미션 보상 경험치")
+                        .build()
+        );
+        userService.increaseExp(user, mission.getRewardExp());
+        missionRewardPointLogRepository.save(
+                MissionRewardPointLog.builder()
+                        .userMission(userMission)
+                        .prevPoint(user.getPoint())
+                        .nextPoint(user.getPoint() + mission.getRewardPoint())
+                        .note("미션 보상 구름조각")
+                        .build()
+        );
+        userService.increasePoint(user, mission.getRewardPoint());
+    }
+
+    @Override
+    public List<UserMissionStateLogResponse> getAllMissionStateLog(long userId, LocalDate startDate, LocalDate endDate) {
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
+        return userMissionStateLogRepository.findByUserIdAndCreatedAtBetween(userId, startDateTime, endDateTime)
+                .stream().map(userMissionStateLogMapper::toUserMissionStateLogResponse).collect(Collectors.toList());
     }
 }
