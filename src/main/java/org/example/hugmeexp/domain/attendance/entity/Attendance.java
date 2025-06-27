@@ -17,7 +17,7 @@ import java.time.LocalDate;
 그냥 @Builder만 쓰면 누구나 Attendance.builder()로 객체를 만들 수 있어서,
 정적 팩토리 메서드만 사용 하자는 팀 규칙에 hiddenBuilder가 더 적합할 수도 있을 것 같은데 일단 보류해놓겠습니다.
  */
-@Table(name = "attendance", uniqueConstraints = @UniqueConstraint(name = "uk_attendance_user_attendance_date", columnNames = {"user_id", "attendance_date"}))
+@Table(name = "attendance")
 public class Attendance extends BaseEntity {
 
     @Id
