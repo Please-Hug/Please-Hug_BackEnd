@@ -38,4 +38,7 @@ public class Mission extends BaseEntity {
 
     @Column(name = "mission_order", nullable = false)
     private int order; // 순서, missionGroup 내에서의 순서
+
+    @Column(name = "mission_line", nullable = false)
+    private int line;
 }

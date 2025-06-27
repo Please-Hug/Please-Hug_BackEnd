@@ -6,6 +6,7 @@ import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.domain.missionGroup.dto.response.UserMissionGroupResponse;
 import org.example.hugmeexp.domain.missionGroup.service.MissionGroupService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,12 @@ public class MissionGroupController {
     @GetMapping
     public ResponseEntity<Response<?>> getMissionGroups() {
         List<MissionGroupResponse> missionGroups = missionGroupService.getAllMissionGroups();
+        return ResponseEntity.ok().body(Response.builder().data(missionGroups).message("미션 그룹 목록을 성공적으로 가져왔습니다.").build());
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<Response<?>> getMyMissionGroups(@AuthenticationPrincipal UserDetails user) {
+        List<UserMissionGroupResponse> missionGroups = missionGroupService.getMyMissionGroups(user.getUsername());
         return ResponseEntity.ok().body(Response.builder().data(missionGroups).message("미션 그룹 목록을 성공적으로 가져왔습니다.").build());
     }
 
