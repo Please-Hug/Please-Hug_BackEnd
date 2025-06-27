@@ -8,7 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.global.entity.enumeration.UserRole;
+import org.example.hugmeexp.domain.user.enums.UserRole;
 import org.example.hugmeexp.global.infra.auth.exception.AccessTokenStillValidException;
 import org.example.hugmeexp.global.infra.auth.exception.InvalidAccessTokenException;
 import org.springframework.beans.factory.annotation.Value;

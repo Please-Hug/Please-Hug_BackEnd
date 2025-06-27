@@ -7,7 +7,11 @@ import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/v1/missions")
@@ -59,6 +63,14 @@ public class MissionController {
         return ResponseEntity.ok(Response.builder()
                 .data(missionService.changeMissionGroup(id, missionGroupId))
                 .message("미션 " + id + "의 미션 그룹을 변경하였습니다.")
+                .build());
+    }
+
+    @PostMapping("/{id}/challenges")
+    public ResponseEntity<Response<?>> challengeMission(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(Response.builder()
+                .data(missionService.challengeMission(userDetails.getUsername(), id))
+                .message("미션 " + id + "에 도전하였습니다.")
                 .build());
     }
 }

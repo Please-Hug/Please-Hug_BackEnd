@@ -7,16 +7,16 @@ import org.example.hugmeexp.domain.shop.dto.ProductResponse;
 import org.example.hugmeexp.domain.shop.entity.Product;
 import org.example.hugmeexp.domain.shop.service.ProductAdminService;
 import org.example.hugmeexp.global.common.response.Response;
+import org.example.hugmeexp.global.security.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
-//TODO '/api/v1/shop' -> '/api/v1/admin/shop' (관리자 권한 때문에 경로 수정해놓음)
-
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/shop")
+@RequestMapping("/api/v1/admin/shop")
 @Slf4j
 public class ProductAdminController {
 
@@ -63,5 +63,13 @@ public class ProductAdminController {
             @ModelAttribute ProductRequest request) {
         ProductResponse modifiedProduct = productAdminService.modifyProduct(productId, request);
         return ResponseEntity.ok().body(Response.builder().data(modifiedProduct).message("Product with ID " + productId + " modified").build());
+    }
+
+
+    // ===== 사용자 구매 테스트를 위한 포인트 증가 메서드 =====
+    @PostMapping("/point")
+    public void increasePoint(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        productAdminService.increasePoint(userDetails.getUsername());
     }
 }

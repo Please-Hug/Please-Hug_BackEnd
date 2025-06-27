@@ -3,7 +3,7 @@ package org.example.hugmeexp.domain.attendance.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.hugmeexp.global.entity.BaseEntity;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.entity.User;
 
 import java.time.LocalDate;
 

@@ -3,12 +3,14 @@ package org.example.hugmeexp.domain.praise.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.hugmeexp.global.entity.BaseEntity;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.entity.User;
 
 // 댓글
 @Entity
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 @Table(name = "praise_comment")
 public class PraiseComment extends BaseEntity {
 

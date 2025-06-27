@@ -1,8 +1,8 @@
 package org.example.hugmeexp.global.security;
 
 import lombok.RequiredArgsConstructor;
-import org.example.hugmeexp.global.common.repository.UserRepository;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

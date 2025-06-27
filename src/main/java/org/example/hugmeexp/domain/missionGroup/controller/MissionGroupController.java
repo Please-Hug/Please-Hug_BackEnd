@@ -2,12 +2,17 @@ package org.example.hugmeexp.domain.missionGroup.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.domain.missionGroup.dto.response.UserMissionGroupResponse;
 import org.example.hugmeexp.domain.missionGroup.service.MissionGroupService;
 import org.example.hugmeexp.global.common.response.Response;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +27,12 @@ public class MissionGroupController {
     @GetMapping
     public ResponseEntity<Response<?>> getMissionGroups() {
         List<MissionGroupResponse> missionGroups = missionGroupService.getAllMissionGroups();
+        return ResponseEntity.ok().body(Response.builder().data(missionGroups).message("미션 그룹 목록을 성공적으로 가져왔습니다.").build());
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<Response<?>> getMyMissionGroups(@AuthenticationPrincipal UserDetails user) {
+        List<UserMissionGroupResponse> missionGroups = missionGroupService.getMyMissionGroups(user.getUsername());
         return ResponseEntity.ok().body(Response.builder().data(missionGroups).message("미션 그룹 목록을 성공적으로 가져왔습니다.").build());
     }
 
@@ -52,5 +63,25 @@ public class MissionGroupController {
                 .data(missionService.getMissionsByMissionGroupId(id))
                 .message("미션 그룹 " + id + "의 미션 목록을 가져왔습니다.")
                 .build());
+    }
+
+    @PostMapping("/{missionGroupId}/users/{userId}")
+    public ResponseEntity<Response<?>> addUserToMissionGroup(@PathVariable Long missionGroupId,
+                                                             @PathVariable Long userId) {
+        missionGroupService.addUserToMissionGroup(userId, missionGroupId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Response.builder().message("사용자 " + userId + "를 미션 그룹 " + missionGroupId + "에 추가하였습니다.").build());
+    }
+
+    @DeleteMapping("/{missionGroupId}/users/{userId}")
+    public ResponseEntity<Response<?>> removeUserFromMissionGroup(@PathVariable Long missionGroupId,
+                                                                  @PathVariable Long userId) {
+        missionGroupService.removeUserFromMissionGroup(userId, missionGroupId);
+        return ResponseEntity.ok().body(Response.builder().message("사용자 " + userId + "를 미션 그룹 " + missionGroupId + "에서 제거하였습니다.").build());
+    }
+
+    @GetMapping("/{missionGroupId}/challenges")
+    public ResponseEntity<Response<?>> getMissionGroupChallenges(@PathVariable Long missionGroupId, @AuthenticationPrincipal UserDetails userDetails) {
+        List<UserMissionResponse> challenges = missionGroupService.findUserMissionByUsernameAndMissionGroup(userDetails.getUsername(), missionGroupId);
+        return ResponseEntity.ok().body(Response.builder().data(challenges).message("사용자 " + userDetails.getUsername() + "의 미션 그룹 " + missionGroupId + " 도전 목록을 가져왔습니다.").build());
     }
 }

@@ -27,4 +27,6 @@ public class MissionResponse {
     private int rewardExp;
 
     private int order;
+
+    private int line;
 }

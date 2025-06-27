@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.hugmeexp.global.entity.BaseEntity;
-import org.example.hugmeexp.global.entity.User;
+import org.example.hugmeexp.domain.user.entity.User;
 
 @Getter
 @Entity
@@ -20,7 +20,7 @@ public class Order extends BaseEntity {
 
     // Order와 User는 N:1 관계이고 Order -> User의 단방향 매핑
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "purchaser_id", nullable = false)
     private User user;
 
     // Order와 Product는 N:1 관계이고 Order -> Product의 단방향 매핑
@@ -29,13 +29,13 @@ public class Order extends BaseEntity {
     private Product product;
 
     @Column(nullable = false, length = 13)
-    private String phoneNumber;
+    private String receiverPhoneNumber;
 
     @Builder
     private Order(User user, Product product, String phoneNumber) {
         this.user = user;
         this.product = product;
-        this.phoneNumber = phoneNumber;
+        this.receiverPhoneNumber = phoneNumber;
     }
 
     // 정적 팩토리 메서드

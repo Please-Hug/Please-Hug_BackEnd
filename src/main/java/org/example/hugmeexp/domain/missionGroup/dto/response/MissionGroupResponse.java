@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
 
 @Data
 @NoArgsConstructor
@@ -11,6 +12,6 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 public class MissionGroupResponse {
     private Long id;
-    private String teacherUsername;
+    private UserProfileResponse teacher;
     private String name;
 }
