@@ -16,6 +16,7 @@ import org.example.hugmeexp.domain.missionGroup.mapper.MissionGroupMapper;
 import org.example.hugmeexp.domain.missionGroup.mapper.UserMissionGroupMapper;
 import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepository;
 import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepository;
+import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.stereotype.Service;
@@ -150,6 +151,23 @@ public class MissionGroupServiceImpl implements MissionGroupService {
         return userMissionGroups
                 .stream()
                 .map(userMissionGroupMapper::toUserMissionGroupResponse)
+                .toList();
+    }
+
+    @Override
+    public List<UserProfileResponse> getUsersInMissionGroup(Long missionGroupId) {
+        MissionGroup missionGroup = missionGroupRepository.findById(missionGroupId)
+                .orElseThrow(MissionGroupNotFoundException::new);
+
+        List<UserMissionGroup> userMissionGroups = userMissionGroupRepository.findAllByMissionGroup(missionGroup);
+        return userMissionGroups.stream()
+                .map(UserMissionGroup::getUser)
+                .distinct()
+                .map(user -> new UserProfileResponse(
+                        user.getPublicProfileImageUrl(),
+                        user.getUsername(),
+                        user.getName()
+                ))
                 .toList();
     }
 }
