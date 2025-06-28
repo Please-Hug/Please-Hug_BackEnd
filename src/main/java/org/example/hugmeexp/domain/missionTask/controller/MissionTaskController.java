@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.missionTask.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.missionTask.dto.request.MissionTaskRequest;
 import org.example.hugmeexp.domain.missionTask.enums.TaskState;
@@ -27,7 +28,7 @@ public class MissionTaskController {
     }
 
     @PutMapping("/{missionTaskId}")
-    public ResponseEntity<Response<Boolean>> updateMissionTask(@PathVariable Long missionTaskId, @RequestBody MissionTaskRequest request) {
+    public ResponseEntity<Response<Boolean>> updateMissionTask(@PathVariable Long missionTaskId, @Valid @RequestBody MissionTaskRequest request) {
         missionTaskService.updateMissionTask(missionTaskId, request);
         return ResponseEntity.status(HttpStatus.OK).body(Response.<Boolean>builder()
                 .data(true)

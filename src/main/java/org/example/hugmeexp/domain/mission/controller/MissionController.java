@@ -96,7 +96,7 @@ public class MissionController {
     }
 
     @PostMapping("/{missionId}/tasks")
-    public ResponseEntity<Response<Boolean>> addMissionTask(@PathVariable Long missionId, @RequestBody MissionTaskRequest request) {
+    public ResponseEntity<Response<Boolean>> addMissionTask(@PathVariable Long missionId, @Valid @RequestBody MissionTaskRequest request) {
         MissionTaskResponse response = missionTaskService.addMissionTask(missionId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(Response.<Boolean>builder()
                 .data(response != null)
