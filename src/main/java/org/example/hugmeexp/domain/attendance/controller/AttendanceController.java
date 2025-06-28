@@ -8,7 +8,7 @@ import org.example.hugmeexp.domain.attendance.dto.AttendanceStatusResponse;
 import org.example.hugmeexp.domain.attendance.exception.UsernameTooLongException;
 import org.example.hugmeexp.domain.attendance.service.AttendanceService;
 import org.example.hugmeexp.domain.attendance.validation.UsernameValidator;
-import org.example.hugmeexp.domain.user.exception.InvalidValueException;
+import org.example.hugmeexp.domain.attendance.exception.InvalidValueException;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +37,7 @@ public class AttendanceController {
      */
     @GetMapping("/{username}/status")
     public ResponseEntity<Response<AttendanceStatusResponse>> getAttendanceStatus(
-            @AuthenticationPrincipal UserDetails principal,
+//            @AuthenticationPrincipal UserDetails principal,
             @PathVariable String username) {
         UsernameValidator.validate(username);
         AttendanceStatusResponse data = attendanceService.getAttendanceStatus(username);
@@ -55,6 +55,7 @@ public class AttendanceController {
         return ResponseEntity.ok(response);
     }
 
+
     /**
      * 출석 체크
      * - 사용자 ID와 출석 체크 요청 데이터를 통해 출석 체크를 수행
@@ -65,7 +66,7 @@ public class AttendanceController {
      */
     @PostMapping("/{username}/check")
     public ResponseEntity<Response<AttendanceCheckResponse>> checkAttendance(
-            @AuthenticationPrincipal UserDetails userDetails,
+//            @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable String username){
         UsernameValidator.validate(username);
         AttendanceCheckResponse data = attendanceService.checkAttendance(username);
@@ -84,7 +85,7 @@ public class AttendanceController {
      */
     @GetMapping("/{username}/dates")
     public ResponseEntity<Response<List<String>>> getAllDates(
-            @AuthenticationPrincipal UserDetails principal,
+//            @AuthenticationPrincipal UserDetails principal,
             @PathVariable String username) {
         UsernameValidator.validate(username);
         List<LocalDate> dates = attendanceService.getAllAttendanceDates(username);
