@@ -19,12 +19,9 @@ public class MissionTaskController {
     private final MissionTaskService missionTaskService;
 
     @DeleteMapping("/{missionTaskId}")
-    public ResponseEntity<Response<Boolean>> deleteMissionTask(@PathVariable Long missionTaskId) {
+    public ResponseEntity<Void> deleteMissionTask(@PathVariable Long missionTaskId) {
         missionTaskService.deleteMissionTask(missionTaskId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Response.<Boolean>builder()
-                .data(true)
-                .message("미션 태스크를 성공적으로 삭제했습니다.")
-                .build());
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{missionTaskId}")
