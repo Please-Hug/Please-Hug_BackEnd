@@ -15,4 +15,6 @@ public interface UserMissionGroupRepository extends JpaRepository<UserMissionGro
     Optional<UserMissionGroup> findByUserAndMissionGroup(User user, MissionGroup missionGroup);
 
     List<UserMissionGroup> findByUserId(Long userId);
+
+    List<UserMissionGroup> findAllByMissionGroup(MissionGroup missionGroup);
 }
