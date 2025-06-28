@@ -83,9 +83,6 @@ public class MissionTaskServiceImpl implements MissionTaskService {
     @Override
     @Transactional
     public void updateMissionTask(Long missionTaskId, MissionTaskRequest request) {
-        if (!missionTaskRepository.existsById(missionTaskId)) {
-            throw new MissionTaskNotFoundException();
-        }
         MissionTask existingMissionTask = missionTaskRepository.findById(missionTaskId)
                 .orElseThrow(MissionTaskNotFoundException::new);
 
