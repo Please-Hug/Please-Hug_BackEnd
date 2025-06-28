@@ -13,6 +13,4 @@ public class AttendanceCheckResponse {
     private boolean attend;
     private int exp;
     private int point;
-
-
 }
