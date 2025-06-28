@@ -201,16 +201,6 @@ class AttendanceServiceTest {
     }
 
     @Test
-    @DisplayName("미래 날짜 출석 시도시 InvalidValueException 발생")
-    void checkAttendanceFutureDate() {
-        User user = User.builder().username(username).build();
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
-        // today를 미래로 강제할 수 없으므로, checkAttendance 내부 future date 분기 테스트는 구조상 어렵습니다.
-        // 대신 InvalidValueException이 발생하는 상황을 강제로 만들어 테스트할 수 있습니다.
-        // (실제 서비스 코드에서는 today가 LocalDate.now()이므로, 이 테스트는 생략 가능)
-    }
-
-    @Test
     @DisplayName("출석 저장 중 DB 제약조건 위반시 AttendanceAlreadyCheckedException 발생")
     void checkAttendanceDataIntegrityViolation() {
         User user = User.builder().username(username).build();

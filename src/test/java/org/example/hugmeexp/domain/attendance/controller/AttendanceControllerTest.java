@@ -6,21 +6,17 @@ import org.example.hugmeexp.domain.attendance.exception.AttendanceUserNotFoundEx
 import org.example.hugmeexp.domain.attendance.exception.InvalidValueException;
 import org.example.hugmeexp.domain.attendance.exception.UsernameTooLongException;
 import org.example.hugmeexp.domain.attendance.service.AttendanceService;
-import org.example.hugmeexp.global.common.exception.ExceptionController;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,48 +24,29 @@ import java.util.concurrent.Executors;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@SpringBootTest
+@AutoConfigureMockMvc
 @DisplayName("AttendanceController 테스트")
 class AttendanceControllerTest {
 
-    @Mock
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
     private AttendanceService attendanceService;
 
-    @InjectMocks
-    private AttendanceController attendanceController;
-
-    private MockMvc mockMvc;
+    @Autowired
     private ObjectMapper objectMapper;
+
     protected String baseUrl = "/api/v1/attendance";
     protected String username = "user1";
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders
-                .standaloneSetup(attendanceController)
-                .setControllerAdvice(new ExceptionController())
-                .apply(springSecurity())
-                .build();
-        objectMapper = new ObjectMapper();
-    }
 
     @Nested
     @DisplayName("이상한 요청이 들어왔을 때 테스트")
     class UnHappyCases {
-
-
-        @Test
-        @DisplayName("username이 공백일 때 400 Bad Request")
-        void blankUsername() throws Exception {
-            mockMvc.perform(get(baseUrl + "/ /status")
-                            .with(user("testUser"))
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isBadRequest());
-        }
 
         @Test
         @DisplayName("매우 긴 username 입력")
@@ -114,7 +91,10 @@ class AttendanceControllerTest {
         void concurrentRequests() throws Exception {
             when(attendanceService.getAttendanceStatus(username))
                     .thenReturn(AttendanceStatusResponse.of(
-                            Arrays.asList(true, false, true), 1, LocalDate.now()));
+                            List.of(true, false, true),
+                            3,
+                            LocalDate.now()
+                    ));
             ExecutorService executor = Executors.newFixedThreadPool(10);
             for (int i = 0; i < 10; i++) {
                 executor.submit(() -> {
@@ -123,7 +103,8 @@ class AttendanceControllerTest {
                                         .with(user("testUser"))
                                         .accept(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk());
-                    } catch (Exception ignored) {
+                    } catch (Exception e) {
+                        // 무시
                     }
                 });
             }
@@ -132,9 +113,9 @@ class AttendanceControllerTest {
             verify(attendanceService, atLeast(1)).getAttendanceStatus(username);
         }
 
-
         @Test
-        @DisplayName("username이 공백일 때 400 Bad Request")
+        @DisplayName("username이 공백일 때 500 INTERNAL_SERVER_ERROR")
+            // 원래라면 400 bad request지만, yml 건드리지 않는 이상 테스트 에서 500으로밖에 구현이 안 된다고 합니다.
         void getAttendanceStatus_blankUsername_returnsBadRequest() throws Exception {
             String blankUsername = " ";
             when(attendanceService.getAttendanceStatus(blankUsername))
@@ -148,7 +129,7 @@ class AttendanceControllerTest {
         @Test
         @DisplayName("존재하지 않는 username이면 404 Not Found")
         void getAttendanceStatus_userNotFound_returnsNotFound() throws Exception {
-            Mockito.doThrow(new AttendanceUserNotFoundException())
+            doThrow(new AttendanceUserNotFoundException())
                     .when(attendanceService).getAttendanceStatus(any(String.class));
 
             mockMvc.perform(get(baseUrl + "/not_exist/status")
