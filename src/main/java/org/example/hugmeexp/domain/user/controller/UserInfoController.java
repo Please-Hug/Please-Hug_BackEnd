@@ -23,8 +23,8 @@ public class UserInfoController {
     @GetMapping("/api/v1/user")
     public ResponseEntity<Response<UserInfoResponse>> getUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        User user = userService.findById(userDetails.getUser().getId());
-        UserInfoResponse result = UserResponseMapper.toUserInfoResponse(user);
+        User user = userDetails.getUser();
+        UserInfoResponse result = userService.getUserInfoResponse(user);
 
         return ResponseEntity.ok(Response.<UserInfoResponse>builder()
                 .message("회원 정보를 불러왔습니다.")

@@ -8,27 +8,37 @@ import org.example.hugmeexp.domain.user.entity.User;
 public class UserResponseMapper {
 
     // UserInfoResponse DTO 리턴
-    public static UserInfoResponse toUserInfoResponse(User user) {
+    public static UserInfoResponse toUserInfoResponse(User user, int level, int nextLevelTotalExp) {
         return new UserInfoResponse(
-                user.getFullProfileImagePath(),
+                user.getPublicProfileImageUrl(),
                 user.getName(),
                 user.getDescription(),
-                user.getPhoneNumber()
+                user.getPhoneNumber(),
+                level,
+                nextLevelTotalExp,
+                user.getExp(),
+                user.getPoint()
         );
     }
 
     // UserProfileResponse DTO 리턴
     public static UserProfileResponse toUserProfileResponse(User user) {
         return new UserProfileResponse(
-                user.getFullProfileImagePath(),
+                user.getPublicProfileImageUrl(),
                 user.getUsername(),
                 user.getName()
         );
     }
 
+    // ProfileImageResponse DTO 반환
     public static ProfileImageResponse toProfileImageResponse(User user) {
         return new ProfileImageResponse(
-                user.getFullProfileImagePath()
+                user.getPublicProfileImageUrl()
         );
+    }
+
+    // 프로필 이미지 요청 경로 반환
+    public static String toPublicProfileImageUrl(User user) {
+        return user.getPublicProfileImageUrl();
     }
 }

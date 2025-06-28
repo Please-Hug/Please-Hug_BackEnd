@@ -11,4 +11,5 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     // 유저 id와 일주일간 출석정보 조회
     List<Attendance> findByUserIdAndAttendanceDateBetween(Long userId, LocalDate startDate, LocalDate endDate);
 
+    boolean existsByUserIdAndAttendanceDate(Long userId, LocalDate attendanceDate);
 }

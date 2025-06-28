@@ -26,4 +26,6 @@ public class MissionRequest {
     private int rewardExp;
     @NotNull
     private int order;
+    @NotNull
+    private int line;
 }

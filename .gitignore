@@ -37,5 +37,9 @@ out/
 .vscode/
 
 ### others
-*.yml
+.env
+/src/main/resources/*.yml
 /profile-images/
+/product-images/
+/mission-uploads/
+/logs/

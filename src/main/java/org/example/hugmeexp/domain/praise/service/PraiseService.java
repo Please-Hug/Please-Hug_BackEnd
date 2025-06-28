@@ -2,19 +2,17 @@ package org.example.hugmeexp.domain.praise.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.domain.praise.dto.PraiseRatioResponseDTO;
-import org.example.hugmeexp.domain.praise.dto.PraiseRequestDTO;
-import org.example.hugmeexp.domain.praise.dto.PraiseResponseDTO;
-import org.example.hugmeexp.domain.praise.dto.RecentPraiseSenderResponseDTO;
+import org.example.hugmeexp.domain.praise.dto.*;
 import org.example.hugmeexp.domain.praise.entity.Praise;
+import org.example.hugmeexp.domain.praise.entity.PraiseComment;
+import org.example.hugmeexp.domain.praise.entity.PraiseEmojiReaction;
 import org.example.hugmeexp.domain.praise.entity.PraiseReceiver;
 import org.example.hugmeexp.domain.praise.enums.PraiseType;
+import org.example.hugmeexp.domain.praise.exception.PraiseNotFoundException;
 import org.example.hugmeexp.domain.praise.exception.UserNotFoundInPraiseException;
 import org.example.hugmeexp.domain.praise.mapper.PraiseMapper;
-import org.example.hugmeexp.domain.praise.repository.CommentRepository;
-import org.example.hugmeexp.domain.praise.repository.PraiseEmojiReactionRepository;
-import org.example.hugmeexp.domain.praise.repository.PraiseReceiverRepository;
-import org.example.hugmeexp.domain.praise.repository.PraiseRepository;
+import org.example.hugmeexp.domain.praise.repository.*;
+import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.stereotype.Service;
@@ -41,38 +39,39 @@ public class PraiseService {
     private final PraiseEmojiReactionRepository praiseEmojiReactionRepository;
     private final UserRepository userRepository;
     private final PraiseReceiverRepository praiseReceiverRepository;
+    private final CommentEmojiReactionRepository commentEmojiReactionRepository;
+    private final CommentService commentService;
 
 
     /* 칭찬 생성 */
     @Transactional
     public PraiseResponseDTO createPraise(PraiseRequestDTO praiseRequestDTO, User sender) {
 
-        try {
-            List<User> receiverUsers = praiseRequestDTO.getReceiverUsername().stream()
-                    .map(username -> userRepository.findByUsername(username)
-                            .orElseThrow(UserNotFoundInPraiseException::new)).toList();
 
-            // DTO -> Entity
-             Praise praise = praiseMapper.toEntity(praiseRequestDTO, sender);
+        List<User> receiverUsers = praiseRequestDTO.getReceiverUsername().stream()
+                .map(username -> userRepository.findByUsername(username)
+                        .orElseThrow(UserNotFoundInPraiseException::new)).toList();
 
-            // DB 에 저장
-            Praise saved = praiseRepository.save(praise);
+        // DTO -> Entity
+         Praise praise = praiseMapper.toEntity(praiseRequestDTO, sender);
 
-            // PraiseReceiver 저장
-            List<PraiseReceiver> praiseReceivers = receiverUsers.stream()
-                    .map(receiver -> PraiseReceiver.builder()
-                            .praise(saved)
-                            .receiver(receiver)
-                            .build())
-                    .toList();
-            praiseReceiverRepository.saveAll(praiseReceivers);
+        // DB 에 저장
+        Praise saved = praiseRepository.save(praise);
 
-            // Entity -> DTO
-            return PraiseResponseDTO.from(saved, praiseReceivers, 0L, null);
-        } catch (UserNotFoundInPraiseException e){
+        // PraiseReceiver 저장
+        List<PraiseReceiver> praiseReceivers = receiverUsers.stream()
+                .map(receiver -> PraiseReceiver.builder()
+                        .praise(saved)
+                        .receiver(receiver)
+                        .build())
+                .toList();
+        praiseReceiverRepository.saveAll(praiseReceivers);
 
-            throw e;
-        }
+        List<UserProfileResponse> commentPro = Collections.emptyList();
+
+        // Entity -> DTO
+        return PraiseResponseDTO.from(saved, praiseReceivers, 0L, null, commentPro);
+
 
     }
 
@@ -109,17 +108,27 @@ public class PraiseService {
         return praiseList.stream()
                 .map(praise -> {
                     long commentCount = commentRepository.countByPraise(praise);
-                    List<Object[]> counts = praiseEmojiReactionRepository.countGroupedByEmoji(praise);
+                    List<PraiseEmojiReaction> reactions = praiseEmojiReactionRepository.findByPraise(praise);
 
-                    Map<String, Integer> emojiCount = counts.stream()
-                            .collect(Collectors.toMap(
-                                    row -> (String) row[0],
-                                    row -> ((Long) row[1]).intValue()
-                            ));
+                    // 이모지 그룹핑
+                    Map<String, List<PraiseEmojiReaction>> grouped = reactions.stream()
+                            .collect(Collectors.groupingBy(PraiseEmojiReaction::getEmoji));
+
+                    // 이모지 그룹 DTO 변환
+                    List<EmojiReactionGroupDTO> emojiGroups = grouped.entrySet().stream().map(entry -> EmojiReactionGroupDTO.from(entry.getKey(), entry.getValue())).toList();
 
                     List<PraiseReceiver> receivers = receiverMap.getOrDefault(praise.getId(),List.of());
 
-                    return PraiseResponseDTO.from(praise,receivers,commentCount,emojiCount);
+                    List<PraiseComment> comments = commentRepository.findByPraise(praise);
+
+                    List<UserProfileResponse> commentProfiles = comments.stream()
+                            .map(c -> {
+                                User user = c.getCommentWriter();
+                                String url = user.getStoredProfileImagePath();
+                                return new UserProfileResponse(url, user.getUsername(), user.getName());
+                            }).toList();
+
+                    return PraiseResponseDTO.from(praise,receivers,commentCount, emojiGroups,commentProfiles);
 
                 }).collect(Collectors.toList());
     }
@@ -162,15 +171,27 @@ public class PraiseService {
                 .map(praise -> {
                     long commentCount = commentRepository.countByPraise(praise);
 
-                    List<Object[]> counts = praiseEmojiReactionRepository.countGroupedByEmoji(praise);
-                    Map<String, Integer> emojiCount = counts.stream()
-                            .collect(Collectors.toMap(
-                                    row -> (String) row[0],
-                                    row -> ((Long) row[1]).intValue()
-                            ));
+                    List<PraiseEmojiReaction> reactions = praiseEmojiReactionRepository.findByPraise(praise);
+
+                    Map<String, List<PraiseEmojiReaction>> grouped = reactions.stream()
+                            .collect(Collectors.groupingBy(PraiseEmojiReaction::getEmoji));
+
+                    List<EmojiReactionGroupDTO> emojiGroups = grouped.entrySet().stream()
+                            .map(entry -> EmojiReactionGroupDTO.from(entry.getKey(), entry.getValue()))
+                            .toList();
+
+
                     List<PraiseReceiver> receivers = receiverMap.getOrDefault(praise.getId(),List.of());
 
-                    return PraiseResponseDTO.from(praise,receivers,commentCount,emojiCount);
+                    List<PraiseComment> comments = commentRepository.findByPraise(praise);
+                    List<UserProfileResponse> commentProfiles = comments.stream()
+                            .map(c -> {
+                                User user = c.getCommentWriter();
+                                String url = user.getStoredProfileImagePath();
+                                return new UserProfileResponse(url, user.getUsername(), user.getName());
+                            }).toList();
+
+                    return PraiseResponseDTO.from(praise,receivers,commentCount,emojiGroups,commentProfiles);
                 }).collect(Collectors.toList());
 
     }
@@ -194,25 +215,27 @@ public class PraiseService {
                 .map(praise -> {
                     long commentCount = commentRepository.countByPraise(praise);
 
-                    // 이모지 카운트 변환 처리
-//                    Map<String, Integer> emojiCount = praiseEmojiReactionRepository.countGroupedMapByPraise(praise);
-                    List<Object[]> counts = praiseEmojiReactionRepository.countGroupedByEmoji(praise);
-                    Map<String, Integer> emojiCount = counts.stream()
-                            .collect(Collectors.toMap(
-                                    row -> (String) row[0],
-                                    row -> ((Long) row[1]).intValue()
-                            ));
+                    // 이모지 전체 가져오기
+                    List<PraiseEmojiReaction> reactions = praiseEmojiReactionRepository.findByPraise(praise);
+
+                    // 이모지 기준 그룹핑
+                    Map<String, List<PraiseEmojiReaction>> grouped = reactions.stream()
+                            .collect(Collectors.groupingBy(PraiseEmojiReaction::getEmoji));
+
+                    // DTO 변환
+                    List<EmojiReactionGroupDTO> emojiGroups = grouped.entrySet().stream()
+                            .map(entry -> EmojiReactionGroupDTO.from(entry.getKey(),entry.getValue())).toList();
 
                     // 수신자 리스트
                     List<PraiseReceiver> receivers = receiverMap.getOrDefault(praise.getId(), List.of());
 
-                    return PraiseResponseDTO.from(praise,receivers,commentCount,emojiCount);
+                    return PraiseResponseDTO.from(praise,receivers,commentCount,emojiGroups,List.of());
 
                 })
 
                 // 이모지 반응 수 총합 기준 내림차순 정렬
                 .sorted(Comparator.comparingInt((PraiseResponseDTO p) ->
-                        p.getEmojiReactionCount() == null ? 0 : p.getEmojiReactionCount().values().stream().mapToInt(Integer::intValue).sum()
+                        p.getEmojis() == null ? 0 : p.getEmojis().stream().mapToInt(EmojiReactionGroupDTO::getCount).sum()
                 ).reversed())
                 .limit(i)
                 .collect(Collectors.toList());
@@ -267,7 +290,49 @@ public class PraiseService {
                 .map(Praise::getSender)
                 .distinct()
                 .limit(3)
-                .map(RecentPraiseSenderResponseDTO::from)
+                .map(sender -> {
+                    String url = sender.getStoredProfileImagePath();
+                    UserProfileResponse profile = new UserProfileResponse(url, sender.getUsername(), sender.getName());
+
+                    return RecentPraiseSenderResponseDTO.from(sender, List.of(profile));
+
+                })
                 .collect(Collectors.toList());
+    }
+
+    /* 칭찬 상세 조회 */
+    public PraiseDetailResponseDTO getPraiseDetail(Long praiseId) {
+
+        // 칭찬 엔티티 조회
+        Praise praise = praiseRepository.findById(praiseId).orElseThrow(() -> new PraiseNotFoundException());
+
+        // 칭찬 받은 사람 리스트 조회
+        List<PraiseReceiver> receiverList = praiseReceiverRepository.findByPraise(praise);
+
+        // 댓글 목록 조회
+        List<PraiseComment> commentList = commentService.getCommentsByPraise(praise);
+
+        // 게시물 이모지 반응 가져오기
+        List<PraiseEmojiReaction> reactions = praiseEmojiReactionRepository.findByPraise(praise);
+
+        Map<String, List<PraiseEmojiReaction>> grouped = reactions.stream()
+                .collect(Collectors.groupingBy(PraiseEmojiReaction::getEmoji));
+
+        List<EmojiReactionGroupDTO> emojiGroups = grouped.entrySet().stream()
+                .map(entry -> EmojiReactionGroupDTO.from(entry.getKey(), entry.getValue()))
+                .toList();
+
+        // 댓글 별 이모지 반응 수 조회
+        Map<Long, Map<String, Integer>> commentEmojiMap = commentList.stream()
+                .collect(Collectors.toMap(
+                        PraiseComment::getId,
+                        comment -> {
+                            List<Object[]> emojiData = commentEmojiReactionRepository.countGroupedByEmoji(comment);
+                            return emojiData.stream().collect(Collectors.toMap(
+                                    row -> (String) row[0],
+                                    row -> ((Long) row[1]).intValue()));
+                        }));
+
+        return PraiseDetailResponseDTO.from(praise,receiverList,commentList,emojiGroups,commentEmojiMap);
     }
 }

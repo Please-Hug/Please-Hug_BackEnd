@@ -1,9 +1,11 @@
 package org.example.hugmeexp.domain.praise.mapper;
 
+import org.example.hugmeexp.domain.praise.dto.EmojiReactionGroupDTO;
 import org.example.hugmeexp.domain.praise.dto.PraiseRequestDTO;
 import org.example.hugmeexp.domain.praise.dto.PraiseResponseDTO;
 import org.example.hugmeexp.domain.praise.entity.Praise;
 import org.example.hugmeexp.domain.praise.entity.PraiseReceiver;
+import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.mapstruct.Mapper;
 
@@ -21,22 +23,8 @@ public interface PraiseMapper {
     }
 
 
-    // 댓글, 반응 만들면 매개변수 long commentCount, Map<String, Integer> emojiCount 으로 수정하기
-    default PraiseResponseDTO toDTO(Praise praise, List<PraiseReceiver> praiseReceivers){
+    default PraiseResponseDTO toDTO(Praise praise, List<PraiseReceiver> praiseReceivers, long commentCount, List<EmojiReactionGroupDTO> emojiGroups, List<UserProfileResponse> commentPro){
 
-        List<String> receiverNames = praiseReceivers.stream()
-                .map(praiseReceiver -> praiseReceiver.getReceiver().getName())
-                .toList();
-
-        return PraiseResponseDTO.builder()
-                .id(praise.getId())
-                .senderName(praise.getSender().getName())
-                .receiverName(receiverNames)
-                .content(praise.getContent())
-                .type(praise.getPraiseType())
-                .commentCount(0)
-                .emojiReactionCount(null)
-                .createdAt(praise.getCreatedAt())
-                .build();
+        return PraiseResponseDTO.from(praise, praiseReceivers, commentCount, emojiGroups,commentPro);
     }
 }

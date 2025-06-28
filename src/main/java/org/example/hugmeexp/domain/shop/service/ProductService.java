@@ -104,7 +104,7 @@ public class ProductService {
         );
 
         // 구매자 포인트 및 상품 재고 감소
-        purchaser.increasePoint(product.getPrice() * (-1));
+        purchaser.decreasePoint(product.getPrice());
         product.decreaseQuantity();
 
         orderRepository.save(order);
@@ -145,25 +145,21 @@ public class ProductService {
         Product product = order.getProduct();
         ProductImage image = product.getProductImage();
 
-        String imageUrl = null;
+        String fullPath = null;
         if (image != null) {
-            imageUrl = String.format("%s\\%s.%s", image.getPath(), image.getUuid(), image.getExtension());
+            fullPath = image.getPath() + "/" + image.getUuid() + "." + image.getExtension();
+            // "/application" 제거
+            if (fullPath.startsWith("/application")) {
+                fullPath = fullPath.substring("/application".length());
+            }
         }
-
         return OrderResponse.builder()
-                .imageUrl(imageUrl)
+                .imageUrl(fullPath)
                 .brand(product.getBrand())
                 .name(product.getName())
                 .price(String.format("%d 포인트", product.getPrice()))
                 .orderTime(order.getCreatedAt())
                 .receiverPhoneNumber(order.getReceiverPhoneNumber())
                 .build();
-    }
-
-    // ===== 테스트용 =====
-    public void increasePoint(String username) {
-        User user = userRepository.findByUsername(username).get();
-        user.increasePoint(100000);
-        userRepository.save(user);
     }
 }

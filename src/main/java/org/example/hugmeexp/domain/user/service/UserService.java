@@ -26,6 +26,9 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    private static final int MAX_LEVEL = 50;
+    private static final int MAX_EXP = 122_500;
+
     // 모든 User 리턴
     public List<User> findAll() {
         return userRepository.findAll();
@@ -64,7 +67,6 @@ public class UserService {
     // 경험치 증가
     @Transactional
     public void increaseExp(User user, int value) {
-        // @AuthenticationPrincipal로 받은 User 객체는 영속 상태가 아니므로 영속성 컨텍스트에 넣어야 함.
         User findUser = findById(user.getId());
         findUser.increaseExp(value);
     }
@@ -72,7 +74,6 @@ public class UserService {
     // 구름조각 증가
     @Transactional
     public void increasePoint(User user, int value) {
-        // @AuthenticationPrincipal로 받은 User 객체는 영속 상태가 아니므로 영속성 컨텍스트에 넣어야 함.
         User findUser = findById(user.getId());
         findUser.increasePoint(value);
     }
@@ -80,15 +81,22 @@ public class UserService {
     // 구름조각 감소
     @Transactional
     public void decreasePoint(User user, int value) {
-        // @AuthenticationPrincipal로 받은 User 객체는 영속 상태가 아니므로 영속성 컨텍스트에 넣어야 함.
         User findUser = findById(user.getId());
         findUser.decreasePoint(value);
     }
 
+    // User 종합 정보 조회
+    public UserInfoResponse getUserInfoResponse(User user) {
+        User findUser = findById(user.getId());
+
+        int level = calculateLevel(findUser.getExp());
+        int nextLevelTotalExp = getNextLevelTotalExp(findUser.getExp());
+        return UserResponseMapper.toUserInfoResponse(findUser, level, nextLevelTotalExp);
+    }
+
+    // 회원 정보 업데이트
     @Transactional
     public UserInfoResponse updateUserInfo(User user, UserUpdateRequest request) {
-
-        // @AuthenticationPrincipal로 받은 User 객체는 영속 상태가 아니므로 영속성 컨텍스트에 넣어야 함.
         User findUser = findById(user.getId());
 
         // phoneNumber 중복 예외 처리
@@ -101,7 +109,10 @@ public class UserService {
 
         // User 업데이트 및 결과 리턴
         findUser.updateUserInfo(request.getName(), request.getDescription(), request.getPhoneNumber());
-        return UserResponseMapper.toUserInfoResponse(findUser);
+
+        int level = calculateLevel(findUser.getExp());
+        int nextLevelTotalExp = getNextLevelTotalExp(findUser.getExp());
+        return UserResponseMapper.toUserInfoResponse(findUser, level, nextLevelTotalExp);
     }
 
     // 프로필 이미지 등록
@@ -125,7 +136,7 @@ public class UserService {
         findUser.registerProfileImage(directoryPath, extension);
 
         // 스토리지에 프로필 이미지 저장
-        String absolutePath = findUser.getFullProfileImagePath();
+        String absolutePath = findUser.getStoredProfileImagePath();
         saveFile(file, absolutePath);
         log.info("Profile image updated successfully - user: {} ({}) / image path: {}", user.getUsername(), user.getName(), absolutePath);
 
@@ -139,11 +150,11 @@ public class UserService {
         User findUser = findById(user.getId());
 
         if (!findUser.isRegisterProfileImage()) {
-            throw new ProfileImageNotFoundException("삭제할 프로필 이미지가 없습니다.");
+            throw new ProfileImageNotFoundException();
         }
 
         // 기존 이미지 파일 경로
-        String imagePath = findUser.getFullProfileImagePath();
+        String imagePath = findUser.getStoredProfileImagePath();
         File imageFile = new File(imagePath);
 
         // 이미지 삭제
@@ -190,7 +201,7 @@ public class UserService {
     private void deleteExistingProfileImage(User user) {
         if (!user.isRegisterProfileImage()) return;
 
-        String oldPath = user.getFullProfileImagePath();
+        String oldPath = user.getStoredProfileImagePath();
         File oldFile = new File(oldPath);
 
         if (oldFile.exists() && !oldFile.delete()) {
@@ -207,5 +218,21 @@ public class UserService {
         } catch (IOException e) {
             throw new RuntimeException("Failed to save the profile image.", e);
         }
+    }
+
+    private int calculateLevel(int exp) {
+        if (exp >= MAX_EXP) return MAX_LEVEL;
+        return (int) ((1 + Math.sqrt(1 + 0.08 * exp)) / 2.0);
+    }
+
+    private int getNextLevelTotalExp(int exp) {
+        int currentLevel = calculateLevel(exp);
+
+        if (currentLevel >= MAX_LEVEL) {
+            return MAX_EXP;
+        }
+
+        int nextLevel = currentLevel + 1;
+        return (100 * (nextLevel - 1) * nextLevel) / 2;
     }
 }
