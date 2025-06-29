@@ -18,7 +18,7 @@ public class CommentEmojiReactionResponseDTO {
 
     private Long commentId;    // 댓글 반응일 경우에만 값 존재
 
-    private String reactorName;    // 반응한 사람 이름
+    private ReactionUserDTO reactorName;    // 반응한 사람 이름
     private String emoji;    // 이모지 값
     private LocalDateTime createdAt;    // 반응한 시간
 
@@ -26,7 +26,11 @@ public class CommentEmojiReactionResponseDTO {
         return CommentEmojiReactionResponseDTO.builder()
                 .id(reaction.getId())
                 .commentId(reaction.getComment().getId())
-                .reactorName(reaction.getReactorWriter().getName())
+                .reactorName(ReactionUserDTO.builder()
+                        .id(reaction.getReactorWriter().getId())
+                        .username(reaction.getReactorWriter().getUsername())
+                        .name(reaction.getReactorWriter().getName())
+                        .build())
                 .emoji(reaction.getEmoji())
                 .createdAt(reaction.getCreatedAt())
                 .build();

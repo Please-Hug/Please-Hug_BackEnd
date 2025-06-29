@@ -1,6 +1,7 @@
 package org.example.hugmeexp.domain.praise.repository;
 
 import org.example.hugmeexp.domain.praise.entity.CommentEmojiReaction;
+import org.example.hugmeexp.domain.praise.entity.Praise;
 import org.example.hugmeexp.domain.praise.entity.PraiseComment;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,4 +20,7 @@ public interface CommentEmojiReactionRepository extends JpaRepository<CommentEmo
 
     /* 이모지 중복 되는지 확인 */
     boolean existsByCommentAndReactorWriterAndEmoji(PraiseComment comment, User reactorWriter, String emoji);
+
+    @Query("SELECT r FROM CommentEmojiReaction r WHERE r.comment.praise = :praise")
+    List<CommentEmojiReaction> findByPraise(Praise praise);
 }

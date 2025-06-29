@@ -33,15 +33,15 @@ public class PraiseDetailResponseDTO {
                                                List<PraiseReceiver> receivers,
                                                List<PraiseComment> commentList,
                                                List<EmojiReactionGroupDTO> emojiReactions,
-                                               Map<Long, Map<String,Integer>> commentEmojiMap){
+                                               Map<Long, Map<String,List<ReactionUserDTO>>> commentEmojiMap){
 
         List<ReceiverResponseDTO> receiverDTO = receivers.stream()
                 .map(ReceiverResponseDTO::from)
                 .toList();
 
         List<CommentResponseDTO> commentResponse = commentList.stream()
-                .map(comment -> {Map<String,Integer> emojis = commentEmojiMap.getOrDefault(comment.getId(),Map.of());
-            return CommentResponseDTO.from(comment, emojis);
+                .map(comment -> {Map<String,List<ReactionUserDTO>> emojiMap  = commentEmojiMap.getOrDefault(comment.getId(),Map.of());
+            return CommentResponseDTO.from(comment, emojiMap);
         }).toList();
 
 
