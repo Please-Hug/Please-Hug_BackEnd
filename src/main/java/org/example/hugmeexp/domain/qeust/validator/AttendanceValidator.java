@@ -15,8 +15,8 @@ public class AttendanceValidator implements QuestValidator {
 
     @Override
     public boolean isValid(UserQuest userQuest) {
-        Long userId = userQuest.getUser().getId();
+        String username = userQuest.getUser().getUsername();
         LocalDate today = LocalDate.now();
-        return !attendanceRepository.findByUserIdAndAttendanceDateBetween(userId, today, today).isEmpty();
+        return !attendanceRepository.findByUser_UsernameAndAttendanceDateBetween(username, today, today).isEmpty();
     }
 }
