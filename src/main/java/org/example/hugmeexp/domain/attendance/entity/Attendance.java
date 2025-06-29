@@ -32,6 +32,9 @@ public class Attendance extends BaseEntity {
     @Column(name = "attendance_date", nullable = false)
     private LocalDate attendanceDate;
 
+    @Version // 낙관적 락용 버전 필드, 동시성 문제 해결하기 위해 사용
+    private Long version;
+
     // 정적 팩토리 메서드
     public static Attendance of(User user, LocalDate attendanceDate) {
         return Attendance.builder()

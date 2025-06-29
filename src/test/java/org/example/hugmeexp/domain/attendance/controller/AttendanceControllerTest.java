@@ -1,13 +1,12 @@
+// src/test/java/org/example/hugmeexp/domain/attendance/controller/AttendanceControllerTest.java
 package org.example.hugmeexp.domain.attendance.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.hugmeexp.domain.attendance.dto.AttendanceCheckResponse;
 import org.example.hugmeexp.domain.attendance.dto.AttendanceStatusResponse;
+import org.example.hugmeexp.domain.attendance.exception.AttendanceAlreadyCheckedException;
 import org.example.hugmeexp.domain.attendance.exception.AttendanceUserNotFoundException;
-import org.example.hugmeexp.domain.attendance.exception.InvalidValueException;
-import org.example.hugmeexp.domain.attendance.exception.UsernameTooLongException;
 import org.example.hugmeexp.domain.attendance.service.AttendanceService;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -17,14 +16,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -32,126 +29,109 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("AttendanceController 테스트")
 class AttendanceControllerTest {
 
+    private static final String BASE_URL = "/api/v1/attendance";
+
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
     private AttendanceService attendanceService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @Test
+    @DisplayName("POST /check - 성공")
+    void checkAttendance_success() throws Exception {
+        String username = "testUser";
+        AttendanceCheckResponse dto = AttendanceCheckResponse.builder()
+                .attend(true).exp(31).point(1).build();
+        when(attendanceService.checkAttendance(username)).thenReturn(dto);
 
-    protected String baseUrl = "/api/v1/attendance";
-    protected String username = "user1";
+        mockMvc.perform(post(BASE_URL + "/check")
+                        .with(user(username))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.attend").value(true))
+                .andExpect(jsonPath("$.data.exp").value(31))
+                .andExpect(jsonPath("$.data.point").value(1))
+                .andExpect(jsonPath("$.message").value("Attendance check success"));
+    }
 
-    @Nested
-    @DisplayName("이상한 요청이 들어왔을 때 테스트")
-    class UnHappyCases {
+    @Test
+    @DisplayName("GET /status - 성공")
+    void getAttendanceStatus_success() throws Exception {
+        String username = "testUser";
+        LocalDate today = LocalDate.now();
+        List<Boolean> statusList = Arrays.asList(true, false, true, false, false, false, false);
+        AttendanceStatusResponse dto = AttendanceStatusResponse.of(statusList, 1, today);
+        when(attendanceService.getAttendanceStatus(username)).thenReturn(dto);
 
-        @Test
-        @DisplayName("매우 긴 username 입력")
-        void veryLongUsername() throws Exception {
-            String longUsername = "a".repeat(300);
-            when(attendanceService.getAttendanceStatus(longUsername))
-                    .thenThrow(new UsernameTooLongException());
-            mockMvc.perform(get(baseUrl + "/" + longUsername + "/status")
-                            .with(user("testUser"))
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isBadRequest());
-        }
+        mockMvc.perform(get(BASE_URL + "/status")
+                        .with(user(username))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.attendanceStatus.length()").value(7))
+                .andExpect(jsonPath("$.data.continuousDay").value(1))
+                .andExpect(jsonPath("$.data.today").value(today.toString()))
+                .andExpect(jsonPath("$.message").value("Attendance status retrieved successfully"));
+    }
 
-        @Test
-        @DisplayName("대량 데이터 반환")
-        void hugeAttendanceDates() throws Exception {
-            List<LocalDate> dates = new java.util.ArrayList<>();
-            for (int i = 0; i < 10000; i++) {
-                dates.add(LocalDate.of(2025, 1, 1).plusDays(i));
-            }
-            when(attendanceService.getAllAttendanceDates(username)).thenReturn(dates);
+    @Test
+    @DisplayName("GET /dates - 성공")
+    void getAllDates_success() throws Exception {
+        String username = "testUser";
+        // ★ 여기서 List<LocalDate> 로 반환 스텁을 설정합니다.
+        List<LocalDate> dates = Arrays.asList(
+                LocalDate.of(2025, 6, 1),
+                LocalDate.of(2025, 6, 2)
+        );
+        when(attendanceService.getAllAttendanceDates(username)).thenReturn(dates);
 
-            mockMvc.perform(get(baseUrl + "/" + username + "/dates")
-                            .with(user("testUser"))
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[9999]").value("2052-05-18"));
-        }
+        mockMvc.perform(get(BASE_URL + "/dates")
+                        .with(user(username))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                // 반환된 LocalDate들이 문자열로 직렬화됩니다.
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0]").value("2025-06-01"))
+                .andExpect(jsonPath("$.data[1]").value("2025-06-02"))
+                .andExpect(jsonPath("$.message").value("all Attendance dates retrieved success"));
+    }
 
-        @Test
-        @DisplayName("서비스가 null 반환 시 500")
-        void serviceReturnsNull() throws Exception {
-            when(attendanceService.getAttendanceStatus(username)).thenReturn(null);
-            mockMvc.perform(get(baseUrl + "/" + username + "/status")
-                            .with(user("testUser"))
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isInternalServerError());
-        }
+    @Test
+    @DisplayName("POST /check - 이미 출석함 → 409")
+    void checkAttendance_alreadyChecked() throws Exception {
+        String username = "testUser";
+        when(attendanceService.checkAttendance(username))
+                .thenThrow(new AttendanceAlreadyCheckedException());
 
-        @Test
-        @DisplayName("동시성: 여러 번 호출")
-        void concurrentRequests() throws Exception {
-            when(attendanceService.getAttendanceStatus(username))
-                    .thenReturn(AttendanceStatusResponse.of(
-                            List.of(true, false, true),
-                            3,
-                            LocalDate.now()
-                    ));
-            ExecutorService executor = Executors.newFixedThreadPool(10);
-            for (int i = 0; i < 10; i++) {
-                executor.submit(() -> {
-                    try {
-                        mockMvc.perform(get(baseUrl + "/" + username + "/status")
-                                        .with(user("testUser"))
-                                        .accept(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isOk());
-                    } catch (Exception e) {
-                        // 무시
-                    }
-                });
-            }
-            executor.shutdown();
-            Thread.sleep(1000);
-            verify(attendanceService, atLeast(1)).getAttendanceStatus(username);
-        }
+        mockMvc.perform(post(BASE_URL + "/check")
+                        .with(user(username))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict());
+    }
 
-        @Test
-        @DisplayName("username이 공백일 때 500 INTERNAL_SERVER_ERROR")
-            // 원래라면 400 bad request지만, yml 건드리지 않는 이상 테스트 에서 500으로밖에 구현이 안 된다고 합니다.
-        void getAttendanceStatus_blankUsername_returnsBadRequest() throws Exception {
-            String blankUsername = " ";
-            when(attendanceService.getAttendanceStatus(blankUsername))
-                    .thenThrow(new InvalidValueException("username must not be blank"));
-            mockMvc.perform(get(baseUrl + "/" + blankUsername + "/status")
-                            .with(user("testUser"))
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isBadRequest());
-        }
+    @Test
+    @DisplayName("GET /status - 유저 없음 → 404")
+    void getAttendanceStatus_userNotFound() throws Exception {
+        String username = "testUser";
+        when(attendanceService.getAttendanceStatus(username))
+                .thenThrow(new AttendanceUserNotFoundException());
 
-        @Test
-        @DisplayName("존재하지 않는 username이면 404 Not Found")
-        void getAttendanceStatus_userNotFound_returnsNotFound() throws Exception {
-            doThrow(new AttendanceUserNotFoundException())
-                    .when(attendanceService).getAttendanceStatus(any(String.class));
+        mockMvc.perform(get(BASE_URL + "/status")
+                        .with(user(username))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
 
-            mockMvc.perform(get(baseUrl + "/not_exist/status")
-                            .with(user("testUser"))
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isNotFound());
-        }
+    @Test
+    @DisplayName("GET /dates - 유저 없음 → 404")
+    void getAllDates_userNotFound() throws Exception {
+        String username = "testUser";
+        when(attendanceService.getAllAttendanceDates(username))
+                .thenThrow(new AttendanceUserNotFoundException());
 
-        @Test
-        @DisplayName("getAllAttendanceDates - 대량 데이터 반환")
-        void getAllAttendanceDates_paging_api() throws Exception {
-            List<LocalDate> dates = new java.util.ArrayList<>();
-            for (int i = 0; i < 100; i++) {
-                dates.add(LocalDate.of(2025, 1, 1).plusDays(i));
-            }
-            when(attendanceService.getAllAttendanceDates(username)).thenReturn(dates);
-
-            mockMvc.perform(get(baseUrl + "/" + username + "/dates")
-                            .with(user("testUser"))
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-        }
+        mockMvc.perform(get(BASE_URL + "/dates")
+                        .with(user(username))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 }
