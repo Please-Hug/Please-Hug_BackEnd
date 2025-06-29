@@ -30,9 +30,6 @@ public class AttendanceController {
      * 출석 상태 조회
      * - 사용자 ID를 통해 해당 사용자의 출석 상태를 조회
      * - 연속 출석 일수와 오늘 날짜도 함께 반환
-     *
-     * @param username 사용자 아이디
-     * @return 출석 상태 응답
      */
     @GetMapping("/status")
     public ResponseEntity<Response<AttendanceStatusResponse>> getAttendanceStatus(
@@ -58,9 +55,6 @@ public class AttendanceController {
      * 출석 체크
      * - 사용자 ID와 출석 체크 요청 데이터를 통해 출석 체크를 수행
      * - 성공 여부, 연속 출석 일수, 오늘의 출석 상태 등을 반환
-     *
-     * @param username 사용자 아이디
-     * @return 출석 체크 응답
      */
     @PostMapping("/check")
     public ResponseEntity<Response<AttendanceCheckResponse>> checkAttendance(
@@ -77,8 +71,6 @@ public class AttendanceController {
     /**
      * 한 유저가 출석한 전체 날짜 조회
      * 출석한 날짜들을 리스트로 반환
-     * @param username
-     * @return
      */
     @GetMapping("/dates")
     public ResponseEntity<Response<List<String>>> getAllDates(
