@@ -313,22 +313,11 @@ public class StudyDiaryService {
             log.info("EntityManager contains {}",entityManager.contains(existingLike.get()));
             log.info("Like {}", existingLike.get().getId());
             // 좋아요 취소
-            studyDiary.deleteLike(user.getId());
-            // likeCount 감소
-            studyDiary.updateLikeCount(studyDiary.getLikeCount() - 1);
+            return studyDiary.deleteLike(user.getId());
         } else {
-            // 좋아요 추가
-            StudyDiaryLike newLike = StudyDiaryLike.builder()
-                    .studyDiary(studyDiary)
-                    .user(user)
-                    .build();
-            studyDiaryLikeRepository.save(newLike);
-            // likeCount 증가
-            studyDiary.updateLikeCount(studyDiary.getLikeCount() + 1);
+            return studyDiary.addLike(user);
         }
-
-        // 최신 좋아요 개수 조회
-        return studyDiary.getLikeCount();
+        //return 값으로 최신 좋아요 갯수
     }
 
     private void checkUser(User user, StudyDiary studyDiary) {

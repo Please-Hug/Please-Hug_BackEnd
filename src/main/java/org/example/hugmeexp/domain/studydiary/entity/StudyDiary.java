@@ -65,5 +65,17 @@ public class StudyDiary extends BaseEntity {
             throw new LikeNotFoundException();
         }
     }
+
+    public int addLike(User user) {
+        StudyDiaryLike newLike = StudyDiaryLike.builder()
+                .studyDiary(this)
+                .user(user)
+                .build();
+
+        this.likes.add(newLike);
+        this.likeCount++;
+
+        return likeCount;
+    }
 }
 
