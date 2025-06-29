@@ -30,23 +30,23 @@ public class AttendanceService {
 
 
     @Transactional(readOnly = true)
-    public List<LocalDate> getAllAttendanceDates(Long userId) {
+    public List<LocalDate> getAllAttendanceDates(String username) {
 
         // 1) 사용자 존재 확인
-        userRepository.findByUserId(userId)
+        userRepository.findByUsername(username)
                 .orElseThrow(AttendanceUserNotFoundException::new);
 
         // 2) 날짜 리스트만 조회
-        return attendanceRepository.findDatesByUserId(userId);
+        return attendanceRepository.findDatesByUsername(username);
     }
 
     // 연속 출석일 계산 메소드
-    private int calculateContinuousDays(Long userId, LocalDate today) {
+    private int calculateContinuousDays(String username, LocalDate today) {
 
         // 과거 1달 출석일 전체 조회
         LocalDate oneMonthAgo = today.minusDays(29);
         Set<LocalDate> monthDates = attendanceRepository
-                .findByUserIdAndAttendanceDateBetween(userId, oneMonthAgo, today)
+                .findByUser_UsernameAndAttendanceDateBetween(username, oneMonthAgo, today)
                 .stream()
                 .map(Attendance::getAttendanceDate)
                 .collect(Collectors.toSet());
@@ -66,7 +66,7 @@ public class AttendanceService {
         // 1년 기준으로 출석일 전체 조회
         LocalDate oneYearAgo = today.minusYears(1);
         Set<LocalDate> yearDates = attendanceRepository
-                .findByUserIdAndAttendanceDateBetween(userId, oneYearAgo, today)
+                .findByUser_UsernameAndAttendanceDateBetween(username, oneYearAgo, today)
                 .stream()
                 .map(Attendance::getAttendanceDate)
                 .collect(Collectors.toSet());
@@ -84,12 +84,12 @@ public class AttendanceService {
             return yearContinuous;
         }
         // 1년 이상 연속 출석 시, 가입일 이후의 전체 출석기록 조회
-        User user = (User) userRepository.findByUserId(userId)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(AttendanceUserNotFoundException::new);
         LocalDate fullStartDate = user.getCreatedAt().toLocalDate();
 
         Set<LocalDate> allDates = attendanceRepository
-                .findByUserIdAndAttendanceDateBetween(userId, fullStartDate, today)
+                .findByUser_UsernameAndAttendanceDateBetween(username, fullStartDate, today)
                 .stream()
                 .map(Attendance::getAttendanceDate)
                 .collect(Collectors.toSet());
@@ -106,10 +106,10 @@ public class AttendanceService {
 
     // 출석 상태 조회 (최근 7일, 연속 출석일)
     @Transactional(readOnly = true)
-    public AttendanceStatusResponse getAttendanceStatus(Long userId) {
+    public AttendanceStatusResponse getAttendanceStatus(String username) {
 
         // 유저 존재 확인 및 예외처리 추가
-        userRepository.findByUserId(userId)
+        userRepository.findByUsername(username)
                 .orElseThrow(AttendanceUserNotFoundException::new);
 
         LocalDate today = LocalDate.now();
@@ -121,7 +121,7 @@ public class AttendanceService {
 
         // DB에서 최근 7일간 출석 기록 조회
         List<Attendance> records = attendanceRepository
-                .findByUserIdAndAttendanceDateBetween(userId, weekStart, weekEnd);
+                .findByUser_UsernameAndAttendanceDateBetween(username, weekStart, weekEnd);
 
         // 출석한 날짜만 추출
         Set<LocalDate> dates = records.stream()
@@ -134,23 +134,23 @@ public class AttendanceService {
                 .collect(Collectors.toList());
 
         // 연속 출석일 계산 호출
-        int continuousDay = calculateContinuousDays(userId, today);
+        int continuousDay = calculateContinuousDays(username, today);
 
         return AttendanceStatusResponse.of(attendanceStatus, continuousDay, today);
     }
 
         // 출석 체크
         @Transactional
-        public AttendanceCheckResponse checkAttendance (Long userId) {
+        public AttendanceCheckResponse checkAttendance (String username) {
 
             LocalDate today = LocalDate.now();
 
             // 사용자 존재 확인
-           User user = (User) userRepository.findByUserId(userId)
+           User user = userRepository.findByUsername(username)
                     .orElseThrow(AttendanceUserNotFoundException::new);
 
             // 이미 출첵했는지 확인
-            if (attendanceRepository.existsByUserIdAndAttendanceDate(userId, today)) {
+            if (attendanceRepository.existsByUser_UsernameAndAttendanceDate(username, today)) {
                 throw new AttendanceAlreadyCheckedException();
             }
 
