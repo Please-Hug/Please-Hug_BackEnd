@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryCreateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryUpdateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.CommentCreateRequest;
+import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryWeekStatusResponse;
 import org.example.hugmeexp.domain.studydiary.service.StudyDiaryService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.data.domain.Pageable;
@@ -237,6 +238,37 @@ public class StudyDiaryController {
         return ResponseEntity.ok(Response.<Object>builder()
                 .message("좋아요 상태가 성공적으로 변경되었습니다.")
                 .data(totalLike)
+                .build());
+    }
+
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "나의 주간 활동 상황", description = "현재 로그인한 사용자의 주간 활동 상황을 불러옵니다.")
+    @GetMapping("/my/weeklyStatus")
+    public ResponseEntity<Response<Object>> getWeeklyStatus(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        StudyDiaryWeekStatusResponse myWeekStatus = studyDiaryService.getMyWeekStatus(userDetails);
+        return ResponseEntity.ok(Response.<Object>builder()
+                .message("현재 로그인한 사용자의 주간 활동 상황을 성공적으로 조회했습니다.")
+                .data(myWeekStatus)
+                .build());
+    }
+
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "나의 글 목록 조회")
+    @GetMapping("/my/studyDiaries")
+    public ResponseEntity<Response<Object>> getUserStudyDiaries(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PageableDefault(
+                    size = 10,              // 기본 페이지 크기
+                    page = 0,               // 기본 페이지 번호 (0부터 시작)
+                    sort = "createdAt",     // 기본 정렬 필드
+                    direction = Sort.Direction.DESC  // 기본 정렬 방향
+            ) Pageable pageable) {
+
+        Object userStudyDiaries = studyDiaryService.getMyStudyDiaries(userDetails, pageable);
+        return ResponseEntity.ok(Response.<Object>builder()
+                .message("현재 로그인한 사용자의 배움일기 목록을 성공적으로 조회했습니다.")
+                .data(userStudyDiaries)
                 .build());
     }
 }

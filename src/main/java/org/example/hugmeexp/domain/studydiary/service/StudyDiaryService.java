@@ -187,10 +187,29 @@ public class StudyDiaryService {
         return studyDiaryFindAllResponses;
     }
 
+    public List<StudyDiaryFindAllResponse> getMyStudyDiaries(UserDetails userDetails, Pageable pageable) {
+        User findUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(UserNotFoundForStudyDiaryException::new);
+        List<StudyDiary> byUser = studyDiaryRepository.findByUser(findUser.getId());
+
+        List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
+            return StudyDiaryFindAllResponse.builder()
+                    .id(studyDiary.getId())
+                    .userName(studyDiary.getUser().getUsername())
+                    .title(studyDiary.getTitle())
+                    .content(studyDiary.getContent())
+                    .likeNum(studyDiary.getLikeCount())
+                    .commentNum(studyDiary.getComments().size())
+                    .createdAt(studyDiary.getCreatedAt())
+                    .build();
+        }).toList();
+
+        return studyDiaryFindAllResponses;
+    }
+
     //추후 구현(elastic search 필요)
+
 //    public List<StudyDiary> getSimilarStudyDiaries(Long id) {
 //    }
-
     @Transactional
     public Long saveDraft(StudyDiaryCreateRequest request, UserDetails userDetails) {
         User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(UserNotFoundForStudyDiaryException::new);
@@ -209,7 +228,7 @@ public class StudyDiaryService {
 
     public StudyDiaryWeekStatusResponse getWeekStatus(Long userId) {
         //이번주 날짜 구하기
-        LocalDateTime startOfWeek = LocalDateTime.now().with(DayOfWeek.SUNDAY).withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime startOfWeek = LocalDateTime.now().with(DayOfWeek.MONDAY).withHour(0).withMinute(0).withSecond(0);
         LocalDateTime endOfWeek = startOfWeek.plusDays(6).withHour(23).withMinute(59).withSecond(59);
         //초기 response 객체 생성
         StudyDiaryWeekStatusResponse response = StudyDiaryWeekStatusResponse.builder()
@@ -256,8 +275,60 @@ public class StudyDiaryService {
         return response;
     }
 
+    public StudyDiaryWeekStatusResponse getMyWeekStatus(UserDetails userDetails) {
+        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(UserNotFoundForStudyDiaryException::new);
+        //이번주 날짜 구하기
+        LocalDateTime startOfWeek = LocalDateTime.now().with(DayOfWeek.MONDAY).withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime endOfWeek = startOfWeek.plusDays(6).withHour(23).withMinute(59).withSecond(59);
+        //초기 response 객체 생성
+        StudyDiaryWeekStatusResponse response = StudyDiaryWeekStatusResponse.builder()
+                .sunday(false)
+                .monday(false)
+                .tuesday(false)
+                .wednesday(false)
+                .thursday(false)
+                .friday(false)
+                .saturday(false)
+                .todayStudyDiaryNum(0)
+                .totalLike(0)
+                .build();
+
+        log.info("start {} end {}", startOfWeek, endOfWeek);
+        List<StudyDiary> weekStudyDiaries = studyDiaryRepository.findByUserIdAndCreatedAtBetween(user.getId(), startOfWeek, endOfWeek);
+        log.info("week diaries {}", weekStudyDiaries.size());
+
+        //주간 작성상황 작성
+        weekStudyDiaries.stream().forEach(studyDiary -> {
+            switch (studyDiary.getCreatedAt().getDayOfWeek()){
+                case SUNDAY -> response.setSunday(true);
+                case MONDAY -> response.setMonday(true);
+                case TUESDAY -> response.setTuesday(true);
+                case WEDNESDAY -> response.setWednesday(true);
+                case THURSDAY -> response.setThursday(true);
+                case FRIDAY -> response.setFriday(true);
+                case SATURDAY -> response.setSaturday(true);
+            }
+        });
+
+        //오늘 쓴 일기 갯수
+        weekStudyDiaries.stream().forEach(studyDiary -> {
+            if(studyDiary.getCreatedAt().toLocalDate().equals(LocalDate.now()))
+                response.setTodayStudyDiaryNum(response.getTodayStudyDiaryNum() + 1);
+        });
+
+        //총 Like 갯수 계산
+        List<StudyDiary> byUserAllStudyDiaryList = studyDiaryRepository.findByUser(user.getId());
+        //stream 내부에서는 외부 변수 수정 불가, 아래와 같은 방법이 정석이라고 함
+        int likeCount = byUserAllStudyDiaryList.stream()
+                .mapToInt(StudyDiary::getLikeCount)
+                .sum();
+        response.setTotalLike(likeCount);
+
+        return response;
+    }
     //추후구현
 //    public Object exportStudyDiaries(Long userId) {
+
 //    }
 
     @Transactional
@@ -323,5 +394,4 @@ public class StudyDiaryService {
             throw new UnauthorizedAccessException();
         }
     }
-
 }
