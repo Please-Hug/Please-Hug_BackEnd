@@ -1,9 +1,9 @@
 package org.example.hugmeexp.domain.attendance.repository;
 
-import io.lettuce.core.dynamic.annotation.Param;
 import org.example.hugmeexp.domain.attendance.entity.Attendance;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
