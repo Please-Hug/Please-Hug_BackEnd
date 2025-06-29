@@ -256,7 +256,7 @@ public class StudyDiaryController {
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "나의 글 목록 조회")
     @GetMapping("/my/studyDiaries")
-    public ResponseEntity<Response<Object>> getUserStudyDiaries(
+    public ResponseEntity<Response<Object>> getMyStudyDiaries(
             @AuthenticationPrincipal UserDetails userDetails,
             @PageableDefault(
                     size = 10,              // 기본 페이지 크기
