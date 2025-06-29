@@ -12,6 +12,7 @@ import org.example.hugmeexp.domain.praise.exception.PraiseNotFoundException;
 import org.example.hugmeexp.domain.praise.exception.UserNotFoundInPraiseException;
 import org.example.hugmeexp.domain.praise.mapper.PraiseMapper;
 import org.example.hugmeexp.domain.praise.repository.*;
+import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.stereotype.Service;
@@ -46,32 +47,31 @@ public class PraiseService {
     @Transactional
     public PraiseResponseDTO createPraise(PraiseRequestDTO praiseRequestDTO, User sender) {
 
-        try {
-            List<User> receiverUsers = praiseRequestDTO.getReceiverUsername().stream()
-                    .map(username -> userRepository.findByUsername(username)
-                            .orElseThrow(UserNotFoundInPraiseException::new)).toList();
 
-            // DTO -> Entity
-             Praise praise = praiseMapper.toEntity(praiseRequestDTO, sender);
+        List<User> receiverUsers = praiseRequestDTO.getReceiverUsername().stream()
+                .map(username -> userRepository.findByUsername(username)
+                        .orElseThrow(UserNotFoundInPraiseException::new)).toList();
 
-            // DB 에 저장
-            Praise saved = praiseRepository.save(praise);
+        // DTO -> Entity
+         Praise praise = praiseMapper.toEntity(praiseRequestDTO, sender);
 
-            // PraiseReceiver 저장
-            List<PraiseReceiver> praiseReceivers = receiverUsers.stream()
-                    .map(receiver -> PraiseReceiver.builder()
-                            .praise(saved)
-                            .receiver(receiver)
-                            .build())
-                    .toList();
-            praiseReceiverRepository.saveAll(praiseReceivers);
+        // DB 에 저장
+        Praise saved = praiseRepository.save(praise);
 
-            // Entity -> DTO
-            return PraiseResponseDTO.from(saved, praiseReceivers, 0L, null);
-        } catch (UserNotFoundInPraiseException e){
+        // PraiseReceiver 저장
+        List<PraiseReceiver> praiseReceivers = receiverUsers.stream()
+                .map(receiver -> PraiseReceiver.builder()
+                        .praise(saved)
+                        .receiver(receiver)
+                        .build())
+                .toList();
+        praiseReceiverRepository.saveAll(praiseReceivers);
 
-            throw e;
-        }
+        List<UserProfileResponse> commentPro = Collections.emptyList();
+
+        // Entity -> DTO
+        return PraiseResponseDTO.from(saved, praiseReceivers, 0L, null, commentPro);
+
 
     }
 
@@ -119,7 +119,16 @@ public class PraiseService {
 
                     List<PraiseReceiver> receivers = receiverMap.getOrDefault(praise.getId(),List.of());
 
-                    return PraiseResponseDTO.from(praise,receivers,commentCount, emojiGroups);
+                    List<PraiseComment> comments = commentRepository.findByPraise(praise);
+
+                    List<UserProfileResponse> commentProfiles = comments.stream()
+                            .map(c -> {
+                                User user = c.getCommentWriter();
+                                String url = user.getPublicProfileImageUrl();
+                                return new UserProfileResponse(url, user.getUsername(), user.getName());
+                            }).toList();
+
+                    return PraiseResponseDTO.from(praise,receivers,commentCount, emojiGroups,commentProfiles);
 
                 }).collect(Collectors.toList());
     }
@@ -174,7 +183,15 @@ public class PraiseService {
 
                     List<PraiseReceiver> receivers = receiverMap.getOrDefault(praise.getId(),List.of());
 
-                    return PraiseResponseDTO.from(praise,receivers,commentCount,emojiGroups);
+                    List<PraiseComment> comments = commentRepository.findByPraise(praise);
+                    List<UserProfileResponse> commentProfiles = comments.stream()
+                            .map(c -> {
+                                User user = c.getCommentWriter();
+                                String url = user.getPublicProfileImageUrl();
+                                return new UserProfileResponse(url, user.getUsername(), user.getName());
+                            }).toList();
+
+                    return PraiseResponseDTO.from(praise,receivers,commentCount,emojiGroups,commentProfiles);
                 }).collect(Collectors.toList());
 
     }
@@ -212,7 +229,7 @@ public class PraiseService {
                     // 수신자 리스트
                     List<PraiseReceiver> receivers = receiverMap.getOrDefault(praise.getId(), List.of());
 
-                    return PraiseResponseDTO.from(praise,receivers,commentCount,emojiGroups);
+                    return PraiseResponseDTO.from(praise,receivers,commentCount,emojiGroups,List.of());
 
                 })
 
@@ -273,7 +290,13 @@ public class PraiseService {
                 .map(Praise::getSender)
                 .distinct()
                 .limit(3)
-                .map(RecentPraiseSenderResponseDTO::from)
+                .map(sender -> {
+                    String url = sender.getPublicProfileImageUrl();
+                    UserProfileResponse profile = new UserProfileResponse(url, sender.getUsername(), sender.getName());
+
+                    return RecentPraiseSenderResponseDTO.from(sender, List.of(profile));
+
+                })
                 .collect(Collectors.toList());
     }
 

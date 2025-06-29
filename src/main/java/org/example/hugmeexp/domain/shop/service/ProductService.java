@@ -145,13 +145,16 @@ public class ProductService {
         Product product = order.getProduct();
         ProductImage image = product.getProductImage();
 
-        String imageUrl = null;
+        String fullPath = null;
         if (image != null) {
-            imageUrl = String.format("%s\\%s.%s", image.getPath(), image.getUuid(), image.getExtension());
+            fullPath = image.getPath() + "/" + image.getUuid() + "." + image.getExtension();
+            // "/application" 제거
+            if (fullPath.startsWith("/application")) {
+                fullPath = fullPath.substring("/application".length());
+            }
         }
-
         return OrderResponse.builder()
-                .imageUrl(imageUrl)
+                .imageUrl(fullPath)
                 .brand(product.getBrand())
                 .name(product.getName())
                 .price(String.format("%d 포인트", product.getPrice()))

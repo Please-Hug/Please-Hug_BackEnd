@@ -151,11 +151,12 @@ public class User extends BaseEntity {
         this.profileImage = null;
     }
 
-    // 프로필 이미지의 전체 경로를 리턴하는 메서드
+    // 서버 내부에서 실제 파일 시스템에 접근할 때 사용하는 저장 경로를 반환
     public String getStoredProfileImagePath() {
         return (profileImage != null) ? profileImage.getPath() + profileImage.getUuid() + profileImage.getExtension() : null;
     }
 
+    // 클라이언트가 접근 가능한 URL 경로를 반환 (프론트엔드에 노출되는 경로)
     public String getPublicProfileImageUrl() {
         if (profileImage == null) return null;
 
@@ -166,8 +167,12 @@ public class User extends BaseEntity {
         String fullPath = internalPath + uuid + ext;
 
         // "/application" 제거
-        if (fullPath.startsWith("/application")) {
-            return fullPath.substring("/application".length());
+//        if (fullPath.startsWith("/application")) {
+//            return fullPath.substring("/application".length());
+//        }
+        String userDir = System.getProperty("user.dir");
+        if(fullPath.startsWith(userDir)) {
+            return fullPath.substring(userDir.length());
         }
 
         return fullPath;

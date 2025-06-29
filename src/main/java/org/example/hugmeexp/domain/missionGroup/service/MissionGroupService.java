@@ -2,6 +2,9 @@ package org.example.hugmeexp.domain.missionGroup.service;
 import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.domain.missionGroup.dto.response.UserMissionGroupResponse;
+import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
+
 import java.util.List;
 
 public interface MissionGroupService {
@@ -20,4 +23,8 @@ public interface MissionGroupService {
     void removeUserFromMissionGroup(Long userId, Long missionGroupId);
 
     List<UserMissionResponse> findUserMissionByUsernameAndMissionGroup(String username, Long missionGroupId);
+
+    List<UserMissionGroupResponse> getMyMissionGroups(String username);
+
+    List<UserProfileResponse> getUsersInMissionGroup(Long missionGroupId);
 }
