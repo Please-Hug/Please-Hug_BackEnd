@@ -1,11 +1,13 @@
 package org.example.hugmeexp.global.common.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
+@Slf4j
 public class WebConfig implements WebMvcConfigurer {
 
     @Override
@@ -19,20 +21,25 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        String os = System.getProperty("os.name").toLowerCase();
         String userDir = System.getProperty("user.dir");
-        if (userDir.startsWith("/")) {
-            userDir = userDir.substring(1); // 파일 경로가 절대 경로로 시작하는 경우, 앞의 '/' 제거
+
+        String prefix;
+        if (os.contains("win")) {
+            prefix = "file:///" + userDir.replace("\\", "/") + "/";
+        } else {
+            prefix = "file:" + userDir + "/";
         }
-        //profile-images 경로로 접근시 /application/profile-images/ 로 서빙
+
+        log.info("Resolved resource prefix: {}", prefix);
+
         registry.addResourceHandler("/profile-images/**")
-                .addResourceLocations("file:/" + userDir + "/profile-images/");
+                .addResourceLocations(prefix + "profile-images/");
 
-        //product-images 경로로 접근시 /application/product-images/ 로 서빙
         registry.addResourceHandler("/product-images/**")
-                .addResourceLocations("file:/" + userDir + "/product-images/");
+                .addResourceLocations(prefix + "product-images/");
 
-        //mission-uploads 경로로 접근시 /application/mission-uploads/ 로 서빙
         registry.addResourceHandler("/mission-uploads/**")
-                .addResourceLocations("file:/" + userDir + "/mission-uploads/");
+                .addResourceLocations(prefix + "mission-uploads/");
     }
 }
