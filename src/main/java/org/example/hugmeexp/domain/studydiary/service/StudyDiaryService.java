@@ -98,7 +98,7 @@ public class StudyDiaryService {
         Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
             return StudyDiaryFindAllResponse.builder()
                     .id(studyDiary.getId())
-                    .userName(studyDiary.getUser().getName())
+                    .userName(studyDiary.getUser().getUsername())
                     .title(studyDiary.getTitle())
                     .content(studyDiary.getContent())
                     .likeNum(studyDiary.getLikeCount())
@@ -118,7 +118,7 @@ public class StudyDiaryService {
         List<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaryDraftList.stream().map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
             return StudyDiaryFindAllResponse.builder()
                     .id(studyDiary.getId())
-                    .userName(studyDiary.getUser().getName())
+                    .userName(studyDiary.getUser().getUsername())
                     .title(studyDiary.getTitle())
                     .content(studyDiary.getContent())
                     .likeNum(studyDiary.getLikeCount())
@@ -137,7 +137,7 @@ public class StudyDiaryService {
         Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
             return StudyDiaryFindAllResponse.builder()
                     .id(studyDiary.getId())
-                    .userName(studyDiary.getUser().getName())
+                    .userName(studyDiary.getUser().getUsername())
                     .title(studyDiary.getTitle())
                     .content(studyDiary.getContent())
                     .likeNum(studyDiary.getLikeCount())
@@ -156,7 +156,7 @@ public class StudyDiaryService {
         StudyDiaryDetailResponse studyDiaryDetailResponse = StudyDiaryDetailResponse.builder()
                 .id(studyDiary.getId())
                 .userId(studyDiary.getUser().getId())
-                .userName(studyDiary.getUser().getName())
+                .userName(studyDiary.getUser().getUsername())
                 .title(studyDiary.getTitle())
                 .content(studyDiary.getContent())
                 .likeNum(studyDiary.getLikeCount())
@@ -176,7 +176,7 @@ public class StudyDiaryService {
         List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
             return StudyDiaryFindAllResponse.builder()
                     .id(studyDiary.getId())
-                    .userName(studyDiary.getUser().getName())
+                    .userName(studyDiary.getUser().getUsername())
                     .title(studyDiary.getTitle())
                     .content(studyDiary.getContent())
                     .likeNum(studyDiary.getLikeCount())
