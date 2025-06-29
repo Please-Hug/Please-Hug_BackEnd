@@ -170,8 +170,9 @@ public class User extends BaseEntity {
 //        if (fullPath.startsWith("/application")) {
 //            return fullPath.substring("/application".length());
 //        }
-        if(fullPath.startsWith(System.getProperty("user.dir"))) {
-            return fullPath.substring(System.getProperty("user.dir").length());
+        String userDir = System.getProperty("user.dir");
+        if(fullPath.startsWith(userDir)) {
+            return fullPath.substring(userDir.length());
         }
 
         return fullPath;

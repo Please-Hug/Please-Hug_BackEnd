@@ -19,16 +19,20 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        String userDir = System.getProperty("user.dir");
+        if (userDir.startsWith("/")) {
+            userDir = userDir.substring(1); // 파일 경로가 절대 경로로 시작하는 경우, 앞의 '/' 제거
+        }
         //profile-images 경로로 접근시 /application/profile-images/ 로 서빙
         registry.addResourceHandler("/profile-images/**")
-                .addResourceLocations("file:/" + System.getProperty("user.dir") + "/profile-images/");
+                .addResourceLocations("file:/" + userDir + "/profile-images/");
 
         //product-images 경로로 접근시 /application/product-images/ 로 서빙
         registry.addResourceHandler("/product-images/**")
-                .addResourceLocations("file:/" + System.getProperty("user.dir") + "/product-images/");
+                .addResourceLocations("file:/" + userDir + "/product-images/");
 
         //mission-uploads 경로로 접근시 /application/mission-uploads/ 로 서빙
         registry.addResourceHandler("/mission-uploads/**")
-                .addResourceLocations("file:/" + System.getProperty("user.dir") + "/mission-uploads/");
+                .addResourceLocations("file:/" + userDir + "/mission-uploads/");
     }
 }
