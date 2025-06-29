@@ -44,7 +44,6 @@ public class StudyDiaryService {
     private final StudyDiaryRepository studyDiaryRepository;
     private final StudyDiaryCommentRepository studyDiaryCommentRepository;
     private final StudyDiaryLikeRepository studyDiaryLikeRepository;
-    private final EntityManager entityManager;
 
     @Transactional
     public Long createStudyDiary(StudyDiaryCreateRequest createRequest, UserDetails userDetails){
@@ -306,12 +305,11 @@ public class StudyDiaryService {
         Optional<StudyDiaryLike> existingLike = studyDiary.getLikes()
                 .stream().filter(like -> like.getUser().getId().equals(user.getId()))
                 .findFirst();
-        log.info("Log userDetails {}, Like present {}", userDetails.getUsername(), existingLike.isPresent());
-        log.info("Log user {}, Like present {}", user.getId(), existingLike.isPresent());
+//        log.info("Log userDetails {}, Like present {}", userDetails.getUsername(), existingLike.isPresent());
+//        log.info("Log user {}, Like present {}", user.getId(), existingLike.isPresent());
 
         if (existingLike.isPresent()) {
-            log.info("EntityManager contains {}",entityManager.contains(existingLike.get()));
-            log.info("Like {}", existingLike.get().getId());
+//            log.info("Like {}", existingLike.get().getId());
             // 좋아요 취소
             return studyDiary.deleteLike(user.getId());
         } else {
