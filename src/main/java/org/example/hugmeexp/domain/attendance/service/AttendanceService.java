@@ -7,10 +7,7 @@ import org.example.hugmeexp.domain.attendance.dto.AttendanceStatusResponse;
 import org.example.hugmeexp.domain.attendance.entity.Attendance;
 import org.example.hugmeexp.domain.attendance.exception.AttendanceAlreadyCheckedException;
 import org.example.hugmeexp.domain.attendance.exception.AttendanceUserNotFoundException;
-import org.example.hugmeexp.domain.attendance.exception.InvalidValueException;
-import org.example.hugmeexp.domain.attendance.policy.RewardPolicy;
 import org.example.hugmeexp.domain.attendance.repository.AttendanceRepository;
-import org.example.hugmeexp.domain.attendance.validation.UsernameValidator;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.service.UserService;
@@ -29,34 +26,27 @@ public class AttendanceService {
 
     private final AttendanceRepository attendanceRepository;
     private final UserRepository userRepository;
-    private final RewardPolicy rewardPolicy;
     private final UserService userService;
 
 
     @Transactional(readOnly = true)
-    public List<LocalDate> getAllAttendanceDates(String username) {
-        // username 유효성 검사
-        UsernameValidator.validate(username);
-
-        // 유저 존재 확인 및 예외 처리 추가
-        userRepository.findByUsername(username)
-                .orElseThrow(AttendanceUserNotFoundException::new);
+    public List<LocalDate> getAllAttendanceDates(Long userId) {
 
         // 1) 사용자 존재 확인
-        userRepository.findByUsername(username)
+        userRepository.findByUserId(userId)
                 .orElseThrow(AttendanceUserNotFoundException::new);
 
         // 2) 날짜 리스트만 조회
-        return attendanceRepository.findDatesByUsername(username);
+        return attendanceRepository.findDatesByUserId(userId);
     }
 
     // 연속 출석일 계산 메소드
-    private int calculateContinuousDays(String username, LocalDate today) {
+    private int calculateContinuousDays(Long userId, LocalDate today) {
 
         // 과거 1달 출석일 전체 조회
         LocalDate oneMonthAgo = today.minusDays(29);
         Set<LocalDate> monthDates = attendanceRepository
-                .findByUser_UsernameAndAttendanceDateBetween(username, oneMonthAgo, today)
+                .findByUserIdAndAttendanceDateBetween(userId, oneMonthAgo, today)
                 .stream()
                 .map(Attendance::getAttendanceDate)
                 .collect(Collectors.toSet());
@@ -76,7 +66,7 @@ public class AttendanceService {
         // 1년 기준으로 출석일 전체 조회
         LocalDate oneYearAgo = today.minusYears(1);
         Set<LocalDate> yearDates = attendanceRepository
-                .findByUser_UsernameAndAttendanceDateBetween(username, oneYearAgo, today)
+                .findByUserIdAndAttendanceDateBetween(userId, oneYearAgo, today)
                 .stream()
                 .map(Attendance::getAttendanceDate)
                 .collect(Collectors.toSet());
@@ -94,12 +84,12 @@ public class AttendanceService {
             return yearContinuous;
         }
         // 1년 이상 연속 출석 시, 가입일 이후의 전체 출석기록 조회
-        User user = userRepository.findByUsername(username)
+        User user = (User) userRepository.findByUserId(userId)
                 .orElseThrow(AttendanceUserNotFoundException::new);
         LocalDate fullStartDate = user.getCreatedAt().toLocalDate();
 
         Set<LocalDate> allDates = attendanceRepository
-                .findByUser_UsernameAndAttendanceDateBetween(username, fullStartDate, today)
+                .findByUserIdAndAttendanceDateBetween(userId, fullStartDate, today)
                 .stream()
                 .map(Attendance::getAttendanceDate)
                 .collect(Collectors.toSet());
@@ -116,12 +106,10 @@ public class AttendanceService {
 
     // 출석 상태 조회 (최근 7일, 연속 출석일)
     @Transactional(readOnly = true)
-    public AttendanceStatusResponse getAttendanceStatus(String username) {
-        // username 유효성 검사
-        UsernameValidator.validate(username);
+    public AttendanceStatusResponse getAttendanceStatus(Long userId) {
 
         // 유저 존재 확인 및 예외처리 추가
-        userRepository.findByUsername(username)
+        userRepository.findByUserId(userId)
                 .orElseThrow(AttendanceUserNotFoundException::new);
 
         LocalDate today = LocalDate.now();
@@ -133,7 +121,7 @@ public class AttendanceService {
 
         // DB에서 최근 7일간 출석 기록 조회
         List<Attendance> records = attendanceRepository
-                .findByUser_UsernameAndAttendanceDateBetween(username, weekStart, weekEnd);
+                .findByUserIdAndAttendanceDateBetween(userId, weekStart, weekEnd);
 
         // 출석한 날짜만 추출
         Set<LocalDate> dates = records.stream()
@@ -146,39 +134,28 @@ public class AttendanceService {
                 .collect(Collectors.toList());
 
         // 연속 출석일 계산 호출
-        int continuousDay = calculateContinuousDays(username, today);
+        int continuousDay = calculateContinuousDays(userId, today);
 
         return AttendanceStatusResponse.of(attendanceStatus, continuousDay, today);
     }
 
         // 출석 체크
         @Transactional
-        public AttendanceCheckResponse checkAttendance (String username){
-            // username 유효성 검사
-            UsernameValidator.validate(username);
-
-            // 유저 존재 확인 및 예외 처리 추가
-            userRepository.findByUsername(username)
-                    .orElseThrow(AttendanceUserNotFoundException::new);
+        public AttendanceCheckResponse checkAttendance (Long userId) {
 
             LocalDate today = LocalDate.now();
 
-            // 미래 날짜 출석 방지
-            if (today.isAfter(LocalDate.now())) {
-                throw new InvalidValueException("future date is not allowed for attendance check");
-            }
-
             // 사용자 존재 확인
-           User user = userRepository.findByUsername(username)
+           User user = (User) userRepository.findByUserId(userId)
                     .orElseThrow(AttendanceUserNotFoundException::new);
 
             // 이미 출첵했는지 확인
-            if (attendanceRepository.existsByUser_UsernameAndAttendanceDate(username, today)) {
+            if (attendanceRepository.existsByUserIdAndAttendanceDate(userId, today)) {
                 throw new AttendanceAlreadyCheckedException();
             }
 
-            int exp = rewardPolicy.getExp();
-            int point = rewardPolicy.getPoint();
+            int exp = 31;
+            int point = 1;
 
             // 신규 출석 저장
             Attendance attendance = Attendance.of(

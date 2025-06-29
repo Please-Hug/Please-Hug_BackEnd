@@ -24,8 +24,9 @@ public class Attendance extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // JPA에서 관리하는 id, 이거 생성 안 해두면 나중에 jpa 에서 엔티티 저장/조회 시 에러 난다고 함
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false) // User와 Attendance는 N:1 관계, User -> Attendance의 단방향 매핑
-    @JoinColumn(name = "user_name", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false) // User와 Attendance는 1:N 관계, User -> Attendance의 단방향 매핑
+
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(name = "attendance_date", nullable = false)
