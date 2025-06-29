@@ -329,7 +329,7 @@ public class PraiseService {
                                 CommentEmojiReaction::getEmoji,
                                 Collectors.mapping(
                                         r -> ReactionUserDTO.builder()
-                                                .id(r.getId())
+                                                .id(r.getReactorWriter().getId())
                                                 .username(r.getReactorWriter().getUsername())
                                                 .name(r.getReactorWriter().getName())
                                                 .build(),
