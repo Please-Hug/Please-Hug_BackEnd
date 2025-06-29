@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.studydiary.service;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.studydiary.dto.request.CommentCreateRequest;
@@ -43,6 +44,7 @@ public class StudyDiaryService {
     private final StudyDiaryRepository studyDiaryRepository;
     private final StudyDiaryCommentRepository studyDiaryCommentRepository;
     private final StudyDiaryLikeRepository studyDiaryLikeRepository;
+    private final EntityManager entityManager;
 
     @Transactional
     public Long createStudyDiary(StudyDiaryCreateRequest createRequest, UserDetails userDetails){
@@ -304,12 +306,14 @@ public class StudyDiaryService {
         Optional<StudyDiaryLike> existingLike = studyDiary.getLikes()
                 .stream().filter(like -> like.getUser().getId().equals(user.getId()))
                 .findFirst();
+        log.info("Log userDetails {}, Like present {}", userDetails.getUsername(), existingLike.isPresent());
+        log.info("Log user {}, Like present {}", user.getId(), existingLike.isPresent());
 
-        boolean isLiked;
         if (existingLike.isPresent()) {
+            log.info("EntityManager contains {}",entityManager.contains(existingLike.get()));
+            log.info("Like {}", existingLike.get().getId());
             // 좋아요 취소
-            studyDiaryLikeRepository.delete(existingLike.get());
-            isLiked = false;
+            studyDiary.deleteLike(user.getId());
             // likeCount 감소
             studyDiary.updateLikeCount(studyDiary.getLikeCount() - 1);
         } else {
@@ -319,7 +323,6 @@ public class StudyDiaryService {
                     .user(user)
                     .build();
             studyDiaryLikeRepository.save(newLike);
-            isLiked = true;
             // likeCount 증가
             studyDiary.updateLikeCount(studyDiary.getLikeCount() + 1);
         }
