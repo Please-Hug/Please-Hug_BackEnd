@@ -16,10 +16,10 @@ public class EmojiReactionGroupDTO {
 
     private String emoji;    // 이모지
     private int count;    // 이모지 개수
-    private List<String> reactedBy;    // 한 이모지에 반응한 유저리스트
+    private List<ReactionUserDTO> reactedBy;    // 한 이모지에 반응한 유저리스트
 
     public static EmojiReactionGroupDTO from(String emoji, List<PraiseEmojiReaction> reactions){
-        List<String> reactedBy = reactions.stream().map(reaction ->reaction.getReactorWriter().getName()).toList();
+        List<ReactionUserDTO> reactedBy = reactions.stream().map(ReactionUserDTO::from).toList();
 
         return EmojiReactionGroupDTO.builder()
                 .emoji(emoji)
