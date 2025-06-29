@@ -22,7 +22,7 @@ public class ReceiverResponseDTO {
 
         return ReceiverResponseDTO.builder()
                 .name(user.getName())
-                .profileImage(user.getStoredProfileImagePath())
+                .profileImage(user.getPublicProfileImageUrl())
                 .build();
     }
 }

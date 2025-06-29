@@ -26,7 +26,7 @@ public class CommentResponseDTO {
     public static CommentResponseDTO from(PraiseComment comment, Map<String, Integer> emojiReactions){
 
         User commenter = comment.getCommentWriter();
-        String profileImage = commenter.getStoredProfileImagePath();
+        String profileImage = commenter.getPublicProfileImageUrl();
 
         return CommentResponseDTO.builder()
                 .id(comment.getId())

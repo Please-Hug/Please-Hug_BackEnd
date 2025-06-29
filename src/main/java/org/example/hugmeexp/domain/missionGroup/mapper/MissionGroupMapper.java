@@ -1,16 +1,15 @@
 package org.example.hugmeexp.domain.missionGroup.mapper;
 
-//import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
 import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
-import org.example.hugmeexp.domain.user.mapper.ProfileImageMapper;
 import org.mapstruct.Mapper;
-//import org.mapstruct.Mapping;
+import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
 
-@Mapper(componentModel = "spring",
-uses = ProfileImageMapper.class)
+@Mapper(componentModel = "spring")
 public interface MissionGroupMapper {
+    @Mappings(
+            @Mapping(target = "teacher.profileImage", source = "teacher.publicProfileImageUrl")
+    )
     MissionGroupResponse toMissionGroupResponse(MissionGroup missionGroup);
-//    @Mapping(target = "id", ignore = true)
-//    MissionGroup toEntity(MissionGroupRequest missionGroup);
 }
