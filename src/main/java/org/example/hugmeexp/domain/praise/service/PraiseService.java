@@ -124,7 +124,7 @@ public class PraiseService {
                     List<UserProfileResponse> commentProfiles = comments.stream()
                             .map(c -> {
                                 User user = c.getCommentWriter();
-                                String url = user.getStoredProfileImagePath();
+                                String url = user.getPublicProfileImageUrl();
                                 return new UserProfileResponse(url, user.getUsername(), user.getName());
                             }).toList();
 
@@ -187,7 +187,7 @@ public class PraiseService {
                     List<UserProfileResponse> commentProfiles = comments.stream()
                             .map(c -> {
                                 User user = c.getCommentWriter();
-                                String url = user.getStoredProfileImagePath();
+                                String url = user.getPublicProfileImageUrl();
                                 return new UserProfileResponse(url, user.getUsername(), user.getName());
                             }).toList();
 
@@ -291,7 +291,7 @@ public class PraiseService {
                 .distinct()
                 .limit(3)
                 .map(sender -> {
-                    String url = sender.getStoredProfileImagePath();
+                    String url = sender.getPublicProfileImageUrl();
                     UserProfileResponse profile = new UserProfileResponse(url, sender.getUsername(), sender.getName());
 
                     return RecentPraiseSenderResponseDTO.from(sender, List.of(profile));

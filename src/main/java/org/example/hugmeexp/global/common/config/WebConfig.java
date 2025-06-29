@@ -21,14 +21,14 @@ public class WebConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         //profile-images 경로로 접근시 /application/profile-images/ 로 서빙
         registry.addResourceHandler("/profile-images/**")
-                .addResourceLocations("file:/application/profile-images/");
+                .addResourceLocations("file:/" + System.getProperty("user.dir") + "/profile-images/");
 
         //product-images 경로로 접근시 /application/product-images/ 로 서빙
         registry.addResourceHandler("/product-images/**")
-                .addResourceLocations("file:/application/product-images/");
+                .addResourceLocations("file:/" + System.getProperty("user.dir") + "/product-images/");
 
         //mission-uploads 경로로 접근시 /application/mission-uploads/ 로 서빙
         registry.addResourceHandler("/mission-uploads/**")
-                .addResourceLocations("file:/application/mission-uploads/");
+                .addResourceLocations("file:/" + System.getProperty("user.dir") + "/mission-uploads/");
     }
 }
