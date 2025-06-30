@@ -1,7 +1,12 @@
 package org.example.hugmeexp.global.common.config;
 
+import jakarta.servlet.Filter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -25,13 +30,8 @@ public class WebConfig implements WebMvcConfigurer {
         String userDir = System.getProperty("user.dir");
 
         String prefix;
-        if (os.contains("win")) {
-            prefix = "file:///" + userDir.replace("\\", "/") + "/";
-        } else {
-            prefix = "file:" + userDir + "/";
-        }
-
-        log.info("Resolved resource prefix: {}", prefix);
+        if (os.contains("win")) prefix = "file:///" + userDir.replace("\\", "/") + "/";
+        else prefix = "file:" + userDir + "/";
 
         registry.addResourceHandler("/profile-images/**")
                 .addResourceLocations(prefix + "profile-images/");

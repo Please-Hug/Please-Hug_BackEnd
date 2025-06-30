@@ -18,6 +18,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_HOST=redis
       - TZ=Asia/Seoul
+      - JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8
     ports:
       - "8080:8080"
     networks:
