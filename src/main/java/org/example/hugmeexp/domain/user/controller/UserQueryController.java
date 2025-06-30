@@ -1,5 +1,8 @@
 package org.example.hugmeexp.domain.user.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Tag(name = "User", description = "User 관련 관련 API")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -25,8 +29,10 @@ public class UserQueryController {
         name 쿼리 파라미터가 없으면 모든 User 리턴
         name 쿼리 파라미터가 있으면 해당 이름을 가진 User 리턴
     */
+    @Operation(summary = "유저 간단 정보 조회", description = "Front-End 에서 특정 유저를 식별하기 위한 조회, name 쿼리 파라미터가 없으면 모든 User 리턴, 있으면 해당 이름의 User 리턴")
     @GetMapping("/api/v1/users")
-    public ResponseEntity<Response<List<UserProfileResponse>>> getUsers(@RequestParam(required = false) String name) {
+    public ResponseEntity<Response<List<UserProfileResponse>>> getUsers(
+            @Parameter(description = "유저 이름 (부분 검색 가능). 생략 시 전체 유저 반환", example = "홍길동")@RequestParam(required = false) String name) {
 
         List<User> users;
 
