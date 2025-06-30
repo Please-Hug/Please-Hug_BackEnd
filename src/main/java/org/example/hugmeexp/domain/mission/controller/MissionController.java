@@ -73,7 +73,7 @@ public class MissionController {
 
     @GetMapping("/{missionId}/challenges")
     public ResponseEntity<Response<?>> getChallenge(@PathVariable Long missionId, @AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(Response.builder()
+        return ResponseEntity.status(HttpStatus.OK).body(Response.builder()
                 .data(missionService.getUserMission(missionId, userDetails.getUsername()))
                 .message("미션 " + missionId + "에 도전하였습니다.")
                 .build());
