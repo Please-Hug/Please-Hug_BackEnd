@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.bookmark.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.bookmark.dto.BookmarkRequest;
 import org.example.hugmeexp.domain.bookmark.dto.BookmarkResponse;
@@ -36,7 +37,7 @@ public class BookmarkController {
     @PostMapping
     public ResponseEntity<Response<Void>> createBookmark(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody BookmarkRequest req
+            @RequestBody @Valid BookmarkRequest req
     ) {
         bookmarkService.createBookmark(userDetails.getUsername(), req);
 
@@ -51,7 +52,7 @@ public class BookmarkController {
     public ResponseEntity<Response<Void>> updateBookmark(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id,
-            @RequestBody BookmarkRequest req
+            @RequestBody @Valid BookmarkRequest req
     ) {
         bookmarkService.updateBookmark(userDetails.getUsername(), id, req);
 
