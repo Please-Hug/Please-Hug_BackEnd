@@ -42,4 +42,8 @@ public interface MissionService {
     List<UserMissionStateLogResponse> getAllMissionStateLog(long userId, LocalDate startDate, LocalDate endDate);
 
     UserMissionResponse getUserMission(Long missionId, String username);
+
+    List<UserMissionResponse> getAllUserMissionsByTeacher(String username);
+
+    UserMissionResponse getUserMissionByChallengeId(Long challengeId);
 }

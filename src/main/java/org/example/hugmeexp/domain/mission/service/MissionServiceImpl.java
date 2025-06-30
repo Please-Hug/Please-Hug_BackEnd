@@ -331,4 +331,22 @@ public class MissionServiceImpl implements MissionService {
 
         return userMissionMapper.toUserMissionResponse(userMissions);
     }
+
+    @Override
+    public List<UserMissionResponse> getAllUserMissionsByTeacher(String username) {
+        User teacher = userRepository.findByUsername(username)
+                .orElseThrow(UserNotFoundException::new);
+        List<UserMission> userMissions = userMissionRepository.findAllByMission_MissionGroup_Teacher(teacher);
+
+        return userMissions
+                .stream().map(userMissionMapper::toUserMissionResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    public UserMissionResponse getUserMissionByChallengeId(Long challengeId) {
+        UserMission userMission = userMissionRepository.findById(challengeId)
+                .orElseThrow(UserMissionNotFoundException::new);
+
+        return userMissionMapper.toUserMissionResponse(userMission);
+    }
 }
