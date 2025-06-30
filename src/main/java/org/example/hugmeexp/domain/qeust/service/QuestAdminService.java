@@ -135,9 +135,8 @@ public class QuestAdminService {
         }
     }
 
-    /**
-     * 퀘스트 일괄 생성
-     */
+    // ===== 테스트용 or 사용하지 않는 메서드 =====
+    // 퀘스트 일괄 생성, init.sql 추가로 더 이상 사용하지 않음
     public void initQuest() {
         QuestRequest[] requests = new QuestRequest[]{
                 new QuestRequest("출석체크 하기", "http://출석체크", QuestType.ATTENDANCE),
@@ -150,19 +149,5 @@ public class QuestAdminService {
         for (QuestRequest request : requests) {
             questRepository.save(questMapper.toEntity(request));
         }
-    }
-
-    // ===== 테스트용 =====
-    // 퀘스트 전체 조회
-    public List<QuestResponse> findAllQuest() {
-
-        List<Quest> all = questRepository.findAll();
-        List<QuestResponse> response = new ArrayList<>();
-
-        for (Quest quest : all) {
-            response.add(questMapper.toResponse(quest));
-        }
-
-        return response;
     }
 }
