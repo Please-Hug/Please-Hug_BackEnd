@@ -12,7 +12,10 @@ public class BookmarkResponse {
     private String title;
     private String link;
 
+
+
     public static BookmarkResponse fromEntity(Bookmark b) {
+        if (b == null) throw new IllegalArgumentException("Bookmark 엔티티는 null일 수 없습니다");
         return BookmarkResponse.builder()
                 .id(b.getId())
                 .title(b.getTitle())
