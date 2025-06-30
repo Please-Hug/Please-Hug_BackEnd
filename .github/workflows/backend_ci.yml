@@ -12,7 +12,7 @@ permissions: write-all
 jobs:
   build:
 
-    runs-on: r1
+    runs-on: self-hosted
 
     steps:
       - name: 레포지토리를 가져옵니다
