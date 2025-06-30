@@ -1,5 +1,9 @@
 package org.example.hugmeexp.domain.attendance.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.attendance.dto.AttendanceCheckResponse;
@@ -15,19 +19,23 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
+@Tag(name = "Attendance", description = "출석체크 관련 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/attendance")
 @Slf4j
 public class AttendanceController {
 
+
+
     private final AttendanceService attendanceService;
 
-    /**
-     * 출석 상태 조회
-     * - 사용자 ID를 통해 해당 사용자의 출석 상태를 조회
-     * - 연속 출석 일수와 오늘 날짜도 함께 반환
-     */
+    @Operation(summary = "출석 상태 조회", description = "일주일 출석 여부/연속출석/오늘 조회")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
     @GetMapping("/status")
     public ResponseEntity<Response<AttendanceStatusResponse>> getAttendanceStatus(
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -48,11 +56,13 @@ public class AttendanceController {
     }
 
 
-    /**
-     * 출석 체크
-     * - 사용자 ID와 출석 체크 요청 데이터를 통해 출석 체크를 수행
-     * - 성공 여부, 연속 출석 일수, 오늘의 출석 상태 등을 반환
-     */
+    @Operation(summary = "출석 체크하기", description = "오늘 출석 체크 (경험치와 구름조각 지급)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "출석체크 성공"),
+            @ApiResponse(responseCode = "400", description = "이미 출석했거나 잘못된 요청"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
     @PostMapping("/check")
     public ResponseEntity<Response<AttendanceCheckResponse>> checkAttendance(
             @AuthenticationPrincipal UserDetails userDetails){
@@ -65,10 +75,15 @@ public class AttendanceController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 한 유저가 출석한 전체 날짜 조회
-     * 출석한 날짜들을 리스트로 반환
-     */
+    @Operation(
+            summary = "출석 날짜 전체 조회",
+            description = "로그인한 사용자가 출석한 모든 날짜를 yyyy-MM-dd 문자열 리스트로 반환"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
     @GetMapping("/dates")
     public ResponseEntity<Response<List<String>>> getAllDates(
             @AuthenticationPrincipal UserDetails userDetails) {
