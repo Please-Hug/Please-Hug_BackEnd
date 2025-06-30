@@ -46,12 +46,12 @@ public class CommentEmojiReactionController {
     public ResponseEntity<Response<Void>> deleteReaction(
             @PathVariable Long praiseId,
             @PathVariable Long commentId,
-            @PathVariable String emojiId, //emojiChar임
+            @PathVariable String emojiChar,
             @AuthenticationPrincipal CustomUserDetails userDetails){
 
-        log.info("반응 삭제 요청 : {}", emojiId);
+        log.info("반응 삭제 요청 : {}", emojiChar);
 
-        commentEmojiReactionService.deleteCommentReaction(praiseId,commentId,emojiId,userDetails.getUser());
+        commentEmojiReactionService.deleteCommentReaction(praiseId,commentId,emojiChar,userDetails.getUser());
 
         Response<Void> response = Response.<Void>builder()
                 .message("반응 삭제 완료")
