@@ -1,4 +1,4 @@
-package org.example.hugmeexp.domain.bookmark.excption;
+package org.example.hugmeexp.domain.bookmark.exception;
 
 import org.example.hugmeexp.global.common.exception.BaseCustomException;
 import org.springframework.http.HttpStatus;
