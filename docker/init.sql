@@ -589,3 +589,54 @@ INSERT INTO quest (name, url, is_deleted, type) VALUES
                                                     ('미션 리워드 받기', '/mission', false, 'MISSION_REWARD'),
                                                     ('배움일기 작성하기', '/diary', false, 'WRITE_DIARY'),
                                                     ('칭찬 댓글달기', '/comment', false, 'PRAISE_COMMENT');
+-- 상품 더미 데이터
+INSERT INTO product_image (id, uuid, extension, path)
+VALUES
+    (1, 'ed', 'webp', '/application/product-images'),
+    (2, 'pb', 'webp', '/application/product-images'),
+    (3, 'cu', 'webp', '/application/product-images');
+
+INSERT INTO product (is_deleted, price, quantity, product_image_id, brand, name)
+VALUES
+    (false, 147, 30, 1, '이디야 커피', '(R)딸기 요거트 플랫치노'),
+    (false, 157, 30, 2, '파리바게트', '파리마케트 교환권 5,000원'),
+    (false, 157, 30, 3, 'CU', 'CU 모바일 상품권 5천원권');
+
+
+-- 퀘스트 더미 데이터
+INSERT INTO user_quest (is_completable, is_completed, quest_id, user_id)
+VALUES
+-- 유저 1
+(false, false, 1, 1),
+(false, false, 2, 1),
+(false, false, 3, 1),
+(false, false, 4, 1),
+(false, false, 5, 1),
+
+-- 유저 2
+(false, false, 1, 2),
+(false, false, 2, 2),
+(false, false, 3, 2),
+(false, false, 4, 2),
+(false, false, 5, 2),
+
+-- 유저 3
+(false, false, 1, 3),
+(false, false, 2, 3),
+(false, false, 3, 3),
+(false, false, 4, 3),
+(false, false, 5, 3),
+
+-- 유저 4
+(false, false, 1, 4),
+(false, false, 2, 4),
+(false, false, 3, 4),
+(false, false, 4, 4),
+(false, false, 5, 4),
+
+-- 유저 5
+(false, false, 1, 5),
+(false, false, 2, 5),
+(false, false, 3, 5),
+(false, false, 4, 5),
+(false, false, 5, 5);
