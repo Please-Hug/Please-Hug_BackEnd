@@ -82,15 +82,4 @@ public class QuestService {
             userQuestRepository.save(userQuest);
         }
     }
-
-    // 테스트용 - 퀘스트가 수행 가능하게 변경
-    public void testCompletable(User user, Long userQuestId) {
-
-        // 사용자가 완료하려는 userQuestId가 할당된 퀘스트인지 확인
-        UserQuest userQuest = userQuestRepository.findByUserAndId(user, userQuestId)
-                .orElseThrow(() -> new NoSuchQuestException(user, userQuestId));
-
-        userQuest.makeCompletable();
-        userQuestRepository.save(userQuest);
-    }
 }
