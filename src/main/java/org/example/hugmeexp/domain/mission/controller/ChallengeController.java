@@ -8,6 +8,8 @@ import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,6 +24,22 @@ public class ChallengeController {
         missionService.changeUserMissionState(challengeId, newProgress);
         return ResponseEntity.ok(Response.builder()
                 .message("챌린지 상태가 성공적으로 업데이트되었습니다.")
+                .build());
+    }
+
+    @GetMapping()
+    public ResponseEntity<Response<?>> getAllChallenges(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(Response.builder()
+                .data(missionService.getAllUserMissionsByTeacher(userDetails.getUsername()))
+                .message("모든 챌린지를 성공적으로 가져왔습니다.")
+                .build());
+    }
+
+    @GetMapping("/{challengeId}")
+    public ResponseEntity<Response<?>> getChallengeById(@PathVariable Long challengeId) {
+        return ResponseEntity.ok(Response.builder()
+                .data(missionService.getUserMissionByChallengeId(challengeId))
+                .message("챌린지 " + challengeId + "를 성공적으로 가져왔습니다.")
                 .build());
     }
 
