@@ -599,7 +599,7 @@ VALUES
 INSERT INTO product (is_deleted, price, quantity, product_image_id, brand, name)
 VALUES
     (false, 147, 30, 1, '이디야 커피', '(R)딸기 요거트 플랫치노'),
-    (false, 157, 30, 2, '파리바게트', '파리마케트 교환권 5,000원'),
+    (false, 157, 30, 2, '파리바게트', '파리바게트 교환권 5,000원'),
     (false, 157, 30, 3, 'CU', 'CU 모바일 상품권 5천원권');
 
 
