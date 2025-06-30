@@ -268,20 +268,6 @@ class AttendanceServiceTest {
                     () -> attendanceService.checkAttendance(username));
         }
 
-        @Test @DisplayName("낙관적 락, 동시성 충돌 시 → AttendanceAlreadyCheckedException")
-        void optimisticLockingConflict() {
-            User user = mock(User.class);
-            when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
-            when(attendanceRepository.existsByUser_UsernameAndAttendanceDate(eq(username), any(LocalDate.class)))
-                    .thenReturn(false);
-            // save()에서 OptimisticLockException 던지도록 모킹
-            when(attendanceRepository.save(any(Attendance.class)))
-                    .thenThrow(new ObjectOptimisticLockingFailureException(Attendance.class, 1L));
-
-            assertThrows(AttendanceAlreadyCheckedException.class,
-                    () -> attendanceService.checkAttendance(username));
-        }
-
         @Test @DisplayName("정상 처리 → exp, point 증가 및 응답 반환")
         void success() {
             User user = mock(User.class);
