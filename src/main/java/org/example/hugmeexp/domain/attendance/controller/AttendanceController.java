@@ -2,12 +2,9 @@ package org.example.hugmeexp.domain.attendance.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.domain.attendance.dto.AttendanceCheckRequest;
 import org.example.hugmeexp.domain.attendance.dto.AttendanceCheckResponse;
 import org.example.hugmeexp.domain.attendance.dto.AttendanceStatusResponse;
-import org.example.hugmeexp.domain.attendance.exception.UsernameTooLongException;
 import org.example.hugmeexp.domain.attendance.service.AttendanceService;
-import org.example.hugmeexp.domain.attendance.exception.InvalidValueException;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
