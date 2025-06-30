@@ -42,7 +42,7 @@ public class CommentEmojiReactionController {
     }
 
     /* 댓글 반응 삭제 */
-    @DeleteMapping("/{praiseId}/comments/{commentId}/emojis/{emojiId}")
+    @DeleteMapping("/{praiseId}/comments/{commentId}/emojis/{emojiChar}")
     public ResponseEntity<Response<Void>> deleteReaction(
             @PathVariable Long praiseId,
             @PathVariable Long commentId,
