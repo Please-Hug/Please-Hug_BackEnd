@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AttendanceCheckRequest {
-    private Long userId;
+    private Long id;
 }
