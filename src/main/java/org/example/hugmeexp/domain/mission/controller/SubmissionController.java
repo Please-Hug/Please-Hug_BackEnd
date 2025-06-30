@@ -1,5 +1,12 @@
 package org.example.hugmeexp.domain.mission.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.mission.dto.request.SubmissionFeedbackRequest;
@@ -24,22 +31,61 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+@Tag(name = "Submissions", description = "제출 정보 조회, 피드백, 보상 수령 API")
 @RestController
 @RequestMapping("/api/v1/submissions")
 @RequiredArgsConstructor
 public class SubmissionController {
     private final MissionService missionService;
 
-
+    @Operation(
+            summary = "제출 정보 조회",
+            description = "특정 유저미션의 제출 정보를 조회합니다.",
+            security    = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth"),
+            parameters = {
+                    @Parameter(name = "userMissionId",
+                            description = "유저미션(챌린지) ID",
+                            in = ParameterIn.PATH,
+                            required = true,
+                            schema = @Schema(type = "integer", example = "1001"))
+            },
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            description = "조회 성공",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = Response.class))),
+                    @ApiResponse(responseCode = "404", description = "유저미션 또는 제출 정보를 찾을 수 없음")
+            }
+    )
     @GetMapping("/{userMissionId}")
-    public ResponseEntity<Response<?>> getSubmissionByMissionId(@PathVariable Long userMissionId) {
+    public ResponseEntity<Response<SubmissionResponse>> getSubmissionByMissionId(@PathVariable Long userMissionId) {
         SubmissionResponse submissionResponse = missionService.getSubmissionByMissionId(userMissionId);
-        return ResponseEntity.ok(Response.builder()
+        return ResponseEntity.ok(Response.<SubmissionResponse>builder()
                 .data(submissionResponse)
                 .message("미션 " + userMissionId + "의 제출 정보를 성공적으로 가져왔습니다.")
                 .build());
     }
 
+    @Operation(
+            summary = "제출 파일 다운로드",
+            description = "특정 유저미션의 제출 파일을 다운로드합니다.",
+            security    = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth"),
+            parameters = {
+                    @Parameter(name = "userMissionId",
+                            description = "유저미션 ID",
+                            in = ParameterIn.PATH,
+                            required = true,
+                            schema = @Schema(type = "integer", example = "1001"))
+            },
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            description = "파일 다운로드 성공",
+                            content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)),
+                    @ApiResponse(responseCode = "404", description = "유저미션을 찾을 수 없음"),
+                    @ApiResponse(responseCode = "404", description = "제출을 찾을 수 없음"),
+                    @ApiResponse(responseCode = "500", description = "파일 경로 검증 실패 또는 IO 오류")
+            }
+    )
     @GetMapping("/{userMissionId}/file")
     public ResponseEntity<Resource> getSubmissionFileByMissionId(@PathVariable Long userMissionId) {
         SubmissionResponse submissionResponse = missionService.getSubmissionByMissionId(userMissionId);
@@ -86,21 +132,72 @@ public class SubmissionController {
         }
     }
 
+    @Operation(
+            summary = "제출 피드백 업데이트",
+            description = "제출된 미션에 대해 강사가 피드백을 업데이트합니다.",
+            security    = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth"),
+            parameters = {
+                    @Parameter(name = "userMissionId",
+                            description = "유저미션 ID",
+                            in = ParameterIn.PATH,
+                            required = true,
+                            schema = @Schema(type = "integer", example = "1001"))
+            },
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "피드백 내용",
+                    required = true,
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = SubmissionFeedbackRequest.class))
+            ),
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            description = "피드백 업데이트 성공",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = Response.class))),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
+                    @ApiResponse(responseCode = "404", description = "유저미션 정보를 찾을 수 없음"),
+                    @ApiResponse(responseCode = "404", description = "제출 정보를 찾을 수 없음"),
+            }
+    )
     @PatchMapping("/{userMissionId}/feedback")
-    public ResponseEntity<Response<?>> updateSubmissionFeedback(@PathVariable Long userMissionId,
-                                                                @Valid @RequestBody SubmissionFeedbackRequest submissionFeedbackRequest) {
+    public ResponseEntity<Response<Void>> updateSubmissionFeedback(@PathVariable Long userMissionId,
+                                                                   @Valid @RequestBody SubmissionFeedbackRequest submissionFeedbackRequest) {
 
         missionService.updateSubmissionFeedback(userMissionId, submissionFeedbackRequest);
-        return ResponseEntity.ok(Response.builder()
+        return ResponseEntity.ok(Response.<Void>builder()
                 .message("제출 피드백이 성공적으로 업데이트되었습니다.")
                 .build());
     }
 
+    @Operation(
+            summary = "보상 수령",
+            description = "유저가 해당 제출 건에 대한 보상(포인트, 경험치) 을 수령합니다.",
+            parameters = {
+                    @Parameter(name = "userMissionId",
+                            description = "유저미션 ID",
+                            in = ParameterIn.PATH,
+                            required = true,
+                            schema = @Schema(type = "integer", example = "1001"))
+            },
+            security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            description = "보상 수령 성공",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = Response.class))),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+                    @ApiResponse(responseCode = "400", description = "이미 보상을 수령한 제출"),
+                    @ApiResponse(responseCode = "400", description = "피드백이 완료되지 않은 제출"),
+                    @ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음"),
+                    @ApiResponse(responseCode = "404", description = "유저미션 정보를 찾을 수 없음"),
+
+            }
+    )
     @PostMapping("/{userMissionId}/reward")
-    public ResponseEntity<Response<?>> receiveReward(@PathVariable Long userMissionId,
-                                                     @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<Response<Void>> receiveReward(@PathVariable Long userMissionId,
+                                                        @AuthenticationPrincipal UserDetails userDetails) {
         missionService.receiveReward(userMissionId, userDetails.getUsername());
-        return ResponseEntity.ok(Response.builder()
+        return ResponseEntity.ok(Response.<Void>builder()
                 .message("보상이 성공적으로 수령되었습니다.")
                 .build());
     }
