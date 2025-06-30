@@ -23,4 +23,8 @@ public interface CommentEmojiReactionRepository extends JpaRepository<CommentEmo
 
     @Query("SELECT r FROM CommentEmojiReaction r WHERE r.comment.praise = :praise")
     List<CommentEmojiReaction> findByPraise(Praise praise);
+
+    void deleteByComment(PraiseComment comment);
+
+    CommentEmojiReaction findByCommentAndEmoji(PraiseComment comment, String emoji);
 }
