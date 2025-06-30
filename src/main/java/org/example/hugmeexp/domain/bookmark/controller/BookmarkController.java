@@ -1,18 +1,15 @@
 package org.example.hugmeexp.domain.bookmark.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.hugmeexp.domain.attendance.dto.AttendanceStatusResponse;
 import org.example.hugmeexp.domain.bookmark.dto.BookmarkRequest;
 import org.example.hugmeexp.domain.bookmark.dto.BookmarkResponse;
 import org.example.hugmeexp.domain.bookmark.service.BookmarkService;
 import org.example.hugmeexp.global.common.response.Response;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController

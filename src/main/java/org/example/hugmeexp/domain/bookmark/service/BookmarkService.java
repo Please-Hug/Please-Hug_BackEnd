@@ -5,7 +5,7 @@ import org.example.hugmeexp.domain.bookmark.dto.BookmarkRequest;
 import org.example.hugmeexp.domain.bookmark.dto.BookmarkResponse;
 import org.example.hugmeexp.domain.bookmark.entity.Bookmark;
 import org.example.hugmeexp.domain.bookmark.exception.BookmarkNotFoundException;
-import org.example.hugmeexp.domain.bookmark.excption.BookmarkUserNotFoundException;
+import org.example.hugmeexp.domain.bookmark.exception.BookmarkUserNotFoundException;
 import org.example.hugmeexp.domain.bookmark.repository.BookmarkRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
