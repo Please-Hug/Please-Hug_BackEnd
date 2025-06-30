@@ -35,7 +35,7 @@ public class BookmarkService {
     @Transactional
     public void createBookmark(String username, BookmarkRequest req) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new BookmarkUserNotFoundException());
+                .orElseThrow(BookmarkUserNotFoundException::new);
 
         Bookmark b = Bookmark.builder()
                 .user(user)
@@ -51,7 +51,7 @@ public class BookmarkService {
     public void updateBookmark(String username, Long id, BookmarkRequest req) {
         Bookmark b = bookmarkRepository
                 .findByIdAndUser_Username(id, username)
-                .orElseThrow(() -> new BookmarkNotFoundException());
+                .orElseThrow(BookmarkNotFoundException::new);
 
         b.update(req.getTitle(), req.getLink());
     }
@@ -61,7 +61,7 @@ public class BookmarkService {
     public void deleteBookmark(String username, Long id) {
         Bookmark b = bookmarkRepository
                 .findByIdAndUser_Username(id, username)
-                .orElseThrow(() -> new BookmarkNotFoundException());
+                .orElseThrow(BookmarkNotFoundException::new);
 
         bookmarkRepository.delete(b);
     }
