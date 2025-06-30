@@ -71,6 +71,14 @@ public class MissionController {
                 .build());
     }
 
+    @GetMapping("/{missionId}/challenges")
+    public ResponseEntity<Response<?>> getChallenge(@PathVariable Long missionId, @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(Response.builder()
+                .data(missionService.getUserMission(missionId, userDetails.getUsername()))
+                .message("미션 " + missionId + "에 도전하였습니다.")
+                .build());
+    }
+
     @PostMapping("/{id}/challenges")
     public ResponseEntity<Response<?>> challengeMission(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.status(HttpStatus.CREATED).body(Response.builder()

@@ -233,6 +233,8 @@ public class MissionServiceImpl implements MissionService {
         submission.setOriginalFileName(safeFileName); // 복원될 파일명
 
         userMissionSubmissionRepository.save(submission);
+
+        userMission.setProgress(UserMissionState.IN_FEEDBACK);
         // 파일 전송되기 전에 저장하고 파일 전송이 실패하면 롤백되므로(SubmissionFileUploadException)
         // 고아 파일, 고아 레코드가 남지 않을 것임
 
@@ -314,5 +316,19 @@ public class MissionServiceImpl implements MissionService {
         LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
         return userMissionStateLogRepository.findByUserIdAndCreatedAtBetween(userId, startDateTime, endDateTime)
                 .stream().map(userMissionStateLogMapper::toUserMissionStateLogResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    public UserMissionResponse getUserMission(Long missionId, String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(UserNotFoundException::new);
+
+        Mission mission = missionRepository.findById(missionId)
+                .orElseThrow(MissionNotFoundException::new);
+
+        UserMission userMissions = userMissionRepository.findByUserAndMission(user, mission)
+                .orElseThrow(UserMissionNotFoundException::new);
+
+        return userMissionMapper.toUserMissionResponse(userMissions);
     }
 }
