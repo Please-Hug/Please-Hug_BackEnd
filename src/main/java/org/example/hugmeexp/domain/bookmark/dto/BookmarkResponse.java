@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.bookmark.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import org.example.hugmeexp.domain.bookmark.entity.Bookmark;
 
@@ -8,8 +9,14 @@ import org.example.hugmeexp.domain.bookmark.entity.Bookmark;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class BookmarkResponse {
+
+    @Schema(description = "북마크 고유 id")
     private Long   id;
+
+    @Schema(description = "북마크 이름")
     private String title;
+
+    @Schema(description = "북마크 링크(URL)")
     private String link;
 
 
