@@ -11,9 +11,7 @@ import org.example.hugmeexp.domain.attendance.repository.AttendanceRepository;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.service.UserService;
-import org.springframework.cglib.core.Local;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -133,7 +131,7 @@ public class AttendanceService {
                                 .getCreatedAt()
                 )
                 .map(LocalDateTime::toLocalDate)
-                .orElse(LocalDate.MIN);  // 변경: null 시 과거 최저 날짜로 처리
+                .orElse(today);  // 유저 가입일 null인 경우 오늘부터 조회해서, 오늘 출석이 있으면 연속 1일로 처리
 
         // 1년 이상 연속 출석 시, 가입일 이후의 전체 출석기록 조회
         Set<LocalDate> allDates = attendanceRepository
@@ -175,18 +173,19 @@ public class AttendanceService {
                 // 신규 출석 저장
                 Attendance attendance = Attendance.of(user, today);
                 attendanceRepository.save(attendance);
-                userService.increaseExp(user, exp);
-                userService.increasePoint(user, point);
-                return AttendanceCheckResponse.builder()
-                        .attend(true)
-                        .exp(exp)
-                        .point(point)
-                        .build();
-            }
-            catch (ObjectOptimisticLockingFailureException lockEX) {
-                // 낙관적 락 충돌 시에도 이미 체크된 것으로 간주
+            } catch (DataIntegrityViolationException e){
                 throw new AttendanceAlreadyCheckedException();
             }
+
+            userService.increaseExp(user, exp);
+            userService.increasePoint(user, point);
+
+            return AttendanceCheckResponse.builder()
+                    .attend(true)
+                    .exp(exp)
+                    .point(point)
+                    .build();
+
         }
 
     }

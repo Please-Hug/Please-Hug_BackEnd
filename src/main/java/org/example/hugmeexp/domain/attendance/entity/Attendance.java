@@ -12,12 +12,9 @@ import java.time.LocalDate;
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // 기본 생성자의 접근 제어자를 protected로 설정, JPA에서 엔티티를 프록시로 만들 때 사용
 @AllArgsConstructor(access = AccessLevel.PRIVATE) // 모든 필드를 파라미터로 받는 생성자 생성, 생성자의 접근 제어자를 private로 만듦
 @Builder
-/*
-@Builder(builderMethodName = "hiddenBuilder") 이렇게 하면 정적 팩토리 메서드로만 객체 생성이 가능하다고 합니다.
-그냥 @Builder만 쓰면 누구나 Attendance.builder()로 객체를 만들 수 있어서,
-정적 팩토리 메서드만 사용 하자는 팀 규칙에 hiddenBuilder가 더 적합할 수도 있을 것 같은데 일단 보류해놓겠습니다.
- */
-@Table(name = "attendance")
+@Table(name = "attendance", uniqueConstraints = @UniqueConstraint(
+        name = "uk_attendance_user_attendance_date", columnNames = {"user_id", "attendance_date"}))
+// user_id와 attendance_date의 조합이 유일해야 함을 명시, 동시성: 중복된 출석 기록 방지, insert만 방지하고 싶으면 낙관적/분산 락은 이거 하면 없어도 된다 합니다!
 public class Attendance extends BaseEntity {
 
     @Id
@@ -31,9 +28,6 @@ public class Attendance extends BaseEntity {
 
     @Column(name = "attendance_date", nullable = false)
     private LocalDate attendanceDate;
-
-    @Version // 낙관적 락용 버전 필드, 동시성 문제 해결하기 위해 사용
-    private Long version;
 
     // 정적 팩토리 메서드
     public static Attendance of(User user, LocalDate attendanceDate) {
