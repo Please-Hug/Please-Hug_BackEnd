@@ -78,9 +78,9 @@ public class CommentEmojiReactionService {
                 .orElseThrow(CommentNotFoundException::new);
         // 이모지 반응 존재 확인
         CommentEmojiReaction commentEmojiReaction = commentEmojiReactionRepository.findByCommentAndEmoji(comment, emojiChar);
-
-
-        //PraiseComment comment = commentEmojiReaction.getComment();
+        if(commentEmojiReaction == null){
+            throw new CommentEmojiReactionNotFoundException();
+        }
 
         // 댓글과 반응 연결 확인
         if(!commentEmojiReaction.getComment().getId().equals(commentId)){
@@ -96,8 +96,6 @@ public class CommentEmojiReactionService {
         if(!commentEmojiReaction.getReactorWriter().getId().equals(user.getId())){
             throw new UnauthorizedEmojiDeleteException();
         }
-
-        //commentEmojiReactionRepository.deleteByComment(comment);
 
         // 삭제
         commentEmojiReactionRepository.delete(commentEmojiReaction);
