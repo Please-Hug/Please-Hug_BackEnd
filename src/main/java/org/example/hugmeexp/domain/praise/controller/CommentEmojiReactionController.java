@@ -46,7 +46,7 @@ public class CommentEmojiReactionController {
     public ResponseEntity<Response<Void>> deleteReaction(
             @PathVariable Long praiseId,
             @PathVariable Long commentId,
-            @PathVariable Long emojiId,
+            @PathVariable String emojiId, //emojiChar임
             @AuthenticationPrincipal CustomUserDetails userDetails){
 
         log.info("반응 삭제 요청 : {}", emojiId);
