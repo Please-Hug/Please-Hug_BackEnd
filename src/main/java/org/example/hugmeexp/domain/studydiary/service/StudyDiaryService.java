@@ -9,6 +9,7 @@ import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryUpdateReques
 import org.example.hugmeexp.domain.studydiary.dto.response.CommentDetailResponse;
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryDetailResponse;
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryFindAllResponse;
+import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryMyHomeResponse;
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryWeekStatusResponse;
 import org.example.hugmeexp.domain.studydiary.entity.StudyDiary;
 import org.example.hugmeexp.domain.studydiary.entity.StudyDiaryComment;
@@ -95,6 +96,30 @@ public class StudyDiaryService {
 
         //response로 전환
         Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
+            return StudyDiaryFindAllResponse.builder()
+                    .id(studyDiary.getId())
+                    .userName(studyDiary.getUser().getUsername())
+                    .title(studyDiary.getTitle())
+                    .content(studyDiary.getContent())
+                    .likeNum(studyDiary.getLikeCount())
+                    .commentNum(studyDiary.getComments().size())
+                    .createdAt(studyDiary.getCreatedAt())
+                    .build();
+        });
+
+        return studyDiaryFindAllResponsePage;
+    }
+
+    public Page<StudyDiaryFindAllResponse> getTodayPopularStudyDiaries(Pageable pageable) {
+        // 오늘의 시작과 끝 시간 계산
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
+
+        Page<StudyDiary> studyDiaries = studyDiaryRepository.findTodayPopularStudyDiaries(startOfDay, endOfDay, pageable);
+
+        //response로 전환
+        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {
             return StudyDiaryFindAllResponse.builder()
                     .id(studyDiary.getId())
                     .userName(studyDiary.getUser().getUsername())
@@ -204,6 +229,37 @@ public class StudyDiaryService {
         }).toList();
 
         return studyDiaryFindAllResponses;
+    }
+
+    public Page<StudyDiaryMyHomeResponse> getMyRecentStudyDiaries(UserDetails userDetails, Pageable pageable) {
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(UserNotFoundForStudyDiaryException::new);
+
+        // 30일 전 날짜 계산
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+        
+        Page<StudyDiary> studyDiaries = studyDiaryRepository.findByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(
+                user.getId(), thirtyDaysAgo, pageable);
+
+        // 현재 날짜와 시간
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = now.toLocalDate();
+
+        // Response DTO로 변환
+        Page<StudyDiaryMyHomeResponse> responsePages = studyDiaries.map(studyDiary -> {
+            // 오늘로부터 몇일 전인지 계산 (LocalDateTime 사용)
+            LocalDate createdDate = studyDiary.getCreatedAt().toLocalDate();
+            long daysAgo = calculateDaysAgo(createdDate, today);
+            
+            return StudyDiaryMyHomeResponse.builder()
+                    .id(studyDiary.getId())
+                    .title(studyDiary.getTitle())
+                    .createdAt(studyDiary.getCreatedAt())
+                    .daysAgo(daysAgo)
+                    .build();
+        });
+
+        return responsePages;
     }
 
     //추후 구현(elastic search 필요)
@@ -392,6 +448,38 @@ public class StudyDiaryService {
     private void checkUser(User user, StudyDiary studyDiary) {
         if(!user.getId().equals(studyDiary.getUser().getId())){
             throw new UnauthorizedAccessException();
+        }
+    }
+
+    private long calculateDaysAgo(LocalDate createdDate, LocalDate today) {
+        // 년, 월, 일을 각각 비교하여 날짜 차이 계산
+        int yearDiff = today.getYear() - createdDate.getYear();
+        int monthDiff = today.getMonthValue() - createdDate.getMonthValue();
+        int dayDiff = today.getDayOfMonth() - createdDate.getDayOfMonth();
+        
+        // 전체 일수로 변환
+        if (yearDiff == 0 && monthDiff == 0) {
+            // 같은 년, 월인 경우
+            return Math.abs(dayDiff);
+        } else {
+            // 다른 년도 또는 월인 경우 - 더 정확한 계산
+            long totalDays = 0;
+            LocalDate start = createdDate;
+            LocalDate end = today;
+            
+            // 시작 날짜가 더 늦은 경우 순서 바꾸기
+            if (start.isAfter(end)) {
+                start = today;
+                end = createdDate;
+            }
+            
+            // 날짜별로 하나씩 증가시키면서 계산
+            while (!start.equals(end)) {
+                start = start.plusDays(1);
+                totalDays++;
+            }
+            
+            return totalDays;
         }
     }
 }

@@ -12,6 +12,7 @@ import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryWeekStatusR
 import org.example.hugmeexp.domain.studydiary.service.StudyDiaryService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +49,40 @@ public class StudyDiaryController {
     }
 
     @SecurityRequirement(name = "JWT")
+    @Operation(summary = "오늘 하루 인기 배움일기 조회")
+    @GetMapping("/today/popular")
+    public ResponseEntity<Response<Object>> getTodayPopularStudyDiaries(
+            @PageableDefault(
+                size = 10,              // 기본 페이지 크기
+                page = 0,               // 기본 페이지 번호 (0부터 시작)
+                sort = "likeCount",     // 기본 정렬 필드
+                direction = Sort.Direction.DESC  // 기본 정렬 방향
+            ) Pageable pageable,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        // 다중 정렬 조건 설정: 좋아요 내림차순 -> 최신순 내림차순
+        Sort multiSort = Sort.by(
+            Sort.Order.desc("likeCount"),
+            Sort.Order.desc("createdAt")
+        );
+        
+        // 새로운 Pageable 생성
+        Pageable sortedPageable = PageRequest.of(
+            pageable.getPageNumber(), 
+            pageable.getPageSize(), 
+            multiSort
+        );
+
+        Object todayPopularStudyDiaries = studyDiaryService.getTodayPopularStudyDiaries(sortedPageable);
+        return ResponseEntity.ok(Response.<Object>builder()
+                .message("오늘 하루 인기 배움일기를 성공적으로 조회했습니다.")
+                .data(todayPopularStudyDiaries)
+                .build());
+    }
+
+    
+
+    @SecurityRequirement(name = "JWT")
     @Operation(summary = "배움일기 검색")
     @GetMapping("/search")
     public ResponseEntity<Response<Object>> searchStudyDiaries(
@@ -66,6 +101,8 @@ public class StudyDiaryController {
                 .data(searchResults)
                 .build());
     }
+
+    
 
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "배움일기 상세 조회")
@@ -269,6 +306,25 @@ public class StudyDiaryController {
         return ResponseEntity.ok(Response.<Object>builder()
                 .message("현재 로그인한 사용자의 배움일기 목록을 성공적으로 조회했습니다.")
                 .data(userStudyDiaries)
+                .build());
+    }
+
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "최근 한달간 나의 배움일기 조회", description = "현재 로그인한 사용자의 최근 한달간 배움일기를 조회합니다.")
+    @GetMapping("/my/home")
+    public ResponseEntity<Response<Object>> getMyRecentStudyDiaries(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PageableDefault(
+                    size = 20,              // 기본 페이지 크기
+                    page = 0,               // 기본 페이지 번호 (0부터 시작)
+                    sort = "createdAt",     // 기본 정렬 필드
+                    direction = Sort.Direction.DESC  // 기본 정렬 방향
+            ) Pageable pageable) {
+
+        Object recentStudyDiaries = studyDiaryService.getMyRecentStudyDiaries(userDetails, pageable);
+        return ResponseEntity.ok(Response.<Object>builder()
+                .message("최근 한달간 배움일기를 성공적으로 조회했습니다.")
+                .data(recentStudyDiaries)
                 .build());
     }
 }
