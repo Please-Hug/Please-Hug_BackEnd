@@ -1,5 +1,7 @@
 package org.example.hugmeexp.domain.user.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "User", description = "User 관련 관련 API")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -22,6 +25,7 @@ public class UserUpdateController {
 
     private final UserService userService;
 
+    @Operation(summary = "유저 정보 수정", description = "유저 상세 정보 수정(이름, 소개, 전화번호)")
     @PatchMapping("/api/v1/user")
     public ResponseEntity<Response<?>> updateUserInfo(@Valid @RequestBody UserUpdateRequest request, @AuthenticationPrincipal CustomUserDetails userDetails)
     {
