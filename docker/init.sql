@@ -22,6 +22,7 @@ DROP TABLE IF EXISTS user_quest;
 DROP TABLE IF EXISTS user_mission;
 DROP TABLE IF EXISTS mission_task;
 DROP TABLE IF EXISTS user_mission_group;
+DROP TABLE IF EXISTS bookmark;
 
 DROP TABLE IF EXISTS attendance;
 DROP TABLE IF EXISTS orders;
@@ -33,6 +34,7 @@ DROP TABLE IF EXISTS mission;
 DROP TABLE IF EXISTS mission_group;
 DROP TABLE IF EXISTS product;
 DROP TABLE IF EXISTS product_image;
+
 DROP TABLE IF EXISTS profile_image;
 DROP TABLE IF EXISTS users;
 
@@ -85,7 +87,17 @@ CREATE TABLE users (
                        FOREIGN KEY (profile_image_id) REFERENCES profile_image(id)
 ) ENGINE=InnoDB;
 
--- 이 시점에 users 사용 가능
+CREATE TABLE bookmark (
+                          id BIGINT NOT NULL AUTO_INCREMENT,
+                          user_id BIGINT NOT NULL,
+                          title VARCHAR(255) NOT NULL,
+                          link VARCHAR(255) NOT NULL,
+                          created_at DATETIME NOT NULL,
+                          modified_at DATETIME NOT NULL,
+                          PRIMARY KEY (id),
+                          FOREIGN KEY (user_id) REFERENCES user(id)
+) ENGINE=InnoDB;
+
 
 CREATE TABLE product (
                          is_deleted BIT NOT NULL,
@@ -102,8 +114,6 @@ CREATE TABLE product (
 
 CREATE TABLE attendance (
                             attendance_date DATE NOT NULL,
-                            exp INTEGER NOT NULL,
-                            point INTEGER NOT NULL,
                             created_at DATETIME(6),
                             id BIGINT NOT NULL AUTO_INCREMENT,
                             modified_at DATETIME(6),
@@ -311,12 +321,15 @@ CREATE TABLE comment_emoji_reaction (
 -- 공부 일지
 
 CREATE TABLE study_diary (
+                             is_created BIT NOT NULL,
+                             like_count INTEGER NOT NULL,
                              created_at DATETIME(6),
-                             id BIGINT NOT NULL AUTO_INCREMENT,
                              modified_at DATETIME(6),
-                             user_id BIGINT NOT NULL,
-                             content TEXT,
-                             PRIMARY KEY (id),
+                             studydiary_id BIGINT NOT NULL AUTO_INCREMENT,
+                             user_id BIGINT,
+                             content VARCHAR(255),
+                             title VARCHAR(255),
+                             PRIMARY KEY (studydiary_id),
                              FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
@@ -328,7 +341,7 @@ CREATE TABLE study_diary_comment (
                                      user_id BIGINT,
                                      content VARCHAR(255),
                                      PRIMARY KEY (studydiary_comment_id),
-                                     FOREIGN KEY (studydiary_id) REFERENCES study_diary(id),
+                                     FOREIGN KEY (studydiary_id) REFERENCES study_diary(studydiary_id),
                                      FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
@@ -339,9 +352,10 @@ CREATE TABLE study_diary_like (
                                   studydiary_like_id BIGINT NOT NULL AUTO_INCREMENT,
                                   user_id BIGINT,
                                   PRIMARY KEY (studydiary_like_id),
-                                  FOREIGN KEY (studydiary_id) REFERENCES study_diary(id),
+                                  FOREIGN KEY (studydiary_id) REFERENCES study_diary(studydiary_id),
                                   FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
+
 
 CREATE TABLE orders (
                         created_at DATETIME(6),
