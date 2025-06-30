@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.praise.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ public class PraiseEmojiReactionController {
     private final PraiseEmojiReactionService praiseEmojiReactionService;
 
     /* 칭찬 게시물에 반응 생성 */
+    @Operation(summary = "칭찬 게시물에 반응 생성", description = "칭찬 게시물에 반응을 생성합니다.")
     @PostMapping("/{praiseId}/emojis")
     public ResponseEntity<Response<PraiseEmojiReactionResponseDTO>> addEmojiReaction(
             @PathVariable Long praiseId,
@@ -42,6 +44,7 @@ public class PraiseEmojiReactionController {
     }
 
     /* 칭찬 게시물에 반응 삭제 */
+    @Operation(summary = "칭찬 게시물에 반응 삭제", description = "칭찬 게시물에 반응을 삭제합니다.")
     @DeleteMapping("/{praiseId}/emojis/{emojiId}")
     public ResponseEntity<Response<Void>> deleteEmojiReaction(
             @PathVariable Long praiseId,
