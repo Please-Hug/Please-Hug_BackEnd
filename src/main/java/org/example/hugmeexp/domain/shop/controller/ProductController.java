@@ -1,5 +1,7 @@
 package org.example.hugmeexp.domain.shop.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.shop.dto.OrderResponse;
@@ -22,15 +24,13 @@ import java.util.List;
 @RequestMapping("/api/v1/shop")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "User - Product", description = "상점 관련 사용자 API")
 public class ProductController {
 
     private final ProductService productService;
 
-    /**
-     * 전체 상품 조회
-     * @return
-     */
     @GetMapping
+    @Operation(summary = "전체 상품 조회", description = "모든 상품 목록을 조회한다.")
     public ResponseEntity<Response<?>> getAllProducts(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
@@ -40,15 +40,8 @@ public class ProductController {
         return ResponseEntity.ok().body(Response.builder().data(allProduct).message("Successfully retrieved all products.").build());
     }
 
-    /**
-     * 상품 구매
-     * - 로그인된 사용자 정보와 구매할 상품 ID, 수령자 username 데이터로 요청
-     * - 구매 완료된 주문에 대한 구매자, 상품, 수령자 번호 정보를 응답
-     * @param request
-     * @param userDetails
-     * @return
-     */
     @PostMapping("/purchase")
+    @Operation(summary = "상품 구매", description = "수령인의 아이디를 입력해 상품을 구매한다.")
     public ResponseEntity<Response<?>> purchaseProduct(
             @RequestBody PurchaseRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -61,14 +54,8 @@ public class ProductController {
         return ResponseEntity.ok().body(Response.builder().data(response).message("Successfully purchased product.").build());
     }
 
-    /**
-     * 주문 내역 조회
-     * @param startDate
-     * @param endDate
-     * @param userDetails
-     * @return
-     */
     @GetMapping("/history")
+    @Operation(summary = "주문 내역 조회", description = "상품 구매 현황을 조회한다.")
     public ResponseEntity<Response<?>> getOrders(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,

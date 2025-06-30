@@ -1,5 +1,7 @@
 package org.example.hugmeexp.domain.shop.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.shop.dto.ProductRequest;
@@ -7,69 +9,39 @@ import org.example.hugmeexp.domain.shop.dto.ProductResponse;
 import org.example.hugmeexp.domain.shop.entity.Product;
 import org.example.hugmeexp.domain.shop.service.ProductAdminService;
 import org.example.hugmeexp.global.common.response.Response;
-import org.example.hugmeexp.global.security.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/admin/shop")
 @Slf4j
+@Tag(name = "Admin - Product", description = "상점 관련 관리자 API")
 public class ProductAdminController {
 
     private final ProductAdminService productAdminService;
 
-    /**
-     * 상품 등록
-     * - form-data 형식으로 등록할 상품 정보 입력
-     * - 이미지 파일은 생략 가능
-     * @param request
-     * @return
-     * @throws IOException
-     */
     @PostMapping
+    @Operation(summary = "상품 등록", description = "관리자가 상품을 등록한다.")
     public ResponseEntity<Response<?>> registerProduct(
             @ModelAttribute ProductRequest request) {
         Product registeredProduct = productAdminService.registerProduct(request);
         return ResponseEntity.status(201).body(Response.builder().data(registeredProduct).message("Product is successfully registered").build());
     }
 
-    /**
-     * 상품 삭제
-     * - 삭제할 상품의 Id를 입력받아 관련 ProductImage 엔티티 및 이미지 파일 삭제
-     * @param productId
-     * @return
-     */
     @DeleteMapping("/{productId}")
+    @Operation(summary = "상품 삭제", description = "관리자가 상품을 삭제한다.")
     public ResponseEntity<Response<?>> deleteProduct(@PathVariable Long productId) {
         productAdminService.deleteProduct(productId);
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * 상품 수정
-     * - form-data 형식으로 등록할 상품 정보 입력
-     * - PathVariable로 수정할 상품 조회
-     * @param productId
-     * @param request
-     * @return
-     */
     @PutMapping("/{productId}")
+    @Operation(summary = "상품 수정", description = "관리자가 상품을 수정한다.")
     public ResponseEntity<Response<?>> modifyProduct(
             @PathVariable Long productId,
             @ModelAttribute ProductRequest request) {
         ProductResponse modifiedProduct = productAdminService.modifyProduct(productId, request);
         return ResponseEntity.ok().body(Response.builder().data(modifiedProduct).message("Product with ID " + productId + " modified").build());
-    }
-
-
-    // ===== 사용자 구매 테스트를 위한 포인트 증가 메서드 =====
-    @PostMapping("/point")
-    public void increasePoint(
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        productAdminService.increasePoint(userDetails.getUsername());
     }
 }
