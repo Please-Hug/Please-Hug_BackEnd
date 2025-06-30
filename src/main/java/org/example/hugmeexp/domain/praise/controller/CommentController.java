@@ -44,6 +44,7 @@ public class CommentController {
     }
 
     /* 댓글 삭제 */
+    @Operation(summary = "칭찬댓글 삭제", description = "칭찬 게시물에 새로운 댓글을 삭제합니다")
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<Response<Void>> deleteComment(
             @PathVariable Long commentId,
