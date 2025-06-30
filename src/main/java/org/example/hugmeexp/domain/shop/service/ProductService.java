@@ -122,7 +122,13 @@ public class ProductService {
         return response;
     }
 
-
+    /**
+     * 주문 내역 조회 메서드
+     * @param user
+     * @param startDate
+     * @param endDate
+     * @return
+     */
     public List<OrderResponse> getOrders(User user, LocalDate startDate, LocalDate endDate) {
 
         // 입력 데이터는 날짜 정보만 있으므로 시:분:초를 포함하도록 수정
