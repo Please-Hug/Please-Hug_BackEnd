@@ -123,7 +123,7 @@ public class ChallengeController {
                             schema = @Schema(type = "integer", example = "123"))
             },
             requestBody = @RequestBody(
-                    description = "제출 폼 데이터 (JSON 필드 + 파일)",
+                    description = "멀티파트 폼 데이터로 제출 정보와 파일을 포함합니다.",
                     required = true,
                     content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
                             schema = @Schema(implementation = SubmissionUploadRequest.class))
