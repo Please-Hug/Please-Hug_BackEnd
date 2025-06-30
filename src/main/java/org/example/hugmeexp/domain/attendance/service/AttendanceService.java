@@ -173,18 +173,17 @@ public class AttendanceService {
                 // 신규 출석 저장
                 Attendance attendance = Attendance.of(user, today);
                 attendanceRepository.save(attendance);
+                userService.increaseExp(user, exp);
+                userService.increasePoint(user, point);
+
+                return AttendanceCheckResponse.builder()
+                        .attend(true)
+                        .exp(exp)
+                        .point(point)
+                        .build();
             } catch (DataIntegrityViolationException e){
                 throw new AttendanceAlreadyCheckedException();
             }
-
-            userService.increaseExp(user, exp);
-            userService.increasePoint(user, point);
-
-            return AttendanceCheckResponse.builder()
-                    .attend(true)
-                    .exp(exp)
-                    .point(point)
-                    .build();
 
         }
 

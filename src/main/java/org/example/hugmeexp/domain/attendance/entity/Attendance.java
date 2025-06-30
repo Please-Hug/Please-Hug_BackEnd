@@ -12,8 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // 기본 생성자의 접근 제어자를 protected로 설정, JPA에서 엔티티를 프록시로 만들 때 사용
 @AllArgsConstructor(access = AccessLevel.PRIVATE) // 모든 필드를 파라미터로 받는 생성자 생성, 생성자의 접근 제어자를 private로 만듦
 @Builder
-@Table(name = "attendance", uniqueConstraints = @UniqueConstraint(
-        name = "uk_attendance_user_attendance_date", columnNames = {"user_id", "attendance_date"}))
+@Table(name = "attendance", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "attendance_date"}))
 // user_id와 attendance_date의 조합이 유일해야 함을 명시, 동시성: 중복된 출석 기록 방지, insert만 방지하고 싶으면 낙관적/분산 락은 이거 하면 없어도 된다 합니다!
 public class Attendance extends BaseEntity {
 
