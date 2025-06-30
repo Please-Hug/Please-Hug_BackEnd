@@ -95,7 +95,7 @@ CREATE TABLE bookmark (
                           created_at DATETIME NOT NULL,
                           modified_at DATETIME NOT NULL,
                           PRIMARY KEY (id),
-                          FOREIGN KEY (user_id) REFERENCES user(id)
+                          FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
 
