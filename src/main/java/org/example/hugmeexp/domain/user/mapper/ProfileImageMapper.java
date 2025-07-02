@@ -9,6 +9,6 @@ public class ProfileImageMapper {
         if (profileImage == null) {
             return null;
         }
-        return profileImage.getPath() + profileImage.getUuid() + profileImage.getExtension();
+        return "/profile-images/" + profileImage.getUuid() + profileImage.getExtension();
     }
 }
