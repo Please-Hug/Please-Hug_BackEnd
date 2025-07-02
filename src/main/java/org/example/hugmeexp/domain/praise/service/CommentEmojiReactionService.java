@@ -71,11 +71,16 @@ public class CommentEmojiReactionService {
 
     /* 댓글 반응 삭제 */
     @Transactional
-    public void deleteCommentReaction(Long praiseId, Long commentId, Long emojiId, User user) {
+    public void deleteCommentReaction(Long praiseId, Long commentId, String emojiChar, User user) {
 
+
+        PraiseComment comment = commentRepository.findById(commentId)
+                .orElseThrow(CommentNotFoundException::new);
         // 이모지 반응 존재 확인
-        CommentEmojiReaction commentEmojiReaction = commentEmojiReactionRepository.findById(emojiId)
-                .orElseThrow(()-> new CommentEmojiReactionNotFoundException());
+        CommentEmojiReaction commentEmojiReaction = commentEmojiReactionRepository.findByCommentAndEmoji(comment, emojiChar);
+        if(commentEmojiReaction == null){
+            throw new CommentEmojiReactionNotFoundException();
+        }
 
         // 댓글과 반응 연결 확인
         if(!commentEmojiReaction.getComment().getId().equals(commentId)){

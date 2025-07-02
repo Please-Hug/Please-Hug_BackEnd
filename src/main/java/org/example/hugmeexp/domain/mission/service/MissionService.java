@@ -6,7 +6,6 @@ import org.example.hugmeexp.domain.mission.dto.response.MissionResponse;
 import org.example.hugmeexp.domain.mission.dto.response.SubmissionResponse;
 import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.dto.response.UserMissionStateLogResponse;
-import org.example.hugmeexp.domain.mission.entity.UserMissionStateLog;
 import org.example.hugmeexp.domain.mission.enums.UserMissionState;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,4 +40,10 @@ public interface MissionService {
     void receiveReward(Long userMissionId, String username);
 
     List<UserMissionStateLogResponse> getAllMissionStateLog(long userId, LocalDate startDate, LocalDate endDate);
+
+    UserMissionResponse getUserMission(Long missionId, String username);
+
+    List<UserMissionResponse> getAllUserMissionsByTeacher(String username);
+
+    UserMissionResponse getUserMissionByChallengeId(Long challengeId);
 }

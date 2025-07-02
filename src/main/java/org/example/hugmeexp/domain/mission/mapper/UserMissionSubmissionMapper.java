@@ -15,5 +15,6 @@ public interface UserMissionSubmissionMapper {
     @Mapping(target = "feedback", ignore = true)
     Submission toEntity(SubmissionUploadRequest submissionUploadRequest);
 
+    @Mapping(target = "userMission", ignore = true)
     SubmissionResponse toSubmissionResponse(Submission submission);
 }

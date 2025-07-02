@@ -166,9 +166,9 @@ public class User extends BaseEntity {
 
         String fullPath = internalPath + uuid + ext;
 
-        // "/application" 제거
-        if (fullPath.startsWith("/application")) {
-            return fullPath.substring("/application".length());
+        String userDir = System.getProperty("user.dir");
+        if(fullPath.startsWith(userDir)) {
+            return fullPath.substring(userDir.length());
         }
 
         return fullPath;

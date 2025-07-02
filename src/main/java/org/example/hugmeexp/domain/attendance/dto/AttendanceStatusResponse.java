@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.attendance.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -16,13 +17,16 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AttendanceStatusResponse {
-    // 일요일~토요일 출석 여부 (true: 출석, false: 결석)
+
+    @Schema(description = "출석한 날짜(yyyy-MM-dd) 리스트, (true: 출석, false: 결석)")
     @Size(min=7, max=7)
     private List<Boolean> attendanceStatus;
-    // 연속 출석 일수
+
+    @Schema(description = "연속 출석 일수")
     @Min(0)
     private int continuousDay;
-    // 오늘 날짜
+
+    @Schema(description = "오늘 날짜 (yyyy-MM-dd)")
     @NotNull
     private LocalDate today;
 

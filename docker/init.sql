@@ -22,6 +22,7 @@ DROP TABLE IF EXISTS user_quest;
 DROP TABLE IF EXISTS user_mission;
 DROP TABLE IF EXISTS mission_task;
 DROP TABLE IF EXISTS user_mission_group;
+DROP TABLE IF EXISTS bookmark;
 
 DROP TABLE IF EXISTS attendance;
 DROP TABLE IF EXISTS orders;
@@ -33,6 +34,7 @@ DROP TABLE IF EXISTS mission;
 DROP TABLE IF EXISTS mission_group;
 DROP TABLE IF EXISTS product;
 DROP TABLE IF EXISTS product_image;
+
 DROP TABLE IF EXISTS profile_image;
 DROP TABLE IF EXISTS users;
 
@@ -85,7 +87,17 @@ CREATE TABLE users (
                        FOREIGN KEY (profile_image_id) REFERENCES profile_image(id)
 ) ENGINE=InnoDB;
 
--- 이 시점에 users 사용 가능
+CREATE TABLE bookmark (
+                          id BIGINT NOT NULL AUTO_INCREMENT,
+                          user_id BIGINT NOT NULL,
+                          title VARCHAR(255) NOT NULL,
+                          link VARCHAR(255) NOT NULL,
+                          created_at DATETIME NOT NULL,
+                          modified_at DATETIME NOT NULL,
+                          PRIMARY KEY (id),
+                          FOREIGN KEY (user_id) REFERENCES users(id)
+) ENGINE=InnoDB;
+
 
 CREATE TABLE product (
                          is_deleted BIT NOT NULL,
@@ -102,8 +114,6 @@ CREATE TABLE product (
 
 CREATE TABLE attendance (
                             attendance_date DATE NOT NULL,
-                            exp INTEGER NOT NULL,
-                            point INTEGER NOT NULL,
                             created_at DATETIME(6),
                             id BIGINT NOT NULL AUTO_INCREMENT,
                             modified_at DATETIME(6),
@@ -311,12 +321,15 @@ CREATE TABLE comment_emoji_reaction (
 -- 공부 일지
 
 CREATE TABLE study_diary (
+                             is_created BIT NOT NULL,
+                             like_count INTEGER NOT NULL,
                              created_at DATETIME(6),
-                             id BIGINT NOT NULL AUTO_INCREMENT,
                              modified_at DATETIME(6),
-                             user_id BIGINT NOT NULL,
-                             content TEXT,
-                             PRIMARY KEY (id),
+                             studydiary_id BIGINT NOT NULL AUTO_INCREMENT,
+                             user_id BIGINT,
+                             content VARCHAR(255),
+                             title VARCHAR(255),
+                             PRIMARY KEY (studydiary_id),
                              FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
@@ -328,7 +341,7 @@ CREATE TABLE study_diary_comment (
                                      user_id BIGINT,
                                      content VARCHAR(255),
                                      PRIMARY KEY (studydiary_comment_id),
-                                     FOREIGN KEY (studydiary_id) REFERENCES study_diary(id),
+                                     FOREIGN KEY (studydiary_id) REFERENCES study_diary(studydiary_id),
                                      FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
@@ -339,9 +352,10 @@ CREATE TABLE study_diary_like (
                                   studydiary_like_id BIGINT NOT NULL AUTO_INCREMENT,
                                   user_id BIGINT,
                                   PRIMARY KEY (studydiary_like_id),
-                                  FOREIGN KEY (studydiary_id) REFERENCES study_diary(id),
+                                  FOREIGN KEY (studydiary_id) REFERENCES study_diary(studydiary_id),
                                   FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
+
 
 CREATE TABLE orders (
                         created_at DATETIME(6),
@@ -358,13 +372,13 @@ CREATE TABLE orders (
 
 
 INSERT INTO `users` (`exp`, `point`, `created_at`, `id`, `modified_at`, `profile_image_id`, `phone_number`, `name`, `username`, `password`, `description`, `role`) VALUES
-                                                                                                                                                                       (0, 0, '2025-06-28 18:27:53.817615', 1, '2025-06-28 18:27:53.817615', NULL, '010-0000-0001', '테스트01', 'test01', '$2a$10$kj/BjnH/Fy/r/8vBD.7aKebtfwnzSYK2UPdG1unkpCxTzjTLwONb.', NULL, 'USER'),
-                                                                                                                                                                       (0, 0, '2025-06-28 18:28:20.789758', 2, '2025-06-28 18:28:20.789758', NULL, '010-0000-0002', '테스트02', 'test02', '$2a$10$pTwCJL/gxKdFLCGq/0fBa.5iQnN2Zy3y.NOnIxzrpUmDb/Rz0rXhG', NULL, 'USER'),
-                                                                                                                                                                       (0, 0, '2025-06-28 18:28:37.324012', 3, '2025-06-28 18:28:37.324012', NULL, '010-0000-0003', '테스트03', 'test03', '$2a$10$s3S/X56jsjuWuBvZ3Tto3.d7ps5jRB1/iceAlKG7Tf9IdiHltZWVK', NULL, 'USER'),
-                                                                                                                                                                       (0, 0, '2025-06-28 18:28:49.511950', 4, '2025-06-28 18:28:49.511950', NULL, '010-0000-0004', '테스트04', 'test04', '$2a$10$qJAlXIrBKMq/W6cAZVBLpOOLUOWafyBuJmwhtirFihJMdlLNlamim', NULL, 'USER'),
-                                                                                                                                                                       (0, 0, '2025-06-28 18:28:58.882583', 5, '2025-06-28 18:28:58.882583', NULL, '010-0000-0005', '테스트05', 'test05', '$2a$10$eeKrOVXBnXVhiRA.HJwldu9AD1bkAucpEPLr0InNnFimIgFxY9syO', NULL, 'USER'),
-                                                                                                                                                                       (0, 0, '2025-06-28 18:38:07.750071', 6, '2025-06-28 18:38:07.750071', NULL, '010-0001-0001', '관리자01', 'admin01', '$2a$10$1UGuGYTqi.lLSIuvfadBOun5P3U/GQmVB5Och/hwI6cAP0mowxzES', NULL, 'ADMIN'),
-                                                                                                                                                                       (0, 0, '2025-06-28 18:38:32.935902', 7, '2025-06-28 18:38:32.935902', NULL, '010-0002-0001', '강사01', 'teacher01', '$2a$10$QPjenkRVoYBFV6lXeXjcfe4H9GNGDr/TdXb.iFUl4fgC3sHNAUynq', NULL, 'LECTURER');
+                                                                                                                                                                       (0, 500, '2025-06-28 18:27:53.817615', 1, '2025-06-28 18:27:53.817615', NULL, '010-0000-0001', '테스트01', 'test01', '$2a$10$kj/BjnH/Fy/r/8vBD.7aKebtfwnzSYK2UPdG1unkpCxTzjTLwONb.', NULL, 'USER'),
+                                                                                                                                                                       (0, 500, '2025-06-28 18:28:20.789758', 2, '2025-06-28 18:28:20.789758', NULL, '010-0000-0002', '테스트02', 'test02', '$2a$10$pTwCJL/gxKdFLCGq/0fBa.5iQnN2Zy3y.NOnIxzrpUmDb/Rz0rXhG', NULL, 'USER'),
+                                                                                                                                                                       (0, 500, '2025-06-28 18:28:37.324012', 3, '2025-06-28 18:28:37.324012', NULL, '010-0000-0003', '테스트03', 'test03', '$2a$10$s3S/X56jsjuWuBvZ3Tto3.d7ps5jRB1/iceAlKG7Tf9IdiHltZWVK', NULL, 'USER'),
+                                                                                                                                                                       (0, 500, '2025-06-28 18:28:49.511950', 4, '2025-06-28 18:28:49.511950', NULL, '010-0000-0004', '테스트04', 'test04', '$2a$10$qJAlXIrBKMq/W6cAZVBLpOOLUOWafyBuJmwhtirFihJMdlLNlamim', NULL, 'USER'),
+                                                                                                                                                                       (0, 500, '2025-06-28 18:28:58.882583', 5, '2025-06-28 18:28:58.882583', NULL, '010-0000-0005', '테스트05', 'test05', '$2a$10$eeKrOVXBnXVhiRA.HJwldu9AD1bkAucpEPLr0InNnFimIgFxY9syO', NULL, 'USER'),
+                                                                                                                                                                       (0, 500, '2025-06-28 18:38:07.750071', 6, '2025-06-28 18:38:07.750071', NULL, '010-0001-0001', '관리자01', 'admin01', '$2a$10$1UGuGYTqi.lLSIuvfadBOun5P3U/GQmVB5Och/hwI6cAP0mowxzES', NULL, 'ADMIN'),
+                                                                                                                                                                       (0, 500, '2025-06-28 18:38:32.935902', 7, '2025-06-28 18:38:32.935902', NULL, '010-0002-0001', '강사01', 'teacher01', '$2a$10$QPjenkRVoYBFV6lXeXjcfe4H9GNGDr/TdXb.iFUl4fgC3sHNAUynq', NULL, 'LECTURER');
 
 INSERT INTO `mission_group` (`created_at`, `id`, `modified_at`, `teacher_id`, `name`) VALUES
                                                                                           ('2025-06-28 18:41:39.882646', 1, '2025-06-28 18:41:39.882646', 7, '허그톤 미션'),
@@ -575,3 +589,54 @@ INSERT INTO quest (name, url, is_deleted, type) VALUES
                                                     ('미션 리워드 받기', '/mission', false, 'MISSION_REWARD'),
                                                     ('배움일기 작성하기', '/diary', false, 'WRITE_DIARY'),
                                                     ('칭찬 댓글달기', '/comment', false, 'PRAISE_COMMENT');
+-- 상품 더미 데이터
+INSERT INTO product_image (id, uuid, extension, path)
+VALUES
+    (1, 'ed', 'webp', '/application/product-images'),
+    (2, 'pb', 'webp', '/application/product-images'),
+    (3, 'cu', 'webp', '/application/product-images');
+
+INSERT INTO product (is_deleted, price, quantity, product_image_id, brand, name)
+VALUES
+    (false, 147, 30, 1, '이디야 커피', '(R)딸기 요거트 플랫치노'),
+    (false, 157, 30, 2, '파리바게트', '파리바게트 교환권 5,000원'),
+    (false, 157, 30, 3, 'CU', 'CU 모바일 상품권 5천원권');
+
+
+-- 퀘스트 더미 데이터
+INSERT INTO user_quest (is_completable, is_completed, quest_id, user_id)
+VALUES
+-- 유저 1
+(false, false, 1, 1),
+(false, false, 2, 1),
+(false, false, 3, 1),
+(false, false, 4, 1),
+(false, false, 5, 1),
+
+-- 유저 2
+(false, false, 1, 2),
+(false, false, 2, 2),
+(false, false, 3, 2),
+(false, false, 4, 2),
+(false, false, 5, 2),
+
+-- 유저 3
+(false, false, 1, 3),
+(false, false, 2, 3),
+(false, false, 3, 3),
+(false, false, 4, 3),
+(false, false, 5, 3),
+
+-- 유저 4
+(false, false, 1, 4),
+(false, false, 2, 4),
+(false, false, 3, 4),
+(false, false, 4, 4),
+(false, false, 5, 4),
+
+-- 유저 5
+(false, false, 1, 5),
+(false, false, 2, 5),
+(false, false, 3, 5),
+(false, false, 4, 5),
+(false, false, 5, 5);

@@ -7,5 +7,8 @@ WORKDIR /application
 # 빌드된 JAR 파일을 컨테이너로 복사
 COPY build/libs/*SNAPSHOT.jar goormexp.jar
 
+# 상품 이미지들 컨테이너로 복사
+COPY docker/images/ /application/product-images/
+
 # 애플리케이션 실행
 ENTRYPOINT ["java", "-jar", "/application/goormexp.jar"]

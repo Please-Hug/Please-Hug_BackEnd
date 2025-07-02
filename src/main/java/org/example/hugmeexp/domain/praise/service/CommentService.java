@@ -9,6 +9,7 @@ import org.example.hugmeexp.domain.praise.exception.CommentNotFoundException;
 import org.example.hugmeexp.domain.praise.exception.ForbiddenCommentAccessException;
 import org.example.hugmeexp.domain.praise.exception.PraiseNotFoundException;
 import org.example.hugmeexp.domain.praise.mapper.CommentMapper;
+import org.example.hugmeexp.domain.praise.repository.CommentEmojiReactionRepository;
 import org.example.hugmeexp.domain.praise.repository.CommentRepository;
 import org.example.hugmeexp.domain.praise.repository.PraiseRepository;
 import org.example.hugmeexp.domain.user.entity.User;
@@ -24,6 +25,7 @@ public class CommentService {
     private final CommentMapper commentMapper;
     private final CommentRepository commentRepository;
     private final PraiseRepository praiseRepository;
+    private final CommentEmojiReactionRepository commentEmojiReactionRepository;
 
     /* 댓글 작성 */
     @Transactional
@@ -52,6 +54,8 @@ public class CommentService {
         if (!comment.getCommentWriter().getId().equals(requester.getId())){
             throw new ForbiddenCommentAccessException();
         }
+
+        commentEmojiReactionRepository.deleteByComment(comment);
 
         commentRepository.delete(comment);
     }

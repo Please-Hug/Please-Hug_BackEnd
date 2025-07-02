@@ -16,4 +16,6 @@ public interface UserMissionRepository extends JpaRepository<UserMission, Long> 
     boolean existsUserMissionByUserAndMission(User user, Mission mission);
 
     Optional<UserMission> findByUserAndMission(User user, Mission mission);
+
+    List<UserMission> findAllByMission_MissionGroup_Teacher(User missionMissionGroupTeacher);
 }

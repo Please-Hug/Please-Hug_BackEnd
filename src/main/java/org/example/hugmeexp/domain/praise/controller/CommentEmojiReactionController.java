@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.praise.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ public class CommentEmojiReactionController {
     private final CommentEmojiReactionService commentEmojiReactionService;
 
     /* 댓글에 반응 생성 */
+    @Operation(summary = "칭찬게시물의 댓글에 반응 생성", description = "칭찬게시물의 댓글에 반응을 생성합니다.")
     @PostMapping("/{praiseId}/comments/{commentId}/emojis")
     public ResponseEntity<Response<CommentEmojiReactionResponseDTO>> createReaction(
             @PathVariable Long praiseId,
@@ -42,16 +44,17 @@ public class CommentEmojiReactionController {
     }
 
     /* 댓글 반응 삭제 */
-    @DeleteMapping("/{praiseId}/comments/{commentId}/emojis/{emojiId}")
+    @Operation(summary = "칭찬게시물의 댓글에 반응 삭제", description = "칭찬게시물의 댓글에 반응을 삭제합니다.")
+    @DeleteMapping("/{praiseId}/comments/{commentId}/emojis/{emojiChar}")
     public ResponseEntity<Response<Void>> deleteReaction(
             @PathVariable Long praiseId,
             @PathVariable Long commentId,
-            @PathVariable Long emojiId,
+            @PathVariable String emojiChar,
             @AuthenticationPrincipal CustomUserDetails userDetails){
 
-        log.info("반응 삭제 요청 : {}", emojiId);
+        log.info("반응 삭제 요청 : {}", emojiChar);
 
-        commentEmojiReactionService.deleteCommentReaction(praiseId,commentId,emojiId,userDetails.getUser());
+        commentEmojiReactionService.deleteCommentReaction(praiseId,commentId,emojiChar,userDetails.getUser());
 
         Response<Void> response = Response.<Void>builder()
                 .message("반응 삭제 완료")

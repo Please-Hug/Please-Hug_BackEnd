@@ -3,10 +3,7 @@ package org.example.hugmeexp.domain.praise.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.praise.dto.*;
-import org.example.hugmeexp.domain.praise.entity.Praise;
-import org.example.hugmeexp.domain.praise.entity.PraiseComment;
-import org.example.hugmeexp.domain.praise.entity.PraiseEmojiReaction;
-import org.example.hugmeexp.domain.praise.entity.PraiseReceiver;
+import org.example.hugmeexp.domain.praise.entity.*;
 import org.example.hugmeexp.domain.praise.enums.PraiseType;
 import org.example.hugmeexp.domain.praise.exception.PraiseNotFoundException;
 import org.example.hugmeexp.domain.praise.exception.UserNotFoundInPraiseException;
@@ -124,7 +121,7 @@ public class PraiseService {
                     List<UserProfileResponse> commentProfiles = comments.stream()
                             .map(c -> {
                                 User user = c.getCommentWriter();
-                                String url = user.getStoredProfileImagePath();
+                                String url = user.getPublicProfileImageUrl();
                                 return new UserProfileResponse(url, user.getUsername(), user.getName());
                             }).toList();
 
@@ -187,7 +184,7 @@ public class PraiseService {
                     List<UserProfileResponse> commentProfiles = comments.stream()
                             .map(c -> {
                                 User user = c.getCommentWriter();
-                                String url = user.getStoredProfileImagePath();
+                                String url = user.getPublicProfileImageUrl();
                                 return new UserProfileResponse(url, user.getUsername(), user.getName());
                             }).toList();
 
@@ -291,7 +288,7 @@ public class PraiseService {
                 .distinct()
                 .limit(3)
                 .map(sender -> {
-                    String url = sender.getStoredProfileImagePath();
+                    String url = sender.getPublicProfileImageUrl();
                     UserProfileResponse profile = new UserProfileResponse(url, sender.getUsername(), sender.getName());
 
                     return RecentPraiseSenderResponseDTO.from(sender, List.of(profile));
@@ -322,16 +319,24 @@ public class PraiseService {
                 .map(entry -> EmojiReactionGroupDTO.from(entry.getKey(), entry.getValue()))
                 .toList();
 
+        List<CommentEmojiReaction> commentReactions = commentEmojiReactionRepository.findByPraise(praise);
+
         // 댓글 별 이모지 반응 수 조회
-        Map<Long, Map<String, Integer>> commentEmojiMap = commentList.stream()
-                .collect(Collectors.toMap(
-                        PraiseComment::getId,
-                        comment -> {
-                            List<Object[]> emojiData = commentEmojiReactionRepository.countGroupedByEmoji(comment);
-                            return emojiData.stream().collect(Collectors.toMap(
-                                    row -> (String) row[0],
-                                    row -> ((Long) row[1]).intValue()));
-                        }));
+        Map<Long, Map<String, List<ReactionUserDTO>>> commentEmojiMap = commentReactions.stream()
+                .collect(Collectors.groupingBy(
+                        r -> r.getComment().getId(),
+                        Collectors.groupingBy(
+                                CommentEmojiReaction::getEmoji,
+                                Collectors.mapping(
+                                        r -> ReactionUserDTO.builder()
+                                                .id(r.getReactorWriter().getId())
+                                                .username(r.getReactorWriter().getUsername())
+                                                .name(r.getReactorWriter().getName())
+                                                .build(),
+                                        Collectors.toList()
+                                )
+                        )
+                ));
 
         return PraiseDetailResponseDTO.from(praise,receiverList,commentList,emojiGroups,commentEmojiMap);
     }
