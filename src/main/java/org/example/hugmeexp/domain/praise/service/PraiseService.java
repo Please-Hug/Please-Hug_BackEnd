@@ -229,6 +229,8 @@ public class PraiseService {
                     return PraiseResponseDTO.from(praise,receivers,commentCount,emojiGroups,List.of());
 
                 })
+                .filter(praiseResponseDTO -> praiseResponseDTO.getEmojis() != null &&
+                        praiseResponseDTO.getEmojis().stream().mapToInt(EmojiReactionGroupDTO::getCount).sum()>0)
 
                 // 이모지 반응 수 총합 기준 내림차순 정렬
                 .sorted(Comparator.comparingInt((PraiseResponseDTO p) ->
