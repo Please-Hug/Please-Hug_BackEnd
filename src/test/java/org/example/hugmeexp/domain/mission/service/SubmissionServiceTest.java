@@ -138,9 +138,9 @@ public class SubmissionServiceTest {
             when(userMissionSubmissionMapper.toEntity(request)).thenReturn(submission);
 
             // When & Then
-            assertThatThrownBy(() -> submissionService.submitChallenge(userMissionId, request, file),
-                    "파일이 비어있거나 존재하지 않습니다.")
-                    .isInstanceOf(SubmissionFileUploadException.class);
+            assertThatThrownBy(() -> submissionService.submitChallenge(userMissionId, request, file))
+                    .isInstanceOf(SubmissionFileUploadException.class)
+                    .hasMessage("파일이 비어있거나 존재하지 않습니다.");
 
         }
     }
