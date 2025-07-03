@@ -15,7 +15,7 @@ public class StudyDiaryFindAllResponse {
 
     private Long id;
 
-    private String userName;
+    private String name;
 
     private String title;
 
