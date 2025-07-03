@@ -87,7 +87,7 @@ public class SubmissionController {
                     @ApiResponse(responseCode = "500", description = "파일 경로 검증 실패 또는 IO 오류")
             }
     )
-    @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LECTURER')")
     @GetMapping("/{userMissionId}/file")
     public ResponseEntity<Resource> getSubmissionFileByMissionId(@PathVariable Long userMissionId) {
         SubmissionResponse submissionResponse = submissionService.getSubmissionByMissionId(userMissionId);
@@ -161,7 +161,7 @@ public class SubmissionController {
                     @ApiResponse(responseCode = "404", description = "제출 정보를 찾을 수 없음"),
             }
     )
-    @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LECTURER')")
     @PatchMapping("/{userMissionId}/feedback")
     public ResponseEntity<Response<Void>> updateSubmissionFeedback(@PathVariable Long userMissionId,
                                                                    @Valid @RequestBody SubmissionFeedbackRequest submissionFeedbackRequest) {

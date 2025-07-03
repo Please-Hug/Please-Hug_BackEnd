@@ -79,7 +79,7 @@ public class ChallengeController {
                                     schema = @Schema(implementation = Response.class)))
             }
     )
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasRole('LECTURER')")
     @GetMapping()
     public ResponseEntity<Response<List<UserMissionResponse>>> getAllChallenges(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(Response.<List<UserMissionResponse>>builder()
