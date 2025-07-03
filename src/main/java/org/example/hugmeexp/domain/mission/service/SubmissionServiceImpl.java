@@ -75,6 +75,7 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         userMissionSubmissionRepository.save(submission);
 
+        logMissionStateChange(userMission, UserMissionState.IN_FEEDBACK);
         userMission.setProgress(UserMissionState.IN_FEEDBACK);
         // 파일 전송되기 전에 저장하고 파일 전송이 실패하면 롤백되므로(SubmissionFileUploadException)
         // 고아 파일, 고아 레코드가 남지 않을 것임
@@ -105,6 +106,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         Submission submission = userMissionSubmissionRepository.findByUserMission(userMission)
                 .orElseThrow(SubmissionNotFoundException::new);
         submission.setFeedback(submissionFeedbackRequest.getFeedback());
+        logMissionStateChange(userMission, UserMissionState.FEEDBACK_COMPLETED);
         userMission.setProgress(UserMissionState.FEEDBACK_COMPLETED);
         userMissionRepository.save(userMission);
         userMissionSubmissionRepository.save(submission);
@@ -118,19 +120,26 @@ public class SubmissionServiceImpl implements SubmissionService {
         UserMission userMission = userMissionRepository.findById(userMissionId)
                 .orElseThrow(UserMissionNotFoundException::new);
         Mission mission = userMission.getMission();
-        if (userMission.getProgress() == UserMissionState.REWARD_RECEIVED) {
-            throw new AlreadyReceivedRewardException();
-        }
-        if (userMission.getProgress() != UserMissionState.FEEDBACK_COMPLETED) {
-            throw new InvalidUserMissionStateException();
-        }
+        validateRewardEligibility(userMission);
+
+        logMissionStateChange(userMission, UserMissionState.REWARD_RECEIVED);
+
+        userMission.setProgress(UserMissionState.REWARD_RECEIVED);
+
+        logRewardTransaction(userMission, user, mission);
+
+        userService.increasePoint(user, mission.getRewardPoint());
+    }
+
+    private void logMissionStateChange(UserMission userMission, UserMissionState newState) {
         userMissionStateLogRepository.save(UserMissionStateLog.builder()
                 .userMission(userMission)
                 .prevState(userMission.getProgress())
-                .nextState(UserMissionState.REWARD_RECEIVED)
+                .nextState(newState)
                 .build());
-        userMission.setProgress(UserMissionState.REWARD_RECEIVED);
+    }
 
+    private void logRewardTransaction(UserMission userMission, User user, Mission mission) {
         missionRewardExpLogRepository.save(
                 MissionRewardExpLog.builder()
                         .userMission(userMission)
@@ -148,6 +157,14 @@ public class SubmissionServiceImpl implements SubmissionService {
                         .note("미션 보상 구름조각")
                         .build()
         );
-        userService.increasePoint(user, mission.getRewardPoint());
+    }
+
+    private static void validateRewardEligibility(UserMission userMission) {
+        if (userMission.getProgress() == UserMissionState.REWARD_RECEIVED) {
+            throw new AlreadyReceivedRewardException();
+        }
+        if (userMission.getProgress() != UserMissionState.FEEDBACK_COMPLETED) {
+            throw new InvalidUserMissionStateException();
+        }
     }
 }
