@@ -8,6 +8,7 @@ import org.example.hugmeexp.domain.mission.enums.Difficulty;
 import org.example.hugmeexp.domain.mission.enums.UserMissionState;
 import org.example.hugmeexp.domain.mission.exception.MissionNotFoundException;
 import org.example.hugmeexp.domain.mission.service.MissionService;
+import org.example.hugmeexp.domain.mission.service.UserMissionService;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
 import org.example.hugmeexp.global.common.exception.ExceptionController;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +48,9 @@ class MissionControllerTest {
 
     @Mock
     private MissionService missionService;
+
+    @Mock
+    private UserMissionService userMissionService;
 
     @InjectMocks
     private MissionController missionController;
@@ -267,7 +271,7 @@ class MissionControllerTest {
                 .progress(UserMissionState.NOT_STARTED)
                 .build();
 
-        given(missionService.challengeMission(username, missionId))
+        given(userMissionService.challengeMission(username, missionId))
                 .willReturn(serviceResponse);
 
         // UserDetails + Authentication 준비
@@ -299,7 +303,7 @@ class MissionControllerTest {
                         .value(UserMissionState.NOT_STARTED.name()));
 
         // Service 호출 검증
-        verify(missionService).challengeMission(username, missionId);
+        verify(userMissionService).challengeMission(username, missionId);
 
         // 테스트 끝난 뒤에는 Context 초기화
         SecurityContextHolder.clearContext();
