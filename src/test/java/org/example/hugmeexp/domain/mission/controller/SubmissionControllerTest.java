@@ -69,24 +69,24 @@ class SubmissionControllerTest {
                 .build();
     }
 
-    // given
-    Long userMissionId = 1L;
-
-    UserMissionResponse userMissionResponse = mock(UserMissionResponse.class);
-
-    SubmissionResponse submissionResponse = SubmissionResponse.builder()
-            .id(userMissionId)
-            .comment("comment")
-            .feedback("feedback")
-            .fileName("fileName.txt")
-            .originalFileName("originalFileName.txt")
-            .userMission(userMissionResponse)
-            .build();
 
     @Test
     @DisplayName("제출 정보를 조회한다 - 성공")
     public void getSubmissionByMissionId_Success() throws Exception {
 
+        // given
+        Long userMissionId = 1L;
+
+        UserMissionResponse userMissionResponse = mock(UserMissionResponse.class);
+
+        SubmissionResponse submissionResponse = SubmissionResponse.builder()
+                .id(userMissionId)
+                .comment("comment")
+                .feedback("feedback")
+                .fileName("fileName.txt")
+                .originalFileName("originalFileName.txt")
+                .userMission(userMissionResponse)
+                .build();
 
 
         when(submissionService.getSubmissionByMissionId(any()))
@@ -149,6 +149,19 @@ class SubmissionControllerTest {
     @DisplayName("미션 파일을 다운로드한다 - 성공")
     public void getSubmissionFileByMissionId_Success() throws Exception {
         // given
+        Long userMissionId = 1L;
+
+        UserMissionResponse userMissionResponse = mock(UserMissionResponse.class);
+
+        SubmissionResponse submissionResponse = SubmissionResponse.builder()
+                .id(userMissionId)
+                .comment("comment")
+                .feedback("feedback")
+                .fileName("fileName.txt")
+                .originalFileName("originalFileName.txt")
+                .userMission(userMissionResponse)
+                .build();
+
         when(submissionService.getSubmissionByMissionId(userMissionId))
                 .thenReturn(submissionResponse);
         try (MockedStatic<FileUploadUtils> mockedStatic = Mockito.mockStatic(FileUploadUtils.class)) {
@@ -193,6 +206,11 @@ class SubmissionControllerTest {
     @DisplayName("미션 파일 다운로드 실패 - 제출 정보가 없을 때 - 실패")
     public void getSubmissionFileByMissionId_NotFound() throws Exception {
         // given
+        Long userMissionId = 1L;
+
+        UserMissionResponse userMissionResponse = mock(UserMissionResponse.class);
+
+
         when(submissionService.getSubmissionByMissionId(userMissionId))
                 .thenThrow(new SubmissionNotFoundException());
 
@@ -209,6 +227,19 @@ class SubmissionControllerTest {
     @DisplayName("미션 파일 다운로드 실패 - 파일이 존재하지 않을 때 - 실패")
     public void getSubmissionFileByMissionId_FileNotFound() throws Exception {
         // given
+        Long userMissionId = 1L;
+
+        UserMissionResponse userMissionResponse = mock(UserMissionResponse.class);
+
+        SubmissionResponse submissionResponse = SubmissionResponse.builder()
+                .id(userMissionId)
+                .comment("comment")
+                .feedback("feedback")
+                .fileName("fileName.txt")
+                .originalFileName("originalFileName.txt")
+                .userMission(userMissionResponse)
+                .build();
+
         when(submissionService.getSubmissionByMissionId(userMissionId))
                 .thenReturn(submissionResponse);
         try (MockedStatic<FileUploadUtils> mockedStatic = Mockito.mockStatic(FileUploadUtils.class)) {
@@ -233,6 +264,18 @@ class SubmissionControllerTest {
     @DisplayName("미션 파일 다운로드 실패 - 파일을 읽을 수 없을 때 - 실패")
     public void getSubmissionFileByMissionId_FileReadError() throws Exception {
         // given
+        Long userMissionId = 1L;
+
+        UserMissionResponse userMissionResponse = mock(UserMissionResponse.class);
+
+        SubmissionResponse submissionResponse = SubmissionResponse.builder()
+                .id(userMissionId)
+                .comment("comment")
+                .feedback("feedback")
+                .fileName("fileName.txt")
+                .originalFileName("originalFileName.txt")
+                .userMission(userMissionResponse)
+                .build();
         when(submissionService.getSubmissionByMissionId(userMissionId))
                 .thenReturn(submissionResponse);
         try (MockedStatic<FileUploadUtils> mockedStatic = Mockito.mockStatic(FileUploadUtils.class)) {

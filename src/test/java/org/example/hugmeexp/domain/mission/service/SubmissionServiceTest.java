@@ -55,7 +55,7 @@ public class SubmissionServiceTest {
     @Mock
     private UserMissionStateLogRepository userMissionStateLogRepository;
     @Mock
-    private UserService userService = mock(UserService.class);
+    private UserService userService;
 
     @Mock
     private MissionRewardExpLogRepository userMissionRewardExpRepository;
