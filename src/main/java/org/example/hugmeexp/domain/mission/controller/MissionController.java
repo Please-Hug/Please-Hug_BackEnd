@@ -13,6 +13,7 @@ import org.example.hugmeexp.domain.mission.dto.request.MissionRequest;
 import org.example.hugmeexp.domain.mission.dto.response.MissionResponse;
 import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.service.MissionService;
+import org.example.hugmeexp.domain.mission.service.UserMissionService;
 import org.example.hugmeexp.domain.missionTask.dto.request.MissionTaskRequest;
 import org.example.hugmeexp.domain.missionTask.dto.response.MissionTaskResponse;
 import org.example.hugmeexp.domain.missionTask.dto.response.UserMissionTaskResponse;
@@ -34,6 +35,7 @@ import java.util.List;
 public class MissionController {
     private final MissionService missionService;
     private final MissionTaskService missionTaskService;
+    private final UserMissionService userMissionService;
 
 
     @Operation(
@@ -234,7 +236,7 @@ public class MissionController {
     @GetMapping("/{missionId}/challenges")
     public ResponseEntity<Response<UserMissionResponse>> getChallenge(@PathVariable Long missionId, @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.status(HttpStatus.OK).body(Response.<UserMissionResponse>builder()
-                .data(missionService.getUserMission(missionId, userDetails.getUsername()))
+                .data(userMissionService.getUserMission(missionId, userDetails.getUsername()))
                 .message("미션 " + missionId + " 도전 정보를 가져왔습니다.")
                 .build());
     }
@@ -263,7 +265,7 @@ public class MissionController {
     @PostMapping("/{id}/challenges")
     public ResponseEntity<Response<UserMissionResponse>> challengeMission(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.status(HttpStatus.CREATED).body(Response.<UserMissionResponse>builder()
-                .data(missionService.challengeMission(userDetails.getUsername(), id))
+                .data(userMissionService.challengeMission(userDetails.getUsername(), id))
                 .message("미션 " + id + "에 도전하였습니다.")
                 .build());
     }
