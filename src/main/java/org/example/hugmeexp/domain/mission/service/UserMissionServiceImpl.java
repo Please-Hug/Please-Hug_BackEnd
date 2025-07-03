@@ -68,7 +68,7 @@ public class UserMissionServiceImpl implements UserMissionService {
                 .build();
         userMissionStateLogRepository.save(UserMissionStateLog.builder()
                 .userMission(userMission)
-                .prevState(UserMissionState.NOT_STARTED)
+                .prevState(null)
                 .nextState(UserMissionState.NOT_STARTED)
                 .build());
 
