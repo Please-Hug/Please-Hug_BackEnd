@@ -7,6 +7,7 @@ import org.example.hugmeexp.global.common.exception.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -111,6 +112,17 @@ public class ExceptionController {
                 .body(ErrorResponse.builder()
                         .code(500)
                         .message("일시적으로 접속이 원활하지 않습니다.")
+                        .build());
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAuthorizationDeniedException(AuthorizationDeniedException exception) {
+        log.warn("Authorization Denied Exception : {}\n", exception.getMessage());
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ErrorResponse.builder()
+                        .code(HttpStatus.FORBIDDEN.value())
+                        .message("권한이 없습니다.")
                         .build());
     }
 

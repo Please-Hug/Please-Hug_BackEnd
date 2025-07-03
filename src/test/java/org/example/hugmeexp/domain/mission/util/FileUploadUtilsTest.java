@@ -2,12 +2,9 @@ package org.example.hugmeexp.domain.mission.util;
 
 import org.example.hugmeexp.domain.mission.enums.FileUploadType;
 import org.example.hugmeexp.domain.mission.exception.SubMissionInternalException;
-import org.example.hugmeexp.domain.mission.exception.SubmissionFileUploadException;
-import org.example.hugmeexp.domain.mission.util.FileUploadUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Path;
@@ -17,10 +14,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("FileUploadUtils Test")
 class FileUploadUtilsTest {
-
-    @InjectMocks
-    private FileUploadUtils fileUploadUtils;
-
     @Test
     void returnsCorrectUploadPathForValidType() {
         FileUploadType uploadType = FileUploadType.MISSION_UPLOADS;
