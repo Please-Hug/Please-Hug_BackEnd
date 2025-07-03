@@ -26,24 +26,5 @@ public interface MissionService {
     MissionResponse changeMissionGroup(Long id, Long missionGroupId);
 
     List<MissionResponse> getMissionsByMissionGroupId(Long missionGroupId);
-
-    UserMissionResponse challengeMission(String username, Long missionId);
-
-    void changeUserMissionState(Long userMissionId, UserMissionState newProgress);
-
-    void submitChallenge(Long userMissionId, SubmissionUploadRequest submissionUploadRequest, MultipartFile file);
-
-    SubmissionResponse getSubmissionByMissionId(Long userMissionId);
-
-    void updateSubmissionFeedback(Long userMissionId, SubmissionFeedbackRequest submissionFeedbackRequest);
-
-    void receiveReward(Long userMissionId, String username);
-
-    List<UserMissionStateLogResponse> getAllMissionStateLog(long userId, LocalDate startDate, LocalDate endDate);
-
-    UserMissionResponse getUserMission(Long missionId, String username);
-
-    List<UserMissionResponse> getAllUserMissionsByTeacher(String username);
-
-    UserMissionResponse getUserMissionByChallengeId(Long challengeId);
+    
 }

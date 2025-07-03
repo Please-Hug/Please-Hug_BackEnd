@@ -14,7 +14,7 @@ import org.example.hugmeexp.domain.mission.dto.response.SubmissionResponse;
 import org.example.hugmeexp.domain.mission.enums.FileUploadType;
 import org.example.hugmeexp.domain.mission.exception.SubMissionInternalException;
 import org.example.hugmeexp.domain.mission.exception.SubmissionNotFoundException;
-import org.example.hugmeexp.domain.mission.service.MissionService;
+import org.example.hugmeexp.domain.mission.service.SubmissionService;
 import org.example.hugmeexp.domain.mission.util.FileUploadUtils;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.core.io.FileSystemResource;
@@ -36,7 +36,7 @@ import java.nio.charset.StandardCharsets;
 @RequestMapping("/api/v1/submissions")
 @RequiredArgsConstructor
 public class SubmissionController {
-    private final MissionService missionService;
+    private final SubmissionService submissionService;
 
     @Operation(
             summary = "제출 정보 조회",
@@ -59,7 +59,7 @@ public class SubmissionController {
     )
     @GetMapping("/{userMissionId}")
     public ResponseEntity<Response<SubmissionResponse>> getSubmissionByMissionId(@PathVariable Long userMissionId) {
-        SubmissionResponse submissionResponse = missionService.getSubmissionByMissionId(userMissionId);
+        SubmissionResponse submissionResponse = submissionService.getSubmissionByMissionId(userMissionId);
         return ResponseEntity.ok(Response.<SubmissionResponse>builder()
                 .data(submissionResponse)
                 .message("미션 " + userMissionId + "의 제출 정보를 성공적으로 가져왔습니다.")
@@ -88,7 +88,7 @@ public class SubmissionController {
     )
     @GetMapping("/{userMissionId}/file")
     public ResponseEntity<Resource> getSubmissionFileByMissionId(@PathVariable Long userMissionId) {
-        SubmissionResponse submissionResponse = missionService.getSubmissionByMissionId(userMissionId);
+        SubmissionResponse submissionResponse = submissionService.getSubmissionByMissionId(userMissionId);
         if (submissionResponse == null || submissionResponse.getFileName() == null) {
             throw new SubmissionNotFoundException();
         }
@@ -163,7 +163,7 @@ public class SubmissionController {
     public ResponseEntity<Response<Void>> updateSubmissionFeedback(@PathVariable Long userMissionId,
                                                                    @Valid @RequestBody SubmissionFeedbackRequest submissionFeedbackRequest) {
 
-        missionService.updateSubmissionFeedback(userMissionId, submissionFeedbackRequest);
+        submissionService.updateSubmissionFeedback(userMissionId, submissionFeedbackRequest);
         return ResponseEntity.ok(Response.<Void>builder()
                 .message("제출 피드백이 성공적으로 업데이트되었습니다.")
                 .build());
@@ -196,7 +196,7 @@ public class SubmissionController {
     @PostMapping("/{userMissionId}/reward")
     public ResponseEntity<Response<Void>> receiveReward(@PathVariable Long userMissionId,
                                                         @AuthenticationPrincipal UserDetails userDetails) {
-        missionService.receiveReward(userMissionId, userDetails.getUsername());
+        submissionService.receiveReward(userMissionId, userDetails.getUsername());
         return ResponseEntity.ok(Response.<Void>builder()
                 .message("보상이 성공적으로 수령되었습니다.")
                 .build());
