@@ -38,8 +38,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserMissionService 테스트")
 class UserMissionServiceTest {
-    @TempDir
-    Path tempDir;
     @Mock
     private MissionRepository missionRepository;
     @Mock

@@ -35,9 +35,6 @@ class ChallengeControllerTest {
     private final String BASE_URL = "/api/v1/challenges";
     private MockMvc mockMvc;
 
-    @Mock
-    private MissionService missionService;
-
     @InjectMocks
     private ChallengeController challengeController;
 
