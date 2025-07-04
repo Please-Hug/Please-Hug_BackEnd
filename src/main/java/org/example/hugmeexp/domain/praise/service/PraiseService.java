@@ -65,9 +65,10 @@ public class PraiseService {
         praiseReceiverRepository.saveAll(praiseReceivers);
 
         List<UserProfileResponse> commentPro = Collections.emptyList();
+        List<EmojiReactionGroupDTO> emojis = Collections.emptyList();
 
         // Entity -> DTO
-        return PraiseResponseDTO.from(saved, praiseReceivers, 0L, null, commentPro);
+        return PraiseResponseDTO.from(saved, praiseReceivers, 0L, emojis, commentPro);
 
 
     }
@@ -77,7 +78,6 @@ public class PraiseService {
 
         LocalDateTime startDateTime = startDate.atStartOfDay();    // 2025-06-01 00:00:00
         LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);    // 2025-06-18 23:59:59.999
-
         List<Praise> praiseList;
 
         if(me){
@@ -100,7 +100,6 @@ public class PraiseService {
         // 칭찬 받는 사람 리스트 매핑
         Map<Long, List<PraiseReceiver>> receiverMap = praiseReceiverRepository.findByPraiseIn(praiseList).stream()
                 .collect(Collectors.groupingBy(pr -> pr.getPraise().getId()));
-
 
         return praiseList.stream()
                 .map(praise -> {
