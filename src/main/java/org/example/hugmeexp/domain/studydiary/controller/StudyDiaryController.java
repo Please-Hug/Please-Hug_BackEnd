@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryCreateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryUpdateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.CommentCreateRequest;
+import org.example.hugmeexp.domain.studydiary.dto.request.MarkdownPreviewRequest;
+import org.example.hugmeexp.domain.studydiary.dto.response.MarkdownPreviewResponse;
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryWeekStatusResponse;
 import org.example.hugmeexp.domain.studydiary.service.StudyDiaryService;
 import org.example.hugmeexp.global.common.response.Response;
