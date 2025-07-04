@@ -52,15 +52,6 @@ class RefreshControllerTest {
     private final String phone = "010-3333-4444";
     private final String password = "refresh123!";
 
-    @Container
-    static GenericContainer<?> redis = new GenericContainer<>("redis:7.2-alpine")
-            .withExposedPorts(6379);
-
-    @DynamicPropertySource
-    static void redisProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.redis.host", redis::getHost);
-        registry.add("spring.redis.port", () -> redis.getMappedPort(6379));
-    }
 
     @AfterEach
     void tearDown() {
