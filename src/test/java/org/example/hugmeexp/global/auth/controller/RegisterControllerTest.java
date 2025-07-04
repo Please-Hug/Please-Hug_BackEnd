@@ -18,9 +18,6 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -33,19 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "jwt.access-token-expiration=10000",
         "jwt.refresh-token-expiration=60000"
 })
-@Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RegisterControllerTest {
-
-    @Container
-    static GenericContainer<?> redis = new GenericContainer<>("redis:7.2-alpine")
-            .withExposedPorts(6379);
-
-    @DynamicPropertySource
-    static void redisProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.redis.host", redis::getHost);
-        registry.add("spring.redis.port", () -> redis.getMappedPort(6379));
-    }
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;

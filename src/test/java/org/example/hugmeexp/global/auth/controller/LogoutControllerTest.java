@@ -17,9 +17,6 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -32,7 +29,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "jwt.access-token-expiration=10000",
         "jwt.refresh-token-expiration=60000"
 })
-@Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LogoutControllerTest {
 
@@ -45,16 +41,6 @@ class LogoutControllerTest {
     private final String username = "logoutuser";
     private final String phone = "010-2222-3333";
     private final String password = "logout123!";
-
-    @Container
-    static GenericContainer<?> redis = new GenericContainer<>("redis:7.2-alpine")
-            .withExposedPorts(6379);
-
-    @DynamicPropertySource
-    static void redisProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.redis.host", redis::getHost);
-        registry.add("spring.redis.port", () -> redis.getMappedPort(6379));
-    }
 
     @AfterEach
     void tearDown() {
