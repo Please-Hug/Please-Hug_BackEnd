@@ -12,10 +12,13 @@ import org.example.hugmeexp.global.infra.auth.service.CredentialService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -31,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "jwt.access-token-expiration=1000",
         "jwt.refresh-token-expiration=60000"
 })
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RefreshControllerTest {
 
     @Autowired
@@ -43,6 +47,7 @@ class RefreshControllerTest {
     private final String username = "refreshuser";
     private final String phone = "010-3333-4444";
     private final String password = "refresh123!";
+
 
     @AfterEach
     void tearDown() {
