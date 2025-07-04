@@ -3,6 +3,8 @@ package org.example.hugmeexp.domain.shop.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.mission.enums.FileUploadType;
+import org.example.hugmeexp.domain.mission.util.FileUploadUtils;
 import org.example.hugmeexp.domain.shop.dto.ProductRequest;
 import org.example.hugmeexp.domain.shop.dto.ProductResponse;
 import org.example.hugmeexp.domain.shop.entity.Product;
@@ -139,7 +141,8 @@ public class ProductAdminService {
         String extension = getExtension(image.getOriginalFilename());
 
         // 파일 저장 경로
-        Path uploadDirPath = Paths.get(System.getProperty("user.dir"), "product-images");
+        String uploadDir = FileUploadUtils.getUploadPath(FileUploadType.PRODUCT_IMAGES).toString();
+        Path uploadDirPath = Paths.get(uploadDir);
 
         // 확장자와 저장 경로를 통해 ProductImage 엔티티 생성 및 Product 엔티티와 매핑
         try {
@@ -151,7 +154,7 @@ public class ProductAdminService {
 
             // 확장자와 저장 경로를 통해 ProductImage 생성
             // 해당 ProductImage를 Product와 연결
-            ProductImage productImage = product.registerProductImage(uploadDirPath.toString(), extension);
+            ProductImage productImage = product.registerProductImage("/application/" + FileUploadType.PRODUCT_IMAGES.value(), extension);
 
             // \AppData\Local\Temp\app-uploads\ 경로에 uuid.extension 형식으로 파일 저장
             String savedFileName = productImage.getUuid() + "." + productImage.getExtension();

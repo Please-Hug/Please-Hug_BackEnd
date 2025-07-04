@@ -3,7 +3,7 @@ ALTER USER 'goorm_exp'@'%' IDENTIFIED BY '00000000';
 GRANT ALL PRIVILEGES ON goorm_exp.* TO 'goorm_exp'@'%';
 FLUSH PRIVILEGES;
 
-USE goorm_exp
+USE goorm_exp;
 
 SET FOREIGN_KEY_CHECKS = 0;
 
