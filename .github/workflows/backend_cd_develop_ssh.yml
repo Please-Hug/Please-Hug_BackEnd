@@ -36,8 +36,8 @@ jobs:
           script: |
             cd /home/ec2-user/hugme/backend/Please-Hug_BackEnd
             git pull origin develop
-            docker compose -f docker-compose.yml down
-            docker compose -f docker-compose.yml up -d
+            docker-compose -f docker-compose.yml down
+            docker-compose -f docker-compose.yml up -d
 
       - name: Remove Github Actions IP From Security Group
         run: |
