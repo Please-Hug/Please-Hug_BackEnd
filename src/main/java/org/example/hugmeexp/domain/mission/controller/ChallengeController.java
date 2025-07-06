@@ -13,11 +13,13 @@ import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.mission.dto.request.SubmissionUploadRequest;
 import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.enums.UserMissionState;
-import org.example.hugmeexp.domain.mission.service.MissionService;
+import org.example.hugmeexp.domain.mission.service.SubmissionService;
+import org.example.hugmeexp.domain.mission.service.UserMissionService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +32,8 @@ import java.util.List;
 @RequestMapping("/api/v1/challenges")
 @RequiredArgsConstructor
 public class ChallengeController {
-    private final MissionService missionService;
+    private final UserMissionService userMissionService;
+    private final SubmissionService submissionService;
 
     @Operation(
             summary = "챌린지(유저미션) 상태 업데이트",
@@ -59,7 +62,7 @@ public class ChallengeController {
     )
     @PatchMapping("/{challengeId}")
     public ResponseEntity<Response<Void>> updateChallengeState(@PathVariable Long challengeId, @RequestParam UserMissionState newProgress) {
-        missionService.changeUserMissionState(challengeId, newProgress);
+        userMissionService.changeUserMissionState(challengeId, newProgress);
         return ResponseEntity.ok(Response.<Void>builder()
                 .message("챌린지 상태가 성공적으로 업데이트되었습니다.")
                 .build());
@@ -76,10 +79,11 @@ public class ChallengeController {
                                     schema = @Schema(implementation = Response.class)))
             }
     )
+    @PreAuthorize("hasRole('LECTURER')")
     @GetMapping()
     public ResponseEntity<Response<List<UserMissionResponse>>> getAllChallenges(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(Response.<List<UserMissionResponse>>builder()
-                .data(missionService.getAllUserMissionsByTeacher(userDetails.getUsername()))
+                .data(userMissionService.getAllUserMissionsByTeacher(userDetails.getUsername()))
                 .message("모든 챌린지를 성공적으로 가져왔습니다.")
                 .build());
     }
@@ -106,7 +110,7 @@ public class ChallengeController {
     @GetMapping("/{challengeId}")
     public ResponseEntity<Response<UserMissionResponse>> getChallengeById(@PathVariable Long challengeId) {
         return ResponseEntity.ok(Response.<UserMissionResponse>builder()
-                .data(missionService.getUserMissionByChallengeId(challengeId))
+                .data(userMissionService.getUserMissionByChallengeId(challengeId))
                 .message("챌린지 " + challengeId + "를 성공적으로 가져왔습니다.")
                 .build());
     }
@@ -143,7 +147,7 @@ public class ChallengeController {
     public ResponseEntity<Response<Void>> submitChallenge(@PathVariable Long challengeId,
                                                           @Valid @ModelAttribute SubmissionUploadRequest submissionUploadRequest,
                                                           @RequestParam("file") MultipartFile file) {
-        missionService.submitChallenge(challengeId, submissionUploadRequest, file);
+        submissionService.submitChallenge(challengeId, submissionUploadRequest, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(Response.<Void>builder()
                 .message("챌린지 제출이 성공적으로 완료되었습니다.")
                 .build());

@@ -33,6 +33,7 @@ public class StudyDiary extends BaseEntity {
 
     private String title;
 
+    @Column(columnDefinition = "LONGTEXT")
     private String content;
 
     private boolean isCreated;
