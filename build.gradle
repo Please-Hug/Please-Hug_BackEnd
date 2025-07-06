@@ -49,8 +49,11 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
 
+    //mysql
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
     //h2
-    runtimeOnly 'com.h2database:h2'
+    // runtimeOnly 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
