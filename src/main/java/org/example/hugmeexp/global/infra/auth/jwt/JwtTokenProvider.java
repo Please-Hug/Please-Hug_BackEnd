@@ -177,7 +177,7 @@ public class JwtTokenProvider {
                     .parseClaimsJws(accessToken);
 
             // 액세스 토큰이 여전히 유효하다면 예외를 던짐
-            log.warn("Access token is still valid. Rejecting issuing refresh token - accessToken: {}...", accessToken.substring(0, 10));
+            //log.warn("Access token is still valid. Rejecting issuing refresh token - accessToken: {}...", accessToken.substring(0, 10));
 //            throw new AccessTokenStillValidException();
         }
         catch (ExpiredJwtException e) {
