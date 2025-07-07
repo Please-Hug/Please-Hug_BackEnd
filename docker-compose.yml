@@ -9,7 +9,7 @@ services:
   goormexp:  # 메인 애플리케이션 서비스 이름
     build:
       context: .  # 빌드 컨텍스트: 현재 디렉터리 (프로젝트 루트)
-      dockerfile: docker/Dockerfile  # 사용할 Dockerfile 경로
+      dockerfile: ./docker/Dockerfile  # 사용할 Dockerfile 경로
     image: goorm-exp  # 빌드 후 생성될 이미지 이름 (태그)
     container_name: goormexp  # 실행될 컨테이너 이름 (고유해야 함)
     # depends_on 제거: infrastructure가 별도로 실행되므로 불필요
