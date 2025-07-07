@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.studydiary.dto.request.CommentCreateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryCreateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryUpdateRequest;
+import org.example.hugmeexp.domain.studydiary.dto.request.MarkdownPreviewRequest;
+import org.example.hugmeexp.domain.studydiary.dto.response.MarkdownPreviewResponse;
 import org.example.hugmeexp.domain.studydiary.dto.response.CommentDetailResponse;
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryDetailResponse;
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryFindAllResponse;
@@ -98,7 +100,7 @@ public class StudyDiaryService {
         Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
             return StudyDiaryFindAllResponse.builder()
                     .id(studyDiary.getId())
-                    .userName(studyDiary.getUser().getUsername())
+                    .name(studyDiary.getUser().getName())
                     .title(studyDiary.getTitle())
                     .content(studyDiary.getContent())
                     .likeNum(studyDiary.getLikeCount())
@@ -122,7 +124,7 @@ public class StudyDiaryService {
         Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {
             return StudyDiaryFindAllResponse.builder()
                     .id(studyDiary.getId())
-                    .userName(studyDiary.getUser().getUsername())
+                    .name(studyDiary.getUser().getName())
                     .title(studyDiary.getTitle())
                     .content(studyDiary.getContent())
                     .likeNum(studyDiary.getLikeCount())
@@ -142,7 +144,7 @@ public class StudyDiaryService {
         List<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaryDraftList.stream().map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
             return StudyDiaryFindAllResponse.builder()
                     .id(studyDiary.getId())
-                    .userName(studyDiary.getUser().getUsername())
+                    .name(studyDiary.getUser().getName())
                     .title(studyDiary.getTitle())
                     .content(studyDiary.getContent())
                     .likeNum(studyDiary.getLikeCount())
@@ -161,7 +163,7 @@ public class StudyDiaryService {
         Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
             return StudyDiaryFindAllResponse.builder()
                     .id(studyDiary.getId())
-                    .userName(studyDiary.getUser().getUsername())
+                    .name(studyDiary.getUser().getName())
                     .title(studyDiary.getTitle())
                     .content(studyDiary.getContent())
                     .likeNum(studyDiary.getLikeCount())
@@ -180,7 +182,7 @@ public class StudyDiaryService {
         StudyDiaryDetailResponse studyDiaryDetailResponse = StudyDiaryDetailResponse.builder()
                 .id(studyDiary.getId())
                 .userId(studyDiary.getUser().getId())
-                .userName(studyDiary.getUser().getUsername())
+                .name(studyDiary.getUser().getName())
                 .title(studyDiary.getTitle())
                 .content(studyDiary.getContent())
                 .likeNum(studyDiary.getLikeCount())
@@ -200,7 +202,7 @@ public class StudyDiaryService {
         List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
             return StudyDiaryFindAllResponse.builder()
                     .id(studyDiary.getId())
-                    .userName(studyDiary.getUser().getUsername())
+                    .name(studyDiary.getUser().getName())
                     .title(studyDiary.getTitle())
                     .content(studyDiary.getContent())
                     .likeNum(studyDiary.getLikeCount())
@@ -219,7 +221,7 @@ public class StudyDiaryService {
         List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
             return StudyDiaryFindAllResponse.builder()
                     .id(studyDiary.getId())
-                    .userName(studyDiary.getUser().getUsername())
+                    .name(studyDiary.getUser().getName())
                     .title(studyDiary.getTitle())
                     .content(studyDiary.getContent())
                     .likeNum(studyDiary.getLikeCount())
@@ -481,5 +483,69 @@ public class StudyDiaryService {
             
             return totalDays;
         }
+    }
+
+    /**
+     * 마크다운 미리보기 생성
+     */
+    public MarkdownPreviewResponse previewMarkdown(MarkdownPreviewRequest request) {
+        String markdownContent = request.getMarkdownContent();
+        
+        // 간단한 마크다운 -> HTML 변환 (실제 구현시에는 마크다운 라이브러리 사용 권장)
+        String htmlContent = convertMarkdownToHtml(markdownContent);
+        
+        // 글자 수 계산
+        int characterCount = markdownContent.length();
+        
+        // 단어 수 계산 (공백 기준)
+        int wordCount = markdownContent.trim().isEmpty() ? 0 : markdownContent.trim().split("\\s+").length;
+        
+        return MarkdownPreviewResponse.builder()
+                .markdownContent(markdownContent)
+                .htmlContent(htmlContent)
+                .characterCount(characterCount)
+                .wordCount(wordCount)
+                .build();
+    }
+
+    /**
+     * 간단한 마크다운 -> HTML 변환
+     * 실제 운영시에는 commonmark, flexmark 등의 라이브러리 사용 권장
+     */
+    private String convertMarkdownToHtml(String markdown) {
+        if (markdown == null || markdown.trim().isEmpty()) {
+            return "";
+        }
+        
+        String html = markdown;
+        
+        // 헤딩 변환
+        html = html.replaceAll("^### (.*$)", "<h3>$1</h3>");
+        html = html.replaceAll("^## (.*$)", "<h2>$1</h2>");
+        html = html.replaceAll("^# (.*$)", "<h1>$1</h1>");
+        
+        // 굵은 글씨
+        html = html.replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
+        
+        // 기울임 글씨
+        html = html.replaceAll("\\*(.*?)\\*", "<em>$1</em>");
+        
+        // 코드 블록 (간단한 버전)
+        html = html.replaceAll("```java([\\s\\S]*?)```", "<pre><code class=\"language-java\">$1</code></pre>");
+        html = html.replaceAll("```([\\s\\S]*?)```", "<pre><code>$1</code></pre>");
+        
+        // 인라인 코드
+        html = html.replaceAll("`(.*?)`", "<code>$1</code>");
+        
+        // 이미지
+        html = html.replaceAll("!\\[(.*?)\\]\\((.*?)\\)", "<img src=\"$2\" alt=\"$1\" />");
+        
+        // 링크
+        html = html.replaceAll("\\[(.*?)\\]\\((.*?)\\)", "<a href=\"$2\">$1</a>");
+        
+        // 줄바꿈 처리
+        html = html.replace("\n", "<br/>");
+        
+        return html;
     }
 }

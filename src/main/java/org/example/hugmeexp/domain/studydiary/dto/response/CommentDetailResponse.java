@@ -14,7 +14,7 @@ public class CommentDetailResponse {
 
     private Long userId;
 
-    private String userName;
+    private String name;
 
     private String content;
 
@@ -24,7 +24,7 @@ public class CommentDetailResponse {
         return CommentDetailResponse.builder()
                 .id(comment.getId())
                 .userId(comment.getUser().getId())
-                .userName(comment.getUser().getUsername())
+                .name(comment.getUser().getName())
                 .content(comment.getContent())
                 .createdAt(comment.getCreatedAt())
                 .build();

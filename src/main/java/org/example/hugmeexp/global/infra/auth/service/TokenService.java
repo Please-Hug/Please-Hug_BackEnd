@@ -83,6 +83,9 @@ public class TokenService
         // 3. 사용자 정보 추출
         String username = jwtTokenProvider.getUsername(refreshToken);
         String role = jwtTokenProvider.getRole(refreshToken);
+        if (!role.startsWith("ROLE_")) {
+            role = "ROLE_" + role;
+        }
 
         // 4. 기존 리프레시 토큰 무효화 처리
         jwtTokenProvider.revokeRefreshToken(refreshToken);

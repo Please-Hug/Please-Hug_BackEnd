@@ -9,7 +9,6 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.user.enums.UserRole;
-import org.example.hugmeexp.global.infra.auth.exception.AccessTokenStillValidException;
 import org.example.hugmeexp.global.infra.auth.exception.InvalidAccessTokenException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -178,8 +177,8 @@ public class JwtTokenProvider {
                     .parseClaimsJws(accessToken);
 
             // 액세스 토큰이 여전히 유효하다면 예외를 던짐
-            log.warn("Access token is still valid. Rejecting issuing refresh token - accessToken: {}...", accessToken.substring(0, 10));
-            throw new AccessTokenStillValidException();
+            //log.warn("Access token is still valid. Rejecting issuing refresh token - accessToken: {}...", accessToken.substring(0, 10));
+//            throw new AccessTokenStillValidException();
         }
         catch (ExpiredJwtException e) {
             // 액세스 토큰의 유효기간이 만료되었다면 pass

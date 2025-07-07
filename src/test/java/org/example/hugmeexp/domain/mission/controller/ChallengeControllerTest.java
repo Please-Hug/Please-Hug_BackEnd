@@ -3,6 +3,8 @@ package org.example.hugmeexp.domain.mission.controller;
 import org.example.hugmeexp.domain.mission.dto.request.SubmissionUploadRequest;
 import org.example.hugmeexp.domain.mission.enums.UserMissionState;
 import org.example.hugmeexp.domain.mission.service.MissionService;
+import org.example.hugmeexp.domain.mission.service.SubmissionService;
+import org.example.hugmeexp.domain.mission.service.UserMissionService;
 import org.example.hugmeexp.global.common.exception.ExceptionController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,11 +35,14 @@ class ChallengeControllerTest {
     private final String BASE_URL = "/api/v1/challenges";
     private MockMvc mockMvc;
 
-    @Mock
-    private MissionService missionService;
-
     @InjectMocks
     private ChallengeController challengeController;
+
+    @Mock
+    private SubmissionService submissionService;
+
+    @Mock
+    private UserMissionService userMissionService;
 
     @BeforeEach
     void setup() {
@@ -63,7 +68,7 @@ class ChallengeControllerTest {
                 .andExpect(jsonPath("$.data").doesNotExist());
 
         // service 호출 검증
-        verify(missionService).changeUserMissionState(challengeId, newState);
+        verify(userMissionService).changeUserMissionState(challengeId, newState);
     }
 
     @Test
@@ -93,7 +98,7 @@ class ChallengeControllerTest {
         );
 
         // doNothing mocking
-        doNothing().when(missionService).submitChallenge(anyLong(), any(SubmissionUploadRequest.class), any(MultipartFile.class));
+        doNothing().when(submissionService).submitChallenge(anyLong(), any(SubmissionUploadRequest.class), any(MultipartFile.class));
 
         // when
         ResultActions result = mockMvc.perform(
@@ -110,7 +115,7 @@ class ChallengeControllerTest {
                 .andExpect(jsonPath("$.message").value("챌린지 제출이 성공적으로 완료되었습니다."));
 
         // Service가 한번 호출되었는지 검증
-        verify(missionService, times(1))
+        verify(submissionService, times(1))
                 .submitChallenge(eq(challengeId), any(SubmissionUploadRequest.class), any(MultipartFile.class));
     }
 
@@ -135,7 +140,7 @@ class ChallengeControllerTest {
         resultActions.andExpect(status().isBadRequest());
 
         // 서비스 메소드가 호출되지 않았는지 확인
-        verify(missionService, never()).submitChallenge(any(), any(), any());
+        verify(submissionService, never()).submitChallenge(any(), any(), any());
     }
 
     @Test
@@ -166,6 +171,6 @@ class ChallengeControllerTest {
         resultActions.andExpect(status().isBadRequest());
 
         // 서비스 메소드가 호출되지 않았는지 확인
-        verify(missionService, never()).submitChallenge(any(), any(), any());
+        verify(submissionService, never()).submitChallenge(any(), any(), any());
     }
 }
