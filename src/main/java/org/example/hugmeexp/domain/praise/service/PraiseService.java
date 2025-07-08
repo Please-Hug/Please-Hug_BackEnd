@@ -2,6 +2,7 @@ package org.example.hugmeexp.domain.praise.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.notification.service.NotificationService;
 import org.example.hugmeexp.domain.praise.dto.*;
 import org.example.hugmeexp.domain.praise.entity.*;
 import org.example.hugmeexp.domain.praise.enums.PraiseType;
@@ -38,6 +39,7 @@ public class PraiseService {
     private final PraiseReceiverRepository praiseReceiverRepository;
     private final CommentEmojiReactionRepository commentEmojiReactionRepository;
     private final CommentService commentService;
+    private final NotificationService notificationService;
 
 
     /* 칭찬 생성 */
@@ -63,6 +65,13 @@ public class PraiseService {
                         .build())
                 .toList();
         praiseReceiverRepository.saveAll(praiseReceivers);
+
+        // 알림 전송 시 자기 자신에게 보낸 칭찬은 제외
+        for (User receiver : receiverUsers) {
+            if (!receiver.getId().equals(sender.getId())) {
+                notificationService.sendPraiseNotification(receiver);
+            }
+        }
 
         List<UserProfileResponse> commentPro = Collections.emptyList();
         List<EmojiReactionGroupDTO> emojis = Collections.emptyList();
