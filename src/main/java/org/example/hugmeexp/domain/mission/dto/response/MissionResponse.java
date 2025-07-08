@@ -29,4 +29,6 @@ public class MissionResponse {
     private int order;
 
     private int line;
+
+    private String tip;
 }

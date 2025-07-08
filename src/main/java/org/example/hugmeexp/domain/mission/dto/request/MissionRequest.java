@@ -28,4 +28,6 @@ public class MissionRequest {
     private int order;
     @NotNull
     private int line;
+    @Length(max = 511, message = "미션 팁은 최대 511자까지 입력할 수 있습니다.")
+    private String tip;
 }

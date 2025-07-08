@@ -53,6 +53,7 @@ class MissionServiceTest {
             .rewardExp(50)
             .order(1)
             .missionGroupId(SAMPLE_ID)
+            .tip("미션 팁")
             .build();
 
 
@@ -167,6 +168,7 @@ class MissionServiceTest {
                 .rewardPoint(SAMPLE_REQUEST.getRewardPoint())
                 .rewardExp(SAMPLE_REQUEST.getRewardExp())
                 .order(SAMPLE_REQUEST.getOrder())
+                .tip(SAMPLE_REQUEST.getTip())
                 .build();
 
         MissionResponse expectedResponse = MissionResponse.builder().id(SAMPLE_ID).name("미션명").build();
@@ -183,6 +185,7 @@ class MissionServiceTest {
         verify(missionRepository).save(argThat(m -> {
             assertThat(m.getName()).isEqualTo("미션명");
             assertThat(m.getDescription()).isEqualTo("미션 설명");
+            assertThat(m.getTip()).isEqualTo(SAMPLE_REQUEST.getTip());
             return true;
         }));
     }
