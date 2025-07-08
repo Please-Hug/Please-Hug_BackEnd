@@ -117,7 +117,18 @@ class MissionGroupControllerTest {
                 .teacher(teacher)
                 .build();
 
-        given(missionGroupService.createMissionGroup(request))
+        UserDetails userDetails = User.withUsername("admin")
+                .password("dummy")
+                .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                .build();
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails, userDetails.getPassword(), userDetails.getAuthorities());
+
+        SecurityContext ctx = new SecurityContextImpl();
+        ctx.setAuthentication(auth);
+        SecurityContextHolder.setContext(ctx);
+
+        given(missionGroupService.createMissionGroup(request, "admin"))
                 .willReturn(response);
         // When && Then
         mockMvc.perform(post(BASE_URL)

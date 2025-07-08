@@ -65,6 +65,7 @@ public class MissionServiceImpl implements MissionService {
                 .rewardPoint(missionRequest.getRewardPoint())
                 .rewardExp(missionRequest.getRewardExp())
                 .order(missionRequest.getOrder())
+                .line(missionRequest.getLine())
                 .build();
 
         Mission updatedMission = missionRepository.save(mission);
