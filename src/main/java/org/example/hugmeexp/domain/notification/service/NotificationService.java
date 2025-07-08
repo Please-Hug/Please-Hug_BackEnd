@@ -55,7 +55,13 @@ public class NotificationService {
     private void createAndSend(User user, NotificationType type, String message) {
         Notification notification = Notification.of(user, type, message);
         notificationRepository.save(notification);
-        sseService.sendNotification(user.getId(), notification);    // 실시간 전송
+
+        try{
+            sseService.sendNotification(user.getId(), notification);    // 실시간 전송
+        } catch (Exception e) {
+            log.warn("Failed to send notification via SSE for user {}: {}", user.getId(), notification.getId(), e);
+            // 예외 발생 시에도 알림은 저장되지만, SSE 전송 실패로 로그에 경고 메시지 출력 -> 사용자가 나중에 확인 할 수 있다
+        }
 
     }
 
@@ -87,9 +93,6 @@ public class NotificationService {
             return; // 읽지 않은 알림이 없으면 그냥 리턴
         }
         for (Notification notification : notifications) {
-            if (!notification.getUser().getId().equals(user.getId())) {
-                throw new ForbiddenNotificationAccessException();
-            }
             notification.markAsRead();
         }
     }

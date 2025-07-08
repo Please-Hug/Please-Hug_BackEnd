@@ -66,7 +66,7 @@ public class SseService {
                 emitter.send(SseEmitter.event()
                         .name("notification")
                         .data(notification));
-                log.info("SSE notification sent to userId: {}", userId, notification.getContent());
+                log.info("SSE notification sent to userId: {}, content:{} ", userId, notification.getContent());
             } catch (IOException e) {
                 log.error("Failed to send SSE notification to userId: {}", userId, e);
                 // 전송 실패 시 Emitter 삭제
