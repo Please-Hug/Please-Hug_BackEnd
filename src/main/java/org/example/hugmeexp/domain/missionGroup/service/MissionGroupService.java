@@ -10,7 +10,7 @@ import java.util.List;
 public interface MissionGroupService {
     List<MissionGroupResponse> getAllMissionGroups();
 
-    MissionGroupResponse createMissionGroup(MissionGroupRequest request);
+    MissionGroupResponse createMissionGroup(MissionGroupRequest request, String username);
 
     MissionGroupResponse getMissionById(Long id);
 
