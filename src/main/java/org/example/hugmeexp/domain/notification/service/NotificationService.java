@@ -10,6 +10,7 @@ import org.example.hugmeexp.domain.notification.exception.NotificationNotFoundEx
 import org.example.hugmeexp.domain.notification.repository.NotificationRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.global.common.sse.SseService;
+import org.example.hugmeexp.global.security.CustomUserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,35 +26,38 @@ public class NotificationService {
 
     // 칭찬을 받았을 때 알림을 생성하고 SSE로 전송
     @Transactional
-    public void sendPraiseNotification(User user){
-        createAndSend(user, NotificationType.PRAISE_RECEIVED, NotificationType.PRAISE_RECEIVED.getDescription());
+    public void sendPraiseNotification(User user, Long praiseId) {
+        String content = NotificationType.PRAISE_RECEIVED.getDescription();
+        Notification notification = Notification.of(user, NotificationType.PRAISE_RECEIVED, content, praiseId);
+        notificationRepository.save(notification);
+        sseService.sendNotification(user.getId(), notification);
     }
 
     // 배움일기에 댓글이 달렸을 때 알림을 생성하고 SSE로 전송
     @Transactional
-    public void sendDiaryCommentNotification(User user, String diaryTitle) {
+    public void sendDiaryCommentNotification(User user, String diaryTitle, Long targetId) {
         String title = diaryTitle == null ? "새 배움일기" : diaryTitle;
         String message = title + "에 댓글이 달렸어요";
-        createAndSend(user, NotificationType.DIARY_COMMENT, message);
+        createAndSend(user, NotificationType.DIARY_COMMENT, message, targetId);
     }
 
     // 배움일기에 좋아요가 달렸을 때 알림을 생성하고 SSE로 전송
     @Transactional
-    public void sendDiaryLikeNotification(User user, String diaryTitle) {
+    public void sendDiaryLikeNotification(User user, String diaryTitle, Long targetId) {
         String title = diaryTitle == null ? "새 배움일기" : diaryTitle;
         String message = title + "에 좋아요가 달렸어요";
-        createAndSend(user, NotificationType.DIARY_LIKE, message);
+        createAndSend(user, NotificationType.DIARY_LIKE, message, targetId);
     }
 
     // 레벨 업 했을 때 알림을 생성하고 SSE로 전송
     @Transactional
-    public void sendLevelUpNotification(User user, int level) {
+    public void sendLevelUpNotification(User user, int level, Long targetId) {
         String message = "레벨 " + level + "로 업그레이드 되었어요!";
-        createAndSend(user, NotificationType.LEVEL_UP, message);
+        createAndSend(user, NotificationType.LEVEL_UP, message, targetId);
     }
 
-    private void createAndSend(User user, NotificationType type, String message) {
-        Notification notification = Notification.of(user, type, message);
+    private void createAndSend(User user, NotificationType type, String message, Long targetId) {
+        Notification notification = Notification.of(user, type, message, targetId);
         notificationRepository.save(notification);
 
         try{
@@ -67,8 +71,8 @@ public class NotificationService {
 
     // 내 알림 목록 조회
     @Transactional(readOnly = true)
-    public List<NotificationResponseDTO> getMyNotifications(User user) {
-        return notificationRepository.findByUserOrderByCreatedAtDesc(user)
+    public List<NotificationResponseDTO> getMyNotifications(CustomUserDetails user) {
+        return notificationRepository.findByUserOrderByCreatedAtDesc(user.getUser())
                 .stream()
                 .map(NotificationResponseDTO::from)
                 .toList();
@@ -76,10 +80,10 @@ public class NotificationService {
 
     // 알림 읽음 처리
     @Transactional
-    public void markAsRead(Long notificationId, User user) {
+    public void markAsRead(Long notificationId, CustomUserDetails user) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new NotificationNotFoundException());
-        if (!notification.getUser().getId().equals(user.getId())) {
+        if (!notification.getUser().getId().equals(user.getUser().getId())) {
             throw new ForbiddenNotificationAccessException();
         }
         notification.markAsRead();
@@ -87,8 +91,8 @@ public class NotificationService {
 
     // 모든 알림 읽음 처리
     @Transactional
-    public void markAllAsRead(User user) {
-        List<Notification> notifications = notificationRepository.findByUserAndIsReadFalse(user);
+    public void markAllAsRead(CustomUserDetails user) {
+        List<Notification> notifications = notificationRepository.findByUserAndIsReadFalse(user.getUser());
         if (notifications.isEmpty()) {
             return; // 읽지 않은 알림이 없으면 그냥 리턴
         }

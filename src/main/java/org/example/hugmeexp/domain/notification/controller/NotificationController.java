@@ -7,6 +7,7 @@ import org.example.hugmeexp.domain.notification.dto.NotificationResponseDTO;
 import org.example.hugmeexp.domain.notification.service.NotificationService;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.global.common.response.Response;
+import org.example.hugmeexp.global.security.CustomUserDetails;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,9 +26,10 @@ public class NotificationController {
 
     // 알림 목록 조회
     @GetMapping
-    public ResponseEntity<Response<List<NotificationResponseDTO>>> getMyNotifications(@AuthenticationPrincipal User user){
+    public ResponseEntity<Response<List<NotificationResponseDTO>>> getMyNotifications(@AuthenticationPrincipal CustomUserDetails userDetails){
 
-        List<NotificationResponseDTO> result =  notificationService.getMyNotifications(user);
+        User user = userDetails.getUser();
+        List<NotificationResponseDTO> result =  notificationService.getMyNotifications(userDetails);
 
         Response<List<NotificationResponseDTO>> response = Response.<List<NotificationResponseDTO>>builder()
             .message("알림 목록 조회 성공")
@@ -40,9 +42,9 @@ public class NotificationController {
     // 알림 읽음 처리
     @PatchMapping("/{notificationId}/read")
     public ResponseEntity<Response<Void>> markAsRead(@PathVariable Long notificationId,
-                                                     @AuthenticationPrincipal User user){
+                                                     @AuthenticationPrincipal CustomUserDetails userDetails){
 
-        notificationService.markAsRead(notificationId, user);
+        notificationService.markAsRead(notificationId, userDetails);
 
         Response<Void> response = Response.<Void>builder()
             .message("알림 읽음 처리 완료")
@@ -54,9 +56,9 @@ public class NotificationController {
 
     // 전체 알림 읽음 처리
     @PatchMapping("/read-all")
-    public ResponseEntity<Response<Void>> markAllAsRead(@AuthenticationPrincipal User user){
+    public ResponseEntity<Response<Void>> markAllAsRead(@AuthenticationPrincipal CustomUserDetails userDetails){
 
-        notificationService.markAllAsRead(user);
+        notificationService.markAllAsRead(userDetails);
 
         Response<Void> response = Response.<Void>builder()
             .message("모든 알림 읽음 처리 완료")

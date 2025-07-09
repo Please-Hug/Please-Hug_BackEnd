@@ -36,15 +36,19 @@ public class Notification extends BaseEntity {
     @Column(nullable = false)
     private boolean isRead;
 
+    @Column(name ="target_id", nullable = false)
+    private Long targetId; // 알림이 연결된 대상 ID (예: 배움일기, 칭찬 등)
+
     public void markAsRead() {
         this.isRead = true;
     }
 
-    public static Notification of(User user, NotificationType type, String content) {
+    public static Notification of(User user, NotificationType type, String content, Long targetId) {
         return Notification.builder()
                 .user(user)
                 .type(type)
                 .content(content)
+                .targetId(targetId)
                 .isRead(false)
                 .build();
     }
