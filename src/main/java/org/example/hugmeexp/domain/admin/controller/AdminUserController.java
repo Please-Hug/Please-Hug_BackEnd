@@ -2,6 +2,8 @@
 package org.example.hugmeexp.domain.admin.controller;
 
 import org.example.hugmeexp.domain.admin.dto.request.RoleChangeRequest;
+import org.example.hugmeexp.domain.admin.dto.response.AdminUserAllResponse;
+import org.example.hugmeexp.domain.admin.dto.response.AdminUserInfoResponse;
 import org.example.hugmeexp.domain.admin.service.AdminUserService;
 import org.example.hugmeexp.domain.user.dto.request.UserUpdateRequest;
 import org.example.hugmeexp.domain.user.dto.response.UserInfoResponse;
@@ -31,10 +33,10 @@ public class AdminUserController {
 
     @Operation(summary = "회원 목록 조회", description = "회원 목록을 페이징하여 전체 조회")
     @GetMapping
-    public ResponseEntity<Response<Page<UserProfileResponse>>> listUsers(
+    public ResponseEntity<Response<Page<AdminUserAllResponse>>> listUsers(
             @PageableDefault(size = 20) Pageable pageable) {
-        Page<UserProfileResponse> page = adminUserService.getAllUsers(pageable);
-        return ResponseEntity.ok(Response.<Page<UserProfileResponse>>builder()
+        Page<AdminUserAllResponse> page = adminUserService.getAllUsers(pageable);
+        return ResponseEntity.ok(Response.<Page<AdminUserAllResponse>>builder()
                 .message("회원 목록을 조회했습니다.")
                 .data(page)
                 .build());
@@ -42,10 +44,10 @@ public class AdminUserController {
 
     @Operation(summary = "회원 단일 조회", description = "특정 회원의 상세 정보를 조회")
     @GetMapping("/{username}")
-    public ResponseEntity<Response<UserInfoResponse>> getUser(
+    public ResponseEntity<Response<AdminUserInfoResponse>> getUser(
             @PathVariable String username) { // @AuthenticationPrincipal은 지금 요청을 보낸 admin 계정의 username과 같은 값이 필요 없으므로 사용 x
-        UserInfoResponse user = adminUserService.getUserByAdmin(username);
-        return ResponseEntity.ok(Response.<UserInfoResponse>builder()
+        AdminUserInfoResponse user = adminUserService.getUserByAdmin(username);
+        return ResponseEntity.ok(Response.<AdminUserInfoResponse>builder()
                 .message("회원 정보를 조회했습니다.")
                 .data(user)
                 .build());
@@ -53,11 +55,11 @@ public class AdminUserController {
 
     @Operation(summary = "회원 정보 수정", description = "특정 회원의 정보를 수정")
     @PatchMapping("/{username}")
-    public ResponseEntity<Response<UserInfoResponse>> updateUser(
+    public ResponseEntity<Response<AdminUserInfoResponse>> updateUser(
             @PathVariable String username,
             @Valid @RequestBody UserUpdateRequest request) {
-        UserInfoResponse updated = adminUserService.updateUserByAdmin(username, request);
-        return ResponseEntity.ok(Response.<UserInfoResponse>builder()
+        AdminUserInfoResponse updated = adminUserService.updateUserByAdmin(username, request);
+        return ResponseEntity.ok(Response.<AdminUserInfoResponse>builder()
                 .message("회원 정보가 수정되었습니다.")
                 .data(updated)
                 .build());
@@ -72,11 +74,11 @@ public class AdminUserController {
 
     @Operation(summary = "권한 변경", description = "특정 회원의 역할을 변경")
     @PatchMapping("/{username}/role")
-    public ResponseEntity<Response<UserInfoResponse>> changeUserRole(
+    public ResponseEntity<Response<AdminUserInfoResponse>> changeUserRole(
             @PathVariable String username,
             @Valid @RequestBody RoleChangeRequest request) {
-        UserInfoResponse result = adminUserService.changeUserRole(username, request);
-        return ResponseEntity.ok(Response.<UserInfoResponse>builder()
+        AdminUserInfoResponse result = adminUserService.changeUserRole(username, request);
+        return ResponseEntity.ok(Response.<AdminUserInfoResponse>builder()
                 .message("회원 권한이 변경되었습니다.")
                 .data(result)
                 .build());
