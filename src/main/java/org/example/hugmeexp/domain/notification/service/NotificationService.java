@@ -28,9 +28,7 @@ public class NotificationService {
     @Transactional
     public void sendPraiseNotification(User user, Long praiseId) {
         String content = NotificationType.PRAISE_RECEIVED.getDescription();
-        Notification notification = Notification.of(user, NotificationType.PRAISE_RECEIVED, content, praiseId);
-        notificationRepository.save(notification);
-        sseService.sendNotification(user.getId(), notification);
+        createAndSend(user, NotificationType.PRAISE_RECEIVED, content, praiseId);
     }
 
     // 배움일기에 댓글이 달렸을 때 알림을 생성하고 SSE로 전송
