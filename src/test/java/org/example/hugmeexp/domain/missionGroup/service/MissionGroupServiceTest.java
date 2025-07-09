@@ -21,6 +21,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 import java.util.Optional;
@@ -106,6 +113,7 @@ class MissionGroupServiceTest {
                 "", "teacher1", "teacher1");
 
         User user1 = User.createUser("teacher1", "password", "Teacher One", "1234");
+        User user2 = User.createUser("admin", "password", "Admin User", "1234");
 
         MissionGroupRequest request = MissionGroupRequest
                 .builder()
@@ -126,8 +134,10 @@ class MissionGroupServiceTest {
         when(missionGroupRepository.save(any(MissionGroup.class))).thenReturn(savedGroup);
         when(missionGroupMapper.toMissionGroupResponse(savedGroup)).thenReturn(expectedResponse);
         when(userRepository.findByUsername("teacher1")).thenReturn(Optional.of(user1));
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user2));
+
         // When
-        MissionGroupResponse result = missionGroupService.createMissionGroup(request);
+        MissionGroupResponse result = missionGroupService.createMissionGroup(request, "admin");
 
         // Then
         assertEquals("New Group", result.getName());

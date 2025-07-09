@@ -41,4 +41,7 @@ public class Mission extends BaseEntity {
 
     @Column(name = "mission_line", nullable = false)
     private int line;
+
+    @Column(name = "tip", length = 511)
+    private String tip;
 }

@@ -105,8 +105,8 @@ public class MissionGroupController {
     )
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<Response<MissionGroupResponse>> createMissionGroup(@Valid @RequestBody MissionGroupRequest request) {
-        return ResponseEntity.status(201).body(Response.<MissionGroupResponse>builder().data(missionGroupService.createMissionGroup(request)).message("미션 그룹을 생성하였습니다.").build());
+    public ResponseEntity<Response<MissionGroupResponse>> createMissionGroup(@Valid @RequestBody MissionGroupRequest request, @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.status(201).body(Response.<MissionGroupResponse>builder().data(missionGroupService.createMissionGroup(request, user.getUsername())).message("미션 그룹을 생성하였습니다.").build());
     }
 
     @Operation(

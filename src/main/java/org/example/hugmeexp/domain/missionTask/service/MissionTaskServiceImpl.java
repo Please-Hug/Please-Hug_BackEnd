@@ -88,6 +88,7 @@ public class MissionTaskServiceImpl implements MissionTaskService {
 
         existingMissionTask.setName(request.getName());
         existingMissionTask.setScore(request.getScore());
+        existingMissionTask.setTip(request.getTip());
     }
 
     @Transactional

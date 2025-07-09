@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.praise.service;
 
+import org.example.hugmeexp.domain.notification.service.NotificationService;
 import org.example.hugmeexp.domain.praise.dto.*;
 import org.example.hugmeexp.domain.praise.entity.Praise;
 import org.example.hugmeexp.domain.praise.entity.PraiseComment;
@@ -57,6 +58,9 @@ public class PraiseServiceTest {
 
     @Mock
     private CommentService commentService;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private PraiseService praiseService;

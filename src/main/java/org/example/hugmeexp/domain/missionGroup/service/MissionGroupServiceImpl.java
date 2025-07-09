@@ -44,7 +44,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
 
     @Override
     @Transactional
-    public MissionGroupResponse createMissionGroup(MissionGroupRequest request) {
+    public MissionGroupResponse createMissionGroup(MissionGroupRequest request, String username) {
         User teacher = userRepository.findByUsername(request.getTeacherUsername())
                 .orElseThrow(TeacherNotFoundException::new);
         MissionGroup missionGroup = MissionGroup.builder()
@@ -52,6 +52,20 @@ public class MissionGroupServiceImpl implements MissionGroupService {
                 .name(request.getName())
                 .build();
         var savedMissionGroup = missionGroupRepository.save(missionGroup);
+
+        UserMissionGroup userMissionGroup = UserMissionGroup.builder()
+                .user(teacher)
+                .missionGroup(savedMissionGroup)
+                .build();
+        userMissionGroupRepository.save(userMissionGroup);
+
+        User creator = userRepository.findByUsername(username)
+                .orElseThrow(UserNotFoundException::new);
+        UserMissionGroup creatorMissionGroup = UserMissionGroup.builder()
+                .user(creator)
+                .missionGroup(savedMissionGroup)
+                .build();
+        userMissionGroupRepository.save(creatorMissionGroup);
         return missionGroupMapper.toMissionGroupResponse(savedMissionGroup);
     }
 

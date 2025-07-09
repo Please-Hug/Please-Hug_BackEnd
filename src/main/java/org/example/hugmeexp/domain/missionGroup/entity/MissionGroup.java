@@ -5,6 +5,9 @@ import lombok.*;
 import org.example.hugmeexp.global.entity.BaseEntity;
 import org.example.hugmeexp.domain.user.entity.User;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -19,4 +22,7 @@ public class MissionGroup extends BaseEntity {
     private User teacher;
     @Column(nullable = false, length = 127)
     private String name;
+
+    @OneToMany(mappedBy = "missionGroup", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserMissionGroup> userMissionGroups = new ArrayList<>();
 }

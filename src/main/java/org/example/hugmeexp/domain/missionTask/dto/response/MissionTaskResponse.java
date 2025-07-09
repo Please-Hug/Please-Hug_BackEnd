@@ -12,4 +12,5 @@ public class MissionTaskResponse {
     private Long mission_id;
     private String name;
     private int score; // 공수
+    private String tip;
 }
