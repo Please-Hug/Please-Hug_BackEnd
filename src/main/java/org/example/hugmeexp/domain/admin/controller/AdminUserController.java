@@ -18,6 +18,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +26,10 @@ import lombok.RequiredArgsConstructor;
 
 @Tag(name = "Admin", description = "관리자 전용 사용자 관리 API")
 @RestController
-@RequestMapping("/api/v1/admin/users")
+@RequestMapping(
+        value = "/api/v1/admin/users",
+        produces = MediaType.APPLICATION_JSON_VALUE
+)
 @RequiredArgsConstructor
 public class AdminUserController {
 
