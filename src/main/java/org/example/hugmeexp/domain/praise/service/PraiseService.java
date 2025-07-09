@@ -69,7 +69,7 @@ public class PraiseService {
         // 알림 전송 시 자기 자신에게 보낸 칭찬은 제외
         for (User receiver : receiverUsers) {
             if (!receiver.getId().equals(sender.getId())) {
-                notificationService.sendPraiseNotification(receiver);
+                notificationService.sendPraiseNotification(receiver, saved.getId());
             }
         }
 

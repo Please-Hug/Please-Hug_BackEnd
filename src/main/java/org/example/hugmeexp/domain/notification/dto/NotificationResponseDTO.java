@@ -19,7 +19,8 @@ public class NotificationResponseDTO {
     private String content;
     private boolean isRead;
     private LocalDateTime createdAt;
-    private  String category; // 추가: 알림 카테고리
+    private String category;
+    private Long targetId; // 추가: 알림이 연결된 대상 ID
 
     public static NotificationResponseDTO from(Notification notification) {
         return NotificationResponseDTO.builder()
@@ -29,6 +30,7 @@ public class NotificationResponseDTO {
                 .isRead(notification.isRead())
                 .createdAt(notification.getCreatedAt())
                 .category(notification.getType().getCategory().name())
+                .targetId(notification.getTargetId())
                 .build();
     }
 }

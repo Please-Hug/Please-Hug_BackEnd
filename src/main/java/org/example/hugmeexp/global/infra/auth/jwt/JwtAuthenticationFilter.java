@@ -36,10 +36,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ") && header.length() > 10) {
             String accessToken = header.substring(7);
 
-            /*
-                블랙리스트 확인
-                만약 블랙리스트로 등록된 엑세스 토큰을 제시하면 요청을 거부 (로그아웃 등으로 무효화된 토큰은 거부)
-            */
+        /*
+            블랙리스트 확인
+            만약 블랙리스트로 등록된 엑세스 토큰을 제시하면 요청을 거부 (로그아웃 등으로 무효화된 토큰은 거부)
+        */
             if (redisService.isAccessTokenBlacklisted(accessToken)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json;charset=UTF-8");
@@ -55,26 +55,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            /*
-                엑세스 토큰 유효성 검사
-                - 서명, 만료시간, 포맷 등 검증
-                - 유효하다면 사용자 정보를 조회하여 SecurityContext에 등록
-            */
+        /*
+            엑세스 토큰 유효성 검사
+            - 서명, 만료시간, 포맷 등 검증
+            - 유효하다면 사용자 정보를 조회하여 SecurityContext에 등록
+        */
             if (jwtProvider.validate(accessToken)) {
                 String username = jwtProvider.getUsername(accessToken);
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                /*
-                    principal: 로그인 주체 → userDetails
-                    credentials: 패스워드 (JWT 인증에선 의미 없음) → null
-                    authorities: 사용자의 권한 목록 → ROLE_USER, ROLE_ADMIN 등
-                */
+            /*
+                principal: 로그인 주체 → userDetails
+                credentials: 패스워드 (JWT 인증에선 의미 없음) → null
+                authorities: 사용자의 권한 목록 → ROLE_USER, ROLE_ADMIN 등
+            */
                 Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
-            }
-            else log.warn("Failed to validate token - accessToken: {}", accessToken.substring(0, 10) + "...");
+            } else log.warn("Failed to validate token - accessToken: {}", accessToken.substring(0, 10) + "...");
         }
 
         chain.doFilter(request, response);
