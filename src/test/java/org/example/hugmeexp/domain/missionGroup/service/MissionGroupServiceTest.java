@@ -6,10 +6,12 @@ import org.example.hugmeexp.domain.mission.mapper.UserMissionMapper;
 import org.example.hugmeexp.domain.mission.repository.UserMissionRepository;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.domain.missionGroup.dto.response.UserMissionGroupResponse;
 import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
 import org.example.hugmeexp.domain.missionGroup.entity.UserMissionGroup;
 import org.example.hugmeexp.domain.missionGroup.exception.*;
 import org.example.hugmeexp.domain.missionGroup.mapper.MissionGroupMapper;
+import org.example.hugmeexp.domain.missionGroup.mapper.UserMissionGroupMapper;
 import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepository;
 import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepository;
 import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
@@ -21,13 +23,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContextImpl;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 import java.util.Optional;
@@ -59,6 +54,9 @@ class MissionGroupServiceTest {
 
     @Mock
     private UserMissionRepository userMissionRepository;
+
+    @Mock
+    private UserMissionGroupMapper userMissionGroupMapper;
 
     @InjectMocks
     private MissionGroupServiceImpl missionGroupService;
@@ -500,4 +498,87 @@ class MissionGroupServiceTest {
                         SAMPLE_USERNAME, SAMPLE_GROUP_ID))
                 .isInstanceOf(UserMissionGroupNotFoundException.class);
     }
+
+    @Test
+    @DisplayName("내 미션 그룹 조회 - 성공")
+    void getMyMissionGroups_Success() {
+        // Given
+        User user = mock(User.class);
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
+        when(userMissionGroupRepository.findByUserId(anyLong())).thenReturn(List.of(mock(UserMissionGroup.class)));
+        when(userMissionGroupMapper.toUserMissionGroupResponse(any())).thenReturn(mock(UserMissionGroupResponse.class));
+
+        // when
+        List<UserMissionGroupResponse> result = missionGroupService.getMyMissionGroups(SAMPLE_USERNAME);
+
+        // then
+        assertThat(result).isNotEmpty();
+        verify(userMissionGroupRepository, times(1)).findByUserId(anyLong());
+    }
+
+    @Test
+    @DisplayName("내 미션 그룹 조회 유저가 존재하지 않을 때 - 실패")
+    void getMyMissionGroups_UserNotFound() {
+        // Given
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> missionGroupService.getMyMissionGroups(SAMPLE_USERNAME))
+                .isInstanceOf(UserNotFoundException.class);
+
+        verify(userMissionGroupRepository, never()).findByUserId(anyLong());
+    }
+
+    @Test
+    @DisplayName("미션 그룹 내 유저 조회 - 성공")
+    void getUsersInMissionGroup_Success() {
+        // Given
+        Long groupId = SAMPLE_GROUP_ID;
+        MissionGroup mockGroup = mock(MissionGroup.class);
+        User user1 = mock(User.class);
+        User user2 = mock(User.class);
+        when(user1.getPublicProfileImageUrl()).thenReturn("img1");
+        when(user1.getUsername()).thenReturn("user1");
+        when(user1.getName()).thenReturn("User One");
+        when(user2.getPublicProfileImageUrl()).thenReturn("img2");
+        when(user2.getUsername()).thenReturn("user2");
+        when(user2.getName()).thenReturn("User Two");
+        UserMissionGroup umg1 = mock(UserMissionGroup.class);
+        UserMissionGroup umg2 = mock(UserMissionGroup.class);
+        when(umg1.getUser()).thenReturn(user1);
+        when(umg2.getUser()).thenReturn(user2);
+        List<UserMissionGroup> userMissionGroups = List.of(umg1, umg2);
+        when(missionGroupRepository.findById(groupId)).thenReturn(Optional.of(mockGroup));
+        when(userMissionGroupRepository.findAllByMissionGroup(mockGroup)).thenReturn(userMissionGroups);
+
+        // When
+        List<UserProfileResponse> result = missionGroupService.getUsersInMissionGroup(groupId);
+
+        // Then
+        assertEquals(2, result.size());
+        assertEquals("user1", result.get(0).getUsername());
+        assertEquals("user2", result.get(1).getUsername());
+        assertEquals("User One", result.get(0).getName());
+        assertEquals("User Two", result.get(1).getName());
+        assertEquals("img1", result.get(0).getProfileImage());
+        assertEquals("img2", result.get(1).getProfileImage());
+        verify(missionGroupRepository, times(1)).findById(groupId);
+        verify(userMissionGroupRepository, times(1)).findAllByMissionGroup(mockGroup);
+    }
+
+    @Test
+    @DisplayName("미션 그룹 내 유저 조회 그룹 없음 - 실패")
+    void getUsersInMissionGroup_GroupNotFound() {
+        // Given
+        Long groupId = SAMPLE_GROUP_ID;
+        when(missionGroupRepository.findById(groupId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(MissionGroupNotFoundException.class, () -> missionGroupService.getUsersInMissionGroup(groupId));
+        verify(missionGroupRepository, times(1)).findById(groupId);
+        verify(userMissionGroupRepository, never()).findAllByMissionGroup(any());
+    }
+
+
+
 }

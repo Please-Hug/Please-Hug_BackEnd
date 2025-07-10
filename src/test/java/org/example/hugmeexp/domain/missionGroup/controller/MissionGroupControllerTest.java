@@ -8,6 +8,7 @@ import org.example.hugmeexp.domain.mission.enums.UserMissionState;
 import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.domain.missionGroup.dto.response.UserMissionGroupResponse;
 import org.example.hugmeexp.domain.missionGroup.exception.AlreadyExistsUserMissionGroupException;
 import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
 import org.example.hugmeexp.domain.missionGroup.exception.NotExistsUserMissionGroupException;
@@ -411,5 +412,46 @@ class MissionGroupControllerTest {
 
         // 테스트 후 정리
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    @DisplayName("유저 미션 그룹 조회 - 성공")
+    void getMissionGroup() throws Exception {
+        // Given
+        String username = "testUser";
+        UserDetails userDetails = User.withUsername(username)
+                .password("dummy")
+                .authorities(new SimpleGrantedAuthority("ROLE_USER"))
+                .build();
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails, userDetails.getPassword(), userDetails.getAuthorities());
+
+        SecurityContext ctx = new SecurityContextImpl();
+        ctx.setAuthentication(auth);
+        SecurityContextHolder.setContext(ctx);
+
+        when(missionGroupService.getMyMissionGroups(username)).thenReturn(List.of(mock(UserMissionGroupResponse.class)));
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/my")
+                        .principal(auth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("미션 그룹 목록을 성공적으로 가져왔습니다."))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("미션 그룹에 속한 사용자 목록 조회 - 성공")
+    void getUsersInMissionGroup() throws Exception {
+        // Given
+        Long missionGroupId = 1L;
+
+        when(missionGroupService.getUsersInMissionGroup(missionGroupId))
+                .thenReturn(List.of(mock(UserProfileResponse.class)));
+
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/{missionGroupId}/users", missionGroupId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("미션 그룹 " + missionGroupId + "의 사용자 목록을 가져왔습니다."))
+                .andDo(print());
     }
 }

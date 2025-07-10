@@ -10,6 +10,10 @@ import org.example.hugmeexp.domain.mission.exception.MissionNotFoundException;
 import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.domain.mission.service.UserMissionService;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.domain.missionTask.dto.request.MissionTaskRequest;
+import org.example.hugmeexp.domain.missionTask.dto.response.MissionTaskResponse;
+import org.example.hugmeexp.domain.missionTask.dto.response.UserMissionTaskResponse;
+import org.example.hugmeexp.domain.missionTask.service.MissionTaskService;
 import org.example.hugmeexp.global.common.exception.ExceptionController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -51,6 +55,9 @@ class MissionControllerTest {
 
     @Mock
     private UserMissionService userMissionService;
+
+    @Mock
+    private MissionTaskService missionTaskService;
 
     @InjectMocks
     private MissionController missionController;
@@ -307,5 +314,109 @@ class MissionControllerTest {
 
         // 테스트 끝난 뒤에는 Context 초기화
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    @DisplayName("missionId의 모든 미션 태스크 조회 - 성공")
+    void getAllMissionTasksByMissionId() throws Exception {
+        // Given
+        Long missionId = 1L;
+        MissionTaskResponse missionResponse = mock(MissionTaskResponse.class);
+        given(missionTaskService.findByMissionId(missionId)).willReturn(Collections.singletonList(missionResponse));
+
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/{id}/tasks", missionId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data[0]").exists());
+
+    }
+
+    @Test
+    @DisplayName("내 미션 태스크 조회 - 성공")
+    void getMyMissionTasks() throws Exception {
+        // Given
+        String username = "testUser";
+        UserDetails userDetails = User.withUsername(username)
+                .password("dummy")
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
+                .build();
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                userDetails.getPassword(),
+                userDetails.getAuthorities()
+        );
+
+        // SecurityContextHolder 에도 넣어줘야 @AuthenticationPrincipal 바인딩이 된다.
+        SecurityContext ctx = new SecurityContextImpl();
+        ctx.setAuthentication(auth);
+        SecurityContextHolder.setContext(ctx);
+
+        Long missionId = 42L;
+        UserMissionTaskResponse taskResponse = mock(UserMissionTaskResponse.class);
+        given(missionTaskService.findUserMissionTasksByUsernameAndMissionId(username, missionId))
+                .willReturn(Collections.singletonList(taskResponse));
+
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/{id}/my-tasks", missionId)
+                        .principal(auth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data[0]").exists());
+    }
+
+    @Test
+    void addMissionTask() throws Exception {
+        // Given
+        Long missionId = 1L;
+        MissionTaskResponse taskResponse = mock(MissionTaskResponse.class);
+        given(missionTaskService.addMissionTask(eq(missionId), any())).willReturn(taskResponse);
+
+        MissionTaskRequest request = MissionTaskRequest.builder()
+                .name("test")
+                .score(10)
+                .tip("test tip")
+                .build();
+
+        // When & Then
+        mockMvc.perform(post(BASE_URL + "/{id}/tasks", missionId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data").exists());
+    }
+
+    @Test
+    void getChallenge() throws Exception {
+        // Given
+        String username = "testUser";
+        UserDetails userDetails = User.withUsername(username)
+                .password("dummy")
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
+                .build();
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                userDetails.getPassword(),
+                userDetails.getAuthorities()
+        );
+
+        // SecurityContextHolder 에도 넣어줘야 @AuthenticationPrincipal 바인딩이 된다.
+        SecurityContext ctx = new SecurityContextImpl();
+        ctx.setAuthentication(auth);
+        SecurityContextHolder.setContext(ctx);
+
+        Long missionId = 42L;
+        UserMissionResponse missionResponse = mock(UserMissionResponse.class);
+        given(userMissionService.getUserMission(missionId, username))
+                .willReturn(missionResponse);
+
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/{id}/challenges", missionId)
+                        .principal(auth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").exists())
+                .andExpect(jsonPath("$.message").value("미션 " + missionId + " 도전 정보를 가져왔습니다."));
     }
 }
