@@ -2,6 +2,7 @@ package org.example.hugmeexp.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.notification.service.NotificationService;
 import org.example.hugmeexp.domain.user.dto.request.ChangeRoleRequest;
 import org.example.hugmeexp.domain.user.dto.request.UserUpdateRequest;
 import org.example.hugmeexp.domain.user.dto.response.ProfileImageResponse;
@@ -25,6 +26,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     private static final int MAX_LEVEL = 50;
     private static final int MAX_EXP = 122_500;
@@ -67,8 +69,18 @@ public class UserService {
     // 경험치 증가
     @Transactional
     public void increaseExp(User user, int value) {
+        log.info("increaseExp 진입 = user:{}, value: {}", user.getUsername(), value );
         User findUser = findById(user.getId());
-        findUser.increaseExp(value);
+
+        int oldLevel = calculateLevel(findUser.getExp());// 변경 전 레벨
+
+        findUser.increaseExp(value);    // 경험치 증가
+        int newLevel = calculateLevel(findUser.getExp());    // 변경 후 레벨
+
+        if(newLevel > oldLevel) {
+            notificationService.sendLevelUpNotification(findUser, newLevel, findUser.getId()); // 알림 전송
+            userRepository.save(findUser);
+        }
     }
 
     // 구름조각 증가
