@@ -1,36 +1,4 @@
 services:
-
-  redis:
-    image: redis:7
-    container_name: redis
-    ports:
-      - "10002:6379"
-    networks:
-      - goorm-network
-    volumes:
-      - redis-data:/data
-
-  mysql:
-    image: mysql:8
-    container_name: mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: goorm_exp
-      MYSQL_USER: goorm_exp
-      MYSQL_PASSWORD: 00000000
-    ports:
-      - "10001:3306"
-    networks:
-      - goorm-network
-    volumes:
-      - goorm-db-volume:/var/lib/mysql
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
   goormexp:
     build:
       context: ..
@@ -54,9 +22,6 @@ services:
       - goorm-application-volume:/application
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo/Asia/Seoul:/etc/timezone:ro
-    depends_on:
-      mysql:
-        condition: service_healthy
 
 networks:
   goorm-network:
@@ -65,4 +30,3 @@ networks:
 volumes:
   goorm-application-volume:
   goorm-db-volume:
-  redis-data:

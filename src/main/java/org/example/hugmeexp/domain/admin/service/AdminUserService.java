@@ -50,8 +50,9 @@ public class AdminUserService {
     public AdminUserInfoResponse deleteUserByAdmin(String username) {
         User u = userService.findByUsername(username);
         UserInfoResponse deletedBase = userService.getUserInfoResponse(u);
+        AdminUserInfoResponse response = AdminUserResponseMapper.toInfoResponse(u, deletedBase);
         userService.deleteByUsername(username);
-        return AdminUserResponseMapper.toInfoResponse(u, deletedBase);
+        return response;
     }
 
     /** 5) 권한 변경 */
