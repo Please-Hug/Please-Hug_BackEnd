@@ -46,7 +46,7 @@
 
 ### 백엔드
 - **언어 & 프레임워크**: Java 17, Spring Boot 3.x
-- **ORM & 데이터 접근**: Spring Data JPA, JDBC Template
+- **ORM & 데이터 접근**: Spring Data JPA, JPQL
 - **보안**: Spring Security, JWT
 - **캐싱**: Redis
 - **검증**: Spring Validation
