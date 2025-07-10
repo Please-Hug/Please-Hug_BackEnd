@@ -37,13 +37,20 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("미션 태스크 서비스 테스트")
 class MissionTaskServiceImplTest {
-    @Mock MissionTaskRepository missionTaskRepository;
-    @Mock UserMissionTaskRepository userMissionTaskRepository;
-    @Mock MissionTaskMapper missionTaskMapper;
-    @Mock UserRepository userRepository;
-    @Mock UserMissionRepository userMissionRepository;
-    @Mock MissionRepository missionRepository;
-    @InjectMocks MissionTaskServiceImpl missionTaskService;
+    @Mock
+    MissionTaskRepository missionTaskRepository;
+    @Mock
+    UserMissionTaskRepository userMissionTaskRepository;
+    @Mock
+    MissionTaskMapper missionTaskMapper;
+    @Mock
+    UserRepository userRepository;
+    @Mock
+    UserMissionRepository userMissionRepository;
+    @Mock
+    MissionRepository missionRepository;
+    @InjectMocks
+    MissionTaskServiceImpl missionTaskService;
 
     private final Long SAMPLE_ID = 1L;
     private final String SAMPLE_USERNAME = "user1";

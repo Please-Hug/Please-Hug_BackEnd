@@ -429,8 +429,8 @@ class MissionGroupServiceTest {
         // 유저 미션 엔티티와 응답 DTO 준비
         var entity1 = mock(UserMission.class);
         var entity2 = mock(UserMission.class);
-        var resp1   = mock(UserMissionResponse.class);
-        var resp2   = mock(UserMissionResponse.class);
+        var resp1 = mock(UserMissionResponse.class);
+        var resp2 = mock(UserMissionResponse.class);
 
         given(userRepository.findByUsername(SAMPLE_USERNAME))
                 .willReturn(Optional.of(user));
@@ -578,7 +578,6 @@ class MissionGroupServiceTest {
         verify(missionGroupRepository, times(1)).findById(groupId);
         verify(userMissionGroupRepository, never()).findAllByMissionGroup(any());
     }
-
 
 
 }

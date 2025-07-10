@@ -37,6 +37,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -56,7 +57,7 @@ class MissionGroupControllerTest {
 
     @Mock
     private MissionGroupService missionGroupService;
-    
+
     @Mock
     private MissionService missionService;
 
@@ -133,8 +134,8 @@ class MissionGroupControllerTest {
                 .willReturn(response);
         // When && Then
         mockMvc.perform(post(BASE_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.id").value(TEST_ID))
                 .andExpect(jsonPath("$.data.name").value("New Group"));
