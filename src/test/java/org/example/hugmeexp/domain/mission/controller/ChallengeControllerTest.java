@@ -221,8 +221,9 @@ class ChallengeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("모든 챌린지를 성공적으로 가져왔습니다."))
                 .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data").isEmpty())
-                .andDo(print());
+                .andExpect(jsonPath("$.data").isEmpty());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test

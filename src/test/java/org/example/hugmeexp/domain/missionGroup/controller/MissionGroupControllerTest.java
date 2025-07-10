@@ -438,6 +438,8 @@ class MissionGroupControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("미션 그룹 목록을 성공적으로 가져왔습니다."))
                 .andDo(print());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test

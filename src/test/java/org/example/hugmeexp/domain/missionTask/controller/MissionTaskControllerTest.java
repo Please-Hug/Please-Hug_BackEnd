@@ -125,6 +125,8 @@ class MissionTaskControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("미션 태스크 상태를 성공적으로 업데이트했습니다."))
                 .andExpect(jsonPath("$.data").value(true));
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -155,5 +157,7 @@ class MissionTaskControllerTest {
         mockMvc.perform(post(BASE_URL + "/" + missionTaskId + "/" + taskState)
                         .principal(auth))
                 .andExpect(status().isNotFound());
+
+        SecurityContextHolder.clearContext();
     }
 }
