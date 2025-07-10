@@ -318,7 +318,7 @@ class MissionControllerTest {
 
     @Test
     @DisplayName("missionId의 모든 미션 태스크 조회 - 성공")
-    void getAllMissionTasksByMissionId() throws Exception {
+    void getAllMissionTasksByMissionId_Success() throws Exception {
         // Given
         Long missionId = 1L;
         MissionTaskResponse missionResponse = mock(MissionTaskResponse.class);
@@ -334,7 +334,7 @@ class MissionControllerTest {
 
     @Test
     @DisplayName("내 미션 태스크 조회 - 성공")
-    void getMyMissionTasks() throws Exception {
+    void getMyMissionTasks_Success() throws Exception {
         // Given
         String username = "testUser";
         UserDetails userDetails = User.withUsername(username)
@@ -367,7 +367,8 @@ class MissionControllerTest {
     }
 
     @Test
-    void addMissionTask() throws Exception {
+    @DisplayName("미션 태스크 추가 - 성공")
+    void addMissionTask_Success() throws Exception {
         // Given
         Long missionId = 1L;
         MissionTaskResponse taskResponse = mock(MissionTaskResponse.class);
@@ -388,7 +389,8 @@ class MissionControllerTest {
     }
 
     @Test
-    void getChallenge() throws Exception {
+    @DisplayName("미션 챌린지 조회 - 성공")
+    void getChallenge_Success() throws Exception {
         // Given
         String username = "testUser";
         UserDetails userDetails = User.withUsername(username)

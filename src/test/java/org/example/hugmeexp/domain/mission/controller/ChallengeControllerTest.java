@@ -188,7 +188,7 @@ class ChallengeControllerTest {
 
     @Test
     @DisplayName("모든 챌린지 조회 성공 테스트")
-    void getAllChallenges() throws Exception {
+    void getAllChallenges_Success() throws Exception {
         //given
 
         UserDetails userDetails = User.withUsername("testUser")
@@ -228,7 +228,7 @@ class ChallengeControllerTest {
 
     @Test
     @DisplayName("챌린지 ID로 챌린지 조회 성공 테스트")
-    void getChallengeById() throws Exception {
+    void getChallengeById_Success() throws Exception {
         //given
         when(userMissionService.getUserMissionByChallengeId(anyLong()))
                 .thenReturn(mock(UserMissionResponse.class));
