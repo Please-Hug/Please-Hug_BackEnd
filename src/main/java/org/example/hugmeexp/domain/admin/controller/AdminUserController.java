@@ -35,7 +35,7 @@ public class AdminUserController {
 
     private final AdminUserService adminUserService;
 
-    @Operation(summary = "회원 목록 조회", description = "회원 목록을 페이징하여 전체 조회")
+    @Operation(summary = "회원 목록 조회", description = "전체 회원 목록을 페이징하여 조회")
     @GetMapping
     public ResponseEntity<Response<Page<AdminUserAllResponse>>> listUsers(
             @PageableDefault(size = 20) Pageable pageable) {
@@ -71,9 +71,13 @@ public class AdminUserController {
 
     @Operation(summary = "회원 삭제", description = "특정 회원을 삭제")
     @DeleteMapping("/{username}")
-    public ResponseEntity<Void> deleteUser(@PathVariable String username) {
-        adminUserService.deleteUserByAdmin(username);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Response<AdminUserInfoResponse>> deleteUser(
+            @PathVariable String username) {
+        AdminUserInfoResponse deleted = adminUserService.deleteUserByAdmin(username);
+        return ResponseEntity.ok(Response.<AdminUserInfoResponse>builder()
+                .message("회원이 성공적으로 삭제되었습니다.")
+                .data(deleted)
+                .build());
     }
 
     @Operation(summary = "권한 변경", description = "특정 회원의 역할을 변경")

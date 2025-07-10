@@ -47,8 +47,11 @@ public class AdminUserService {
 
     /** 4) 회원 삭제 */
     @Transactional
-    public void deleteUserByAdmin(String username) {
+    public AdminUserInfoResponse deleteUserByAdmin(String username) {
+        User u = userService.findByUsername(username);
+        UserInfoResponse deletedBase = userService.getUserInfoResponse(u);
         userService.deleteByUsername(username);
+        return AdminUserResponseMapper.toInfoResponse(u, deletedBase);
     }
 
     /** 5) 권한 변경 */
