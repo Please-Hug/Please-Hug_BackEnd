@@ -58,17 +58,21 @@ class MissionTaskServiceImplTest {
     @Test
     @DisplayName("미션 ID로 미션 태스크 목록 조회 - 성공")
     void findByMissionId_Success() {
+        // Given
         MissionTask task = mock(MissionTask.class);
         MissionTaskResponse response = mock(MissionTaskResponse.class);
         when(missionTaskRepository.findByMissionId(SAMPLE_ID)).thenReturn(List.of(task));
         when(missionTaskMapper.toMissionTaskResponse(task)).thenReturn(response);
+        // When
         List<MissionTaskResponse> result = missionTaskService.findByMissionId(SAMPLE_ID);
+        // Then
         assertThat(result).containsExactly(response);
     }
 
     @Test
     @DisplayName("유저명+미션ID로 유저 미션 태스크 목록 조회 - 성공")
     void findUserMissionTasksByUsernameAndMissionId_Success() {
+        // Given
         User user = mock(User.class);
         Mission mission = mock(Mission.class);
         UserMission userMission = mock(UserMission.class);
@@ -79,14 +83,18 @@ class MissionTaskServiceImplTest {
         when(userMissionRepository.findByUserAndMission(user, mission)).thenReturn(Optional.of(userMission));
         when(userMissionTaskRepository.findByUserMission(userMission)).thenReturn(List.of(userMissionTask));
         when(missionTaskMapper.toUserMissionTaskResponse(userMissionTask)).thenReturn(response);
+        // When
         List<UserMissionTaskResponse> result = missionTaskService.findUserMissionTasksByUsernameAndMissionId(SAMPLE_USERNAME, SAMPLE_ID);
+        // Then
         assertThat(result).containsExactly(response);
     }
 
     @Test
     @DisplayName("유저명+미션ID로 유저 미션 태스크 목록 조회 - 유저 없음")
     void findUserMissionTasksByUsernameAndMissionId_UserNotFound() {
+        // Given
         when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.empty());
+        // When & Then
         assertThatThrownBy(() -> missionTaskService.findUserMissionTasksByUsernameAndMissionId(SAMPLE_USERNAME, SAMPLE_ID))
                 .isInstanceOf(UserNotFoundException.class);
     }
@@ -94,6 +102,7 @@ class MissionTaskServiceImplTest {
     @Test
     @DisplayName("미션 태스크 추가 - 성공")
     void addMissionTask_Success() {
+        // Given
         MissionTaskRequest request = MissionTaskRequest.builder().name("task").build();
         MissionTask entity = mock(MissionTask.class);
         Mission mission = mock(Mission.class);
@@ -103,15 +112,19 @@ class MissionTaskServiceImplTest {
         when(missionRepository.findById(SAMPLE_ID)).thenReturn(Optional.of(mission));
         when(missionTaskRepository.save(entity)).thenReturn(saved);
         when(missionTaskMapper.toMissionTaskResponse(saved)).thenReturn(response);
+        // When
         MissionTaskResponse result = missionTaskService.addMissionTask(SAMPLE_ID, request);
+        // Then
         assertThat(result).isEqualTo(response);
     }
 
     @Test
     @DisplayName("미션 태스크 추가 - 미션 없음")
     void addMissionTask_MissionNotFound() {
+        // Given
         MissionTaskRequest request = MissionTaskRequest.builder().name("task").build();
         when(missionRepository.findById(SAMPLE_ID)).thenReturn(Optional.empty());
+        // When & Then
         assertThatThrownBy(() -> missionTaskService.addMissionTask(SAMPLE_ID, request))
                 .isInstanceOf(MissionNotFoundException.class);
     }
@@ -119,15 +132,20 @@ class MissionTaskServiceImplTest {
     @Test
     @DisplayName("미션 태스크 삭제 - 성공")
     void deleteMissionTask_Success() {
+        // Given
         when(missionTaskRepository.existsById(SAMPLE_ID)).thenReturn(true);
+        // When
         missionTaskService.deleteMissionTask(SAMPLE_ID);
+        // Then
         verify(missionTaskRepository).deleteById(SAMPLE_ID);
     }
 
     @Test
     @DisplayName("미션 태스크 삭제 - 태스크 없음")
     void deleteMissionTask_NotFound() {
+        // Given
         when(missionTaskRepository.existsById(SAMPLE_ID)).thenReturn(false);
+        // When & Then
         assertThatThrownBy(() -> missionTaskService.deleteMissionTask(SAMPLE_ID))
                 .isInstanceOf(MissionTaskNotFoundException.class);
     }
@@ -135,10 +153,13 @@ class MissionTaskServiceImplTest {
     @Test
     @DisplayName("미션 태스크 수정 - 성공")
     void updateMissionTask_Success() {
+        // Given
         MissionTaskRequest request = MissionTaskRequest.builder().name("task").score(10).tip("tip").build();
         MissionTask entity = mock(MissionTask.class);
         when(missionTaskRepository.findById(SAMPLE_ID)).thenReturn(Optional.of(entity));
+        // When
         missionTaskService.updateMissionTask(SAMPLE_ID, request);
+        // Then
         verify(entity).setName("task");
         verify(entity).setScore(10);
         verify(entity).setTip("tip");
@@ -147,8 +168,10 @@ class MissionTaskServiceImplTest {
     @Test
     @DisplayName("미션 태스크 수정 - 태스크 없음")
     void updateMissionTask_NotFound() {
+        // Given
         MissionTaskRequest request = MissionTaskRequest.builder().name("task").build();
         when(missionTaskRepository.findById(SAMPLE_ID)).thenReturn(Optional.empty());
+        // When & Then
         assertThatThrownBy(() -> missionTaskService.updateMissionTask(SAMPLE_ID, request))
                 .isInstanceOf(MissionTaskNotFoundException.class);
     }
@@ -156,6 +179,7 @@ class MissionTaskServiceImplTest {
     @Test
     @DisplayName("유저 미션 태스크 상태 변경 - 성공(신규)")
     void changeUserMissionTaskState_New() {
+        // Given
         User user = mock(User.class);
         MissionTask missionTask = mock(MissionTask.class);
         Mission mission = mock(Mission.class);
@@ -165,13 +189,16 @@ class MissionTaskServiceImplTest {
         when(missionTask.getMission()).thenReturn(mission);
         when(userMissionRepository.findByUserAndMission(user, mission)).thenReturn(Optional.of(userMission));
         when(userMissionTaskRepository.findByUserMission_UserAndMissionTask(user, missionTask)).thenReturn(Optional.empty());
+        // When
         missionTaskService.changeUserMissionTaskState(SAMPLE_USERNAME, SAMPLE_ID, TaskState.COMPLETED);
+        // Then
         verify(userMissionTaskRepository).save(any(UserMissionTask.class));
     }
 
     @Test
     @DisplayName("유저 미션 태스크 상태 변경 - 성공(기존)")
     void changeUserMissionTaskState_Existing() {
+        // Given
         User user = mock(User.class);
         MissionTask missionTask = mock(MissionTask.class);
         Mission mission = mock(Mission.class);
@@ -182,14 +209,18 @@ class MissionTaskServiceImplTest {
         when(missionTask.getMission()).thenReturn(mission);
         when(userMissionRepository.findByUserAndMission(user, mission)).thenReturn(Optional.of(userMission));
         when(userMissionTaskRepository.findByUserMission_UserAndMissionTask(user, missionTask)).thenReturn(Optional.of(userMissionTask));
+        // When
         missionTaskService.changeUserMissionTaskState(SAMPLE_USERNAME, SAMPLE_ID, TaskState.COMPLETED);
+        // Then
         verify(userMissionTask).setState(TaskState.COMPLETED);
     }
 
     @Test
     @DisplayName("유저 미션 태스크 상태 변경 - 유저 없음")
     void changeUserMissionTaskState_UserNotFound() {
+        // Given
         when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.empty());
+        // When & Then
         assertThatThrownBy(() -> missionTaskService.changeUserMissionTaskState(SAMPLE_USERNAME, SAMPLE_ID, TaskState.COMPLETED))
                 .isInstanceOf(UserNotFoundException.class);
     }
@@ -197,9 +228,11 @@ class MissionTaskServiceImplTest {
     @Test
     @DisplayName("유저 미션 태스크 상태 변경 - 태스크 없음")
     void changeUserMissionTaskState_TaskNotFound() {
+        // Given
         User user = mock(User.class);
         when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
         when(missionTaskRepository.findById(SAMPLE_ID)).thenReturn(Optional.empty());
+        // When & Then
         assertThatThrownBy(() -> missionTaskService.changeUserMissionTaskState(SAMPLE_USERNAME, SAMPLE_ID, TaskState.COMPLETED))
                 .isInstanceOf(MissionTaskNotFoundException.class);
     }
@@ -207,6 +240,7 @@ class MissionTaskServiceImplTest {
     @Test
     @DisplayName("유저 미션 태스크 상태 변경 - 유저 미션 없음")
     void changeUserMissionTaskState_UserMissionNotFound() {
+        // Given
         User user = mock(User.class);
         MissionTask missionTask = mock(MissionTask.class);
         Mission mission = mock(Mission.class);
@@ -214,6 +248,7 @@ class MissionTaskServiceImplTest {
         when(missionTaskRepository.findById(SAMPLE_ID)).thenReturn(Optional.of(missionTask));
         when(missionTask.getMission()).thenReturn(mission);
         when(userMissionRepository.findByUserAndMission(user, mission)).thenReturn(Optional.empty());
+        // When & Then
         assertThatThrownBy(() -> missionTaskService.changeUserMissionTaskState(SAMPLE_USERNAME, SAMPLE_ID, TaskState.COMPLETED))
                 .isInstanceOf(UserMissionNotFoundException.class);
     }
