@@ -25,4 +25,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // phoneNumber를 바탕으로 User 리턴
     Optional<User> findByPhoneNumber(String phoneNumber);
+
+    List<User> findAllByOrderByExpDesc();
 }

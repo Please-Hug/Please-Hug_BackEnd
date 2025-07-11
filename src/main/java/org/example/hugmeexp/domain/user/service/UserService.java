@@ -6,6 +6,7 @@ import org.example.hugmeexp.domain.notification.service.NotificationService;
 import org.example.hugmeexp.domain.user.dto.request.UserUpdateRequest;
 import org.example.hugmeexp.domain.user.dto.response.ProfileImageResponse;
 import org.example.hugmeexp.domain.user.dto.response.UserInfoResponse;
+import org.example.hugmeexp.domain.user.dto.response.UserRankResponse;
 import org.example.hugmeexp.domain.user.exception.*;
 import org.example.hugmeexp.domain.user.mapper.UserResponseMapper;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
@@ -176,6 +177,17 @@ public class UserService {
     public void deleteByUsername(String username){
         long deletedCount = userRepository.deleteByUsername(username);
         if(deletedCount == 0) throw new UserNotFoundException();
+    }
+
+    public List<UserRankResponse> getUserRankings() {
+        List<User> users = userRepository.findAllByOrderByExpDesc();
+        return users.stream()
+                .map(user -> {
+                    int level = calculateLevel(user.getExp());
+                    int rank = users.indexOf(user) + 1; // 1부터 시작하는 랭킹
+                    return UserRankResponse.from(user, rank, level);
+                })
+                .toList();
     }
 
     // 프로필 이미지 확장자 추출
