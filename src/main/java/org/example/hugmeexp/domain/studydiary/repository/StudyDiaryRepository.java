@@ -65,6 +65,12 @@ public interface StudyDiaryRepository extends JpaRepository<StudyDiary, Long> {
                                                   @Param("endOfDay") LocalDateTime endOfDay, 
                                                   Pageable pageable);
 
+    // 이번 주 인기 일기 조회 (이번 주 작성된 글 중 좋아요 많은 순)
+    @Query("SELECT s FROM StudyDiary s WHERE s.isCreated = true AND s.createdAt BETWEEN :startOfWeek AND :endOfWeek ORDER BY s.likeCount DESC")
+    Page<StudyDiary> findWeeklyPopularStudyDiaries(@Param("startOfWeek") LocalDateTime startOfWeek, 
+                                                   @Param("endOfWeek") LocalDateTime endOfWeek, 
+                                                   Pageable pageable);
+
     // 최근 한달간 특정 사용자의 배움일기 조회 (생성일 내림차순)
     @Query("SELECT s FROM StudyDiary s WHERE s.user.id = :userId AND s.isCreated = true AND s.createdAt >= :oneMonthAgo ORDER BY s.createdAt DESC")
     Page<StudyDiary> findByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(@Param("userId") Long userId, 

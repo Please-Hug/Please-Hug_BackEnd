@@ -49,8 +49,8 @@ public class StudyDiaryController {
     }
 
     @SecurityRequirement(name = "JWT")
-    @Operation(summary = "오늘 하루 인기 배움일기 조회")
-    @GetMapping("/today/popular")
+    @Operation(summary = "일주일간 인기 배움일기 조회")
+    @GetMapping("/weekly/popular")
     public ResponseEntity<Response<Object>> getTodayPopularStudyDiaries(
             @PageableDefault(
                 size = 10,              // 기본 페이지 크기
@@ -73,10 +73,10 @@ public class StudyDiaryController {
             multiSort
         );
 
-        Object todayPopularStudyDiaries = studyDiaryService.getTodayPopularStudyDiaries(sortedPageable);
+        Object weeklyPopularStudyDiaries = studyDiaryService.getWeeklyPopularStudyDiaries(sortedPageable);
         return ResponseEntity.ok(Response.<Object>builder()
-                .message("오늘 하루 인기 배움일기를 성공적으로 조회했습니다.")
-                .data(todayPopularStudyDiaries)
+                .message("일주일간 인기 배움일기를 성공적으로 조회했습니다.")
+                .data(weeklyPopularStudyDiaries)
                 .build());
     }
 
