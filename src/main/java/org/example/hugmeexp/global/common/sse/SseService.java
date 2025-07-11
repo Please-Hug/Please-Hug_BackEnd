@@ -2,7 +2,8 @@ package org.example.hugmeexp.global.common.sse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.domain.notification.entity.Notification;
+import org.example.hugmeexp.domain.notification.dto.NotificationDeleteDTO;
+import org.example.hugmeexp.domain.notification.dto.NotificationResponseDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -58,7 +59,7 @@ public class SseService {
         * @param userId 알림을 받을 사용자 ID
         * @param notification 전송할 알림 객체
      */
-    public void sendNotification(Long userId, Notification notification) {
+    public void sendNotification(Long userId, NotificationResponseDTO notification) {
         SseEmitter emitter = emitterRepository.get(userId);
         if (emitter != null) {
             try{
@@ -74,6 +75,23 @@ public class SseService {
             }
         } else {
             log.warn("No SSE connection found for userId: {}", userId);
+        }
+    }
+
+    // 알림 삭제 이벤트 전송 - 특정 사용자에게 알림 삭제 이벤트를 전송
+    public void sendNotificationDeleted(Long userId, NotificationDeleteDTO deleteDTO) {
+        SseEmitter emitter = emitterRepository.get(userId);
+        if (emitter != null) {
+            try {
+                // 알림 삭제 이벤트 전송
+                emitter.send(SseEmitter.event()
+                        .name("notificationDeleted")
+                        .data(deleteDTO));
+            } catch (IOException e) {
+                log.error("Failed to send SSE notification deletion to userId: {}", userId, e);
+                // 전송 실패 시 Emitter 삭제
+                emitterRepository.delete(userId);
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ package org.example.hugmeexp.domain.studydiary.service;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.notification.service.NotificationService;
 import org.example.hugmeexp.domain.studydiary.dto.request.CommentCreateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryCreateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryUpdateRequest;
@@ -47,6 +48,7 @@ public class StudyDiaryService {
     private final StudyDiaryRepository studyDiaryRepository;
     private final StudyDiaryCommentRepository studyDiaryCommentRepository;
     private final StudyDiaryLikeRepository studyDiaryLikeRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public Long createStudyDiary(StudyDiaryCreateRequest createRequest, UserDetails userDetails){
@@ -89,6 +91,15 @@ public class StudyDiaryService {
                 .orElseThrow(StudyDiaryNotFoundException::new);
 
         checkUser(user, studyDiary);
+        // 댓글 알림 삭제
+        List<StudyDiaryComment> comments = studyDiaryCommentRepository.findByStudyDiary(studyDiary);
+        for(StudyDiaryComment comment : comments){
+            // 알림 제거 추가
+            notificationService.deleteDiaryCommentNotification(user, comment.getId());
+        }
+
+        // 알림 제거 추가
+        notificationService.deleteAllByDiaryId(studyDiary.getUser(),studyDiary.getId());
 
         studyDiaryRepository.delete(studyDiary);
     }
@@ -399,6 +410,16 @@ public class StudyDiaryService {
                 .content(request.getContent())
                 .build();
         studyDiaryCommentRepository.save(comment);
+
+        // 알림 전송: 댓글 작성자가 글 작성자와 다를 경우에만 알림 전송
+        if(!studyDiary.getUser().getId().equals(user.getId())) {
+            notificationService.sendDiaryCommentNotification(
+                    studyDiary.getUser(),// 글 작성자
+                    studyDiary.getTitle(), // 글 제목
+                    comment.getId() // 댓글 ID
+            );
+        }
+
         return comment.getId();
     }
 
@@ -418,6 +439,9 @@ public class StudyDiaryService {
         if(!user.getId().equals(comment.getUser().getId())){
             throw new UnauthorizedAccessException();
         }
+
+        // 알림 제거 추가
+        notificationService.deleteDiaryCommentNotification(studyDiary.getUser(), commentId);
 
         studyDiaryCommentRepository.delete(comment);
     }
@@ -439,10 +463,27 @@ public class StudyDiaryService {
 
         if (existingLike.isPresent()) {
 //            log.info("Like {}", existingLike.get().getId());
+
+            // 알림 제거 추가
+            if(!studyDiary.getUser().getId().equals(user.getId())){
+                notificationService.deleteDiaryLikeNotification(studyDiary.getUser(), studyDiary.getId());
+            }
+
             // 좋아요 취소
             return studyDiary.deleteLike(user.getId());
         } else {
-            return studyDiary.addLike(user);
+            // 좋아요 추가
+            int likeCount = studyDiary.addLike(user);
+
+            // 알림 전송: 좋아요를 누른 사용자가 글 작성자와 다를 경우에만 알림 전송
+            if (!studyDiary.getUser().getId().equals(user.getId())){
+                notificationService.sendDiaryLikeNotification(
+                        studyDiary.getUser(), // 글 작성자
+                        studyDiary.getTitle(), // 글 제목
+                        studyDiary.getId() // 배움일기 ID
+                );
+            }
+            return likeCount;
         }
         //return 값으로 최신 좋아요 갯수
     }
