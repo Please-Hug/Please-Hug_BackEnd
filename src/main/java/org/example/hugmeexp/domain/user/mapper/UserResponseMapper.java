@@ -21,7 +21,7 @@ public class UserResponseMapper {
         );
     }
 
-    // UserProfileResponse DTO 리턴
+    // AdminUserAllResponse DTO 리턴
     public static UserProfileResponse toUserProfileResponse(User user) {
         return new UserProfileResponse(
                 user.getPublicProfileImageUrl(),

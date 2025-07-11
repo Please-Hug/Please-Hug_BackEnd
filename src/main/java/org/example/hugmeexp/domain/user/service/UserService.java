@@ -3,7 +3,6 @@ package org.example.hugmeexp.domain.user.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.notification.service.NotificationService;
-import org.example.hugmeexp.domain.user.dto.request.ChangeRoleRequest;
 import org.example.hugmeexp.domain.user.dto.request.UserUpdateRequest;
 import org.example.hugmeexp.domain.user.dto.response.ProfileImageResponse;
 import org.example.hugmeexp.domain.user.dto.response.UserInfoResponse;
@@ -56,14 +55,6 @@ public class UserService {
     // phoneNumber를 바탕으로 User 리턴
     public Optional<User> findByPhoneNumber(String phoneNumber) {
         return userRepository.findByPhoneNumber(phoneNumber);
-    }
-
-    // UserRole 변경
-    @Transactional
-    public void changeUserRole(ChangeRoleRequest request) {
-        User findUser = findByUsername(request.getUsername());
-        findUser.changeRole(request.getRole());
-        log.info("User role changed successfully - user: {}({}) / role: {}", findUser.getUsername(), findUser.getName(), findUser.getRole());
     }
 
     // 경험치 증가

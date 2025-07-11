@@ -6,9 +6,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.attendance.entity.Attendance;
 import org.example.hugmeexp.domain.user.enums.UserRole;
 import org.example.hugmeexp.domain.user.exception.InvalidValueException;
 import org.example.hugmeexp.global.entity.BaseEntity;
+
+import java.util.*;
 
 import static jakarta.persistence.CascadeType.*;
 
@@ -58,6 +61,10 @@ public class User extends BaseEntity {
 
     @Column(nullable = false, length = 13, unique = true)
     private String phoneNumber;
+
+    // attendance와 양방향 연관관계 + cascade 설정으로 유저 삭제 시 출석 기록도 삭제
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Attendance> attendanceList = new ArrayList<>();
 
     @Builder
     private User(String username, String password, String name, String phoneNumber) {

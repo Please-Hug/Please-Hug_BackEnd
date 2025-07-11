@@ -1,19 +1,23 @@
-package org.example.hugmeexp.domain.user.dto.request;
+// src/main/java/org/example/hugmeexp/domain/admin/dto/request/RoleChangeRequest.java
+package org.example.hugmeexp.domain.admin.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.hugmeexp.domain.user.enums.UserRole;
 
-@Getter
-@NoArgsConstructor
-public class ChangeRoleRequest {
+/**
+ * 관리자가 특정 회원의 역할(Role)을 변경할 때 사용하는 요청 DTO
+ */
 
-    @Schema(description = "권한을 변경할 대상 유저의 username", example = "seungwook0924")
-    @NotBlank
-    private String username;
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class RoleChangeRequest {
 
     @Schema(
             description = "변경할 권한 (USER, LECTURER, ADMIN 중 하나)",
@@ -22,9 +26,4 @@ public class ChangeRoleRequest {
     )
     @NotNull
     private UserRole role;
-
-    public ChangeRoleRequest(String username, UserRole role) {
-        this.username = username;
-        this.role = role;
-    }
 }
