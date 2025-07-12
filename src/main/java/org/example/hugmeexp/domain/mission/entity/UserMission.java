@@ -34,7 +34,7 @@ public class UserMission extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private UserMissionState progress;
 
-    @OneToOne(mappedBy = "userMission", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "userMission", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Submission submissions;
 
     @OneToMany(mappedBy = "userMission", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
