@@ -77,9 +77,9 @@ public class UserService {
 
     // 경험치 직접 설정
     @Transactional
-    public void setPoint(User user, int point) {
+    public void setExp(User user, int exp) {
         User findUser = findById(user.getId());
-        findUser.setPoint(point);
+        findUser.setExp(exp);
     }
 
     // 구름조각 증가
@@ -98,9 +98,9 @@ public class UserService {
 
     // 구름조각 직접 설정
     @Transactional
-    public void setExp(User user, int exp) {
+    public void setPoint(User user, int point) {
         User findUser = findById(user.getId());
-        findUser.setExp(exp);
+        findUser.setPoint(point);
     }
 
     // User 종합 정보 조회
