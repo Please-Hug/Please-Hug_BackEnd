@@ -35,7 +35,7 @@ public class UserMission extends BaseEntity {
     private UserMissionState progress;
 
     @OneToOne(mappedBy = "userMission", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Submission submissions;
+    private Submission submission;
 
     @OneToMany(mappedBy = "userMission", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<MissionRewardExpLog> missionRewardExpLogs = new ArrayList<>();
