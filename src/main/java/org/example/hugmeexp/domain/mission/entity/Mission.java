@@ -4,7 +4,11 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.example.hugmeexp.domain.mission.enums.Difficulty;
 import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
+import org.example.hugmeexp.domain.missionTask.entity.MissionTask;
 import org.example.hugmeexp.global.entity.BaseEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -44,4 +48,10 @@ public class Mission extends BaseEntity {
 
     @Column(name = "tip", length = 511)
     private String tip;
+
+    @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<UserMission> userMissions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<MissionTask> missionTasks = new ArrayList<>();
 }
