@@ -14,6 +14,7 @@ public class UserResponseMapper {
                 user.getName(),
                 user.getDescription(),
                 user.getPhoneNumber(),
+                user.getRole(),
                 level,
                 nextLevelTotalExp,
                 user.getExp(),
