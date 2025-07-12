@@ -11,7 +11,7 @@ public class AdminUserResponseMapper {
     public static AdminUserAllResponse toProfileResponse(User u) {
         return new AdminUserAllResponse(
                 u.getId(),
-                u.getPublicProfileImageUrl(),
+                u.getPublicProfileImageUrl() != null ? u.getPublicProfileImageUrl() : null,
                 u.getUsername(),
                 u.getName(),
                 u.getRole()
@@ -23,7 +23,7 @@ public class AdminUserResponseMapper {
         return new AdminUserInfoResponse(
                 u.getId(),
                 u.getUsername(),
-                base.getProfileImage(),
+                base.getProfileImage() != null ? base.getProfileImage() : null,
                 base.getName(),
                 base.getDescription(),
                 base.getPhoneNumber(),

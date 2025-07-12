@@ -75,6 +75,13 @@ public class UserService {
         }
     }
 
+    // 경험치 직접 설정
+    @Transactional
+    public void setPoint(User user, int point) {
+        User findUser = findById(user.getId());
+        findUser.setPoint(point);
+    }
+
     // 구름조각 증가
     @Transactional
     public void increasePoint(User user, int value) {
@@ -87,6 +94,13 @@ public class UserService {
     public void decreasePoint(User user, int value) {
         User findUser = findById(user.getId());
         findUser.decreasePoint(value);
+    }
+
+    // 구름조각 직접 설정
+    @Transactional
+    public void setExp(User user, int exp) {
+        User findUser = findById(user.getId());
+        findUser.setExp(exp);
     }
 
     // User 종합 정보 조회
@@ -114,6 +128,17 @@ public class UserService {
         // User 업데이트 및 결과 리턴
         findUser.updateUserInfo(request.getName(), request.getDescription(), request.getPhoneNumber());
 
+        // 경험치 직접 설정 (요청된 경우)
+        if (request.getExp() != null) {
+            findUser.setExp(request.getExp());
+        }
+
+        // 포인트 직접 설정 (요청된 경우)
+        if (request.getPoint() != null) {
+            findUser.setPoint(request.getPoint());
+        }
+
+        // 결과 리턴
         int level = calculateLevel(findUser.getExp());
         int nextLevelTotalExp = getNextLevelTotalExp(findUser.getExp());
         return UserResponseMapper.toUserInfoResponse(findUser, level, nextLevelTotalExp);
