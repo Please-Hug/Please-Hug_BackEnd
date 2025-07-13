@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.notification.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class NotificationController {
 
     // 알림 목록 조회
     @GetMapping
+    @Operation(summary = "알림 목록 조회", description = "로그인한 사용자가 받은 알림 목록을 조회합니다.")
     public ResponseEntity<Response<List<NotificationResponseDTO>>> getMyNotifications(@AuthenticationPrincipal CustomUserDetails userDetails){
 
         User user = userDetails.getUser();
@@ -40,6 +42,7 @@ public class NotificationController {
     }
 
     // 알림 읽음 처리
+    @Operation(summary = "단일 알림 읽음 처리", description = "알림 ID를 통해 특정 알림을 읽음 상태로 변경합니다.")
     @PatchMapping("/{notificationId}/read")
     public ResponseEntity<Response<Void>> markAsRead(@PathVariable Long notificationId,
                                                      @AuthenticationPrincipal CustomUserDetails userDetails){
@@ -55,6 +58,7 @@ public class NotificationController {
     }
 
     // 전체 알림 읽음 처리
+    @Operation(summary = "모든 알림 읽음 처리", description = "로그인한 사용자의 모든 알림을 읽음 상태로 변경합니다.")
     @PatchMapping("/read-all")
     public ResponseEntity<Response<Void>> markAllAsRead(@AuthenticationPrincipal CustomUserDetails userDetails){
 
