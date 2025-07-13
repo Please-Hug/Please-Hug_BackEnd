@@ -37,7 +37,10 @@ public class StudyDiaryRedisService {
         //저장 방법은 크게 3개로 나뉨 : 전체 리스트 직렬화, Redis 리스트, Sorted Set
         //여기서는 Sorted Set을 활용
         String key = WEEKLY_POPULAR_KEY;
-
+        //diaries가 비어있으면 return
+        if(diaries.isEmpty()){
+            return;
+        }
         // 기존 데이터 삭제
         redisTemplate.delete(CACHE_KEY_PREFIX + key);
 
@@ -65,7 +68,7 @@ public class StudyDiaryRedisService {
         
         // 페이지 계산
         long start = pageable.getOffset() * 10;
-        long end = Math.min((start + 1) * 10,  totalElements);  //start부터 10개 or 전체 항목 갯수(max)
+        long end = Math.min((start + 1) * 9,  totalElements);  //start부터 10개 or 전체 항목 갯수(max)
         
         // 해당 범위의 데이터 조회 (높은 점수부터)
         //LinkedHashSet return(Set인데 순서보장)

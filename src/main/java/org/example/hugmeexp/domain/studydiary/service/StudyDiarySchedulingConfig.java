@@ -23,7 +23,7 @@ public class StudyDiarySchedulingConfig {
 
     @Scheduled(fixedRate = 1800000) // 30분 = 1800000ms
     public void cacheTodayPopularStudyDiaries() {
-        log.info("일주일간 인기 배움일기 캐싱 작업 시작");
+        log.info("caching weekly studyDiaries");
 
         // 이번 주 월요일~일요일 범위 계산
         LocalDateTime startOfWeek = LocalDateTime.now().with(DayOfWeek.MONDAY).withHour(0).withMinute(0).withSecond(0);

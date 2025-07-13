@@ -25,6 +25,7 @@ import org.example.hugmeexp.domain.studydiary.repository.StudyDiaryRepository;
 import org.example.hugmeexp.domain.studydiary.repository.StudyDiaryLikeRepository;
 import org.example.hugmeexp.domain.studydiary.entity.StudyDiaryLike;
 import org.example.hugmeexp.domain.user.entity.User;
+import org.example.hugmeexp.domain.user.enums.UserRole;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -90,7 +91,11 @@ public class StudyDiaryService {
         StudyDiary studyDiary = studyDiaryRepository.findById(id)
                 .orElseThrow(StudyDiaryNotFoundException::new);
 
-        checkUser(user, studyDiary);
+        try {
+            checkUser(user, studyDiary);
+        } catch (UnauthorizedAccessException e) {
+            checkAdmin(user);
+        }
         // 댓글 알림 삭제
         List<StudyDiaryComment> comments = studyDiaryCommentRepository.findByStudyDiary(studyDiary);
         for(StudyDiaryComment comment : comments){
@@ -459,8 +464,12 @@ public class StudyDiaryService {
         StudyDiaryComment comment = studyDiaryCommentRepository.findById(commentId)
                 .orElseThrow(CommentNotFoundException::new);
 
-        if(!user.getId().equals(comment.getUser().getId())){
-            throw new UnauthorizedAccessException();
+        try {
+            if(!user.getId().equals(comment.getUser().getId())){
+                throw new UnauthorizedAccessException();
+            }
+        } catch (UnauthorizedAccessException e) {
+            checkAdmin(user);
         }
 
         // 알림 제거 추가
@@ -513,6 +522,12 @@ public class StudyDiaryService {
 
     private void checkUser(User user, StudyDiary studyDiary) {
         if(!user.getId().equals(studyDiary.getUser().getId())){
+            throw new UnauthorizedAccessException();
+        }
+    }
+
+    private void checkAdmin(User user) {
+        if (!user.getRole().equals(UserRole.ADMIN)) {
             throw new UnauthorizedAccessException();
         }
     }
