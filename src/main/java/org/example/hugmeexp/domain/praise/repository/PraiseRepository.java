@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PraiseRepository extends JpaRepository<Praise, Long> {
@@ -33,5 +34,9 @@ public interface PraiseRepository extends JpaRepository<Praise, Long> {
             "AND (pr.receiver.name LIKE %:keyword% OR p.sender.name LIKE %:keyword%)")
     List<Praise> findMySentPraiseWithKeyword(User currentUser, LocalDateTime startDateTime, LocalDateTime endDateTime, String keyword);
 
+    //
+    @Query("SELECT p FROM Praise p " +
+            "JOIN FETCH p.sender WHERE p.id = :praiseId")
+    Optional<Praise> findWithSenderById(Long praiseId);
 
 }

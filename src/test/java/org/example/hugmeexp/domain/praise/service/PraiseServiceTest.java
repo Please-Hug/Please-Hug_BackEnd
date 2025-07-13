@@ -309,7 +309,7 @@ public class PraiseServiceTest {
 
         // 댓글 조회
         for (int i = 0; i < testData.junePraises.size(); i++) {
-            when(commentRepository.findByPraise(testData.junePraises.get(i)))
+            when(commentService.getCommentsByPraise(testData.junePraises.get(i)))
                     .thenReturn(List.of(testData.juneComments.get(i)));
         }
     }
@@ -380,8 +380,8 @@ public class PraiseServiceTest {
                 .thenReturn(List.of());
 
         // 댓글 조회
-        when(commentRepository.findByPraise(testData.junePraises.get(0))).thenReturn(List.of(testData.juneComments.get(0)));
-        when(commentRepository.findByPraise(testData.junePraises.get(1))).thenReturn(List.of(testData.juneComments.get(1)));
+        when(commentService.getCommentsByPraise(testData.junePraises.get(0))).thenReturn(List.of(testData.juneComments.get(0)));
+        when(commentService.getCommentsByPraise(testData.junePraises.get(1))).thenReturn(List.of(testData.juneComments.get(1)));
     }
 
     @Test
@@ -527,8 +527,8 @@ public class PraiseServiceTest {
                 .thenReturn(List.of());
 
         // 댓글 조회
-        when(commentRepository.findByPraise(testData.junePraises.get(0))).thenReturn(List.of(testData.juneComments.get(0)));
-        when(commentRepository.findByPraise(testData.junePraises.get(1))).thenReturn(List.of(testData.juneComments.get(1)));
+        when(commentService.getCommentsByPraise(testData.junePraises.get(0))).thenReturn(List.of(testData.juneComments.get(0)));
+        when(commentService.getCommentsByPraise(testData.junePraises.get(1))).thenReturn(List.of(testData.juneComments.get(1)));
     }
 
     @Test
@@ -699,11 +699,11 @@ public class PraiseServiceTest {
                                             PraiseComment comment, 
                                             org.example.hugmeexp.domain.praise.entity.PraiseEmojiReaction reaction,
                                             org.example.hugmeexp.domain.praise.entity.CommentEmojiReaction commentReaction) {
-        when(praiseRepository.findById(praiseId)).thenReturn(Optional.of(praise));
+        when(praiseRepository.findWithSenderById(praiseId)).thenReturn(Optional.of(praise));
         when(praiseReceiverRepository.findByPraise(praise)).thenReturn(List.of(praiseReceiver));
         when(commentService.getCommentsByPraise(praise)).thenReturn(List.of(comment));
         when(praiseEmojiReactionRepository.findByPraise(praise)).thenReturn(List.of(reaction));
-        when(commentEmojiReactionRepository.findByPraise(praise)).thenReturn(List.of(commentReaction));
+        when(commentEmojiReactionRepository.findWithReactorByPraise(praise)).thenReturn(List.of(commentReaction));
     }
 
     @Test
@@ -711,7 +711,7 @@ public class PraiseServiceTest {
     void testGetPraiseDetail_NotFound() {
         // given
         Long invalidId = 999L;
-        when(praiseRepository.findById(invalidId)).thenReturn(Optional.empty());
+        when(praiseRepository.findWithSenderById(invalidId)).thenReturn(Optional.empty());
 
         // then
         assertThrows(PraiseNotFoundException.class, () -> praiseService.getPraiseDetail(invalidId));
@@ -725,7 +725,7 @@ public class PraiseServiceTest {
 
         Praise dummyPraise = createTestPraise(praiseId, sender, "내용", PraiseType.THANKS, LocalDateTime.now());
 
-        when(praiseRepository.findById(praiseId)).thenReturn(Optional.of(dummyPraise));
+        when(praiseRepository.findWithSenderById(praiseId)).thenReturn(Optional.of(dummyPraise));
         when(praiseReceiverRepository.findByPraise(dummyPraise)).thenReturn(List.of());
         when(commentService.getCommentsByPraise(dummyPraise)).thenReturn(null);
 

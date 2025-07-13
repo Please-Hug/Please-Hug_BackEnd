@@ -124,7 +124,7 @@ public class PraiseService {
 
                     List<PraiseReceiver> receivers = receiverMap.getOrDefault(praise.getId(),List.of());
 
-                    List<PraiseComment> comments = commentRepository.findByPraise(praise);
+                    List<PraiseComment> comments = commentService.getCommentsByPraise(praise);
 
                     List<UserProfileResponse> commentProfiles = comments.stream()
                             .map(c -> {
@@ -188,7 +188,7 @@ public class PraiseService {
 
                     List<PraiseReceiver> receivers = receiverMap.getOrDefault(praise.getId(),List.of());
 
-                    List<PraiseComment> comments = commentRepository.findByPraise(praise);
+                    List<PraiseComment> comments = commentService.getCommentsByPraise(praise);
                     List<UserProfileResponse> commentProfiles = comments.stream()
                             .map(c -> {
                                 User user = c.getCommentWriter();
@@ -311,7 +311,10 @@ public class PraiseService {
     public PraiseDetailResponseDTO getPraiseDetail(Long praiseId) {
 
         // 칭찬 엔티티 조회
-        Praise praise = praiseRepository.findById(praiseId).orElseThrow(() -> new PraiseNotFoundException());
+//        Praise praise = praiseRepository.findById(praiseId).orElseThrow(() -> new PraiseNotFoundException());
+
+        // 칭찬 작성자 정보 조회
+        Praise praise = praiseRepository.findWithSenderById(praiseId).orElseThrow(PraiseNotFoundException::new);
 
         // 칭찬 받은 사람 리스트 조회
         List<PraiseReceiver> receiverList = praiseReceiverRepository.findByPraise(praise);
@@ -329,7 +332,7 @@ public class PraiseService {
                 .map(entry -> EmojiReactionGroupDTO.from(entry.getKey(), entry.getValue()))
                 .toList();
 
-        List<CommentEmojiReaction> commentReactions = commentEmojiReactionRepository.findByPraise(praise);
+        List<CommentEmojiReaction> commentReactions = commentEmojiReactionRepository.findWithReactorByPraise(praise);
 
         // 댓글 별 이모지 반응 수 조회
         Map<Long, Map<String, List<ReactionUserDTO>>> commentEmojiMap = commentReactions.stream()
