@@ -26,10 +26,15 @@ public class CacheService {
         evictCacheByPattern(pattern);
     }
 
+    public void evictMissionByMissionGroupCache(Long missionGroupId) {
+        String pattern = "missionsByMissionGroupId::" + missionGroupId;
+        evictCacheByPattern(pattern);
+    }
+
     // 패턴과 일치하는 모든 키 삭제
     private void evictCacheByPattern(String pattern) {
         Set<String> keys = redisTemplate.keys(pattern);
-        if (keys != null && !keys.isEmpty()) {
+        if (!keys.isEmpty()) {
             redisTemplate.delete(keys);
         }
     }

@@ -81,7 +81,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
         userMissionGroupRepository.save(creatorMissionGroup);
         try { // 생성 시점에서는 캐시가 없음. 다만 혹시 모를 캐시 존재 가능성에 대한 처리
             cacheManager.getCache("missionGroupById").evict(savedMissionGroup.getId());
-        } catch (Exception ignored) { }
+        } catch (NullPointerException ignored) { }
         return missionGroupMapper.toMissionGroupResponse(savedMissionGroup);
     }
 
@@ -201,10 +201,10 @@ public class MissionGroupServiceImpl implements MissionGroupService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(UserNotFoundException::new);
 
-        List<UserMissionGroup> userMissionGroups = userMissionGroupRepository.findByUserId(user.getId());
+        List<UserMissionGroup> userMissionGroups = userMissionGroupRepository.findByUserIdWithTeacher(user.getId());
         return userMissionGroups
                 .stream()
-                .map(userMissionGroupMapper::exceptUserAndTeacher)
+                .map(userMissionGroupMapper::toUserMissionGroupResponse)
                 .collect(Collectors.toList());
     }
 
