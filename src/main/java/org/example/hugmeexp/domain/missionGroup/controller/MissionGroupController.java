@@ -15,6 +15,7 @@ import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
 import org.example.hugmeexp.domain.missionGroup.dto.response.UserMissionGroupResponse;
+import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
 import org.example.hugmeexp.domain.missionGroup.service.MissionGroupService;
 import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
 import org.example.hugmeexp.global.common.response.Response;
@@ -128,7 +129,11 @@ public class MissionGroupController {
     )
     @GetMapping("/{id}")
     public ResponseEntity<Response<MissionGroupResponse>> getMissionGroup(@PathVariable Long id) {
-        return ResponseEntity.ok().body(Response.<MissionGroupResponse>builder().data(missionGroupService.getMissionById(id)).message("미션그룹 " + id + "를 가져왔습니다.").build());
+        List<MissionGroupResponse> missionGroups = missionGroupService.getMissionGroupById(id);
+        if (missionGroups.isEmpty()) {
+            throw new MissionGroupNotFoundException();
+        }
+        return ResponseEntity.ok().body(Response.<MissionGroupResponse>builder().data(missionGroups.get(0)).message("미션그룹 " + id + "를 가져왔습니다.").build());
     }
 
     @Operation(
@@ -260,11 +265,11 @@ public class MissionGroupController {
             }
     )
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/{missionGroupId}/users/{userId}")
+    @PostMapping("/{missionGroupId}/users/{username}")
     public ResponseEntity<Response<Void>> addUserToMissionGroup(@PathVariable Long missionGroupId,
-                                                                @PathVariable Long userId) {
-        missionGroupService.addUserToMissionGroup(userId, missionGroupId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(Response.<Void>builder().message("사용자 " + userId + "를 미션 그룹 " + missionGroupId + "에 추가하였습니다.").build());
+                                                                @PathVariable String username) {
+        missionGroupService.addUserToMissionGroup(username, missionGroupId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Response.<Void>builder().message("사용자 " + username + "를 미션 그룹 " + missionGroupId + "에 추가하였습니다.").build());
     }
 
     @Operation(
@@ -289,11 +294,11 @@ public class MissionGroupController {
             }
     )
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{missionGroupId}/users/{userId}")
+    @DeleteMapping("/{missionGroupId}/users/{username}")
     public ResponseEntity<Response<Void>> removeUserFromMissionGroup(@PathVariable Long missionGroupId,
-                                                                     @PathVariable Long userId) {
-        missionGroupService.removeUserFromMissionGroup(userId, missionGroupId);
-        return ResponseEntity.ok().body(Response.<Void>builder().message("사용자 " + userId + "를 미션 그룹 " + missionGroupId + "에서 제거하였습니다.").build());
+                                                                     @PathVariable String username) {
+        missionGroupService.removeUserFromMissionGroup(username, missionGroupId);
+        return ResponseEntity.ok().body(Response.<Void>builder().message("사용자 " + username + "를 미션 그룹 " + missionGroupId + "에서 제거하였습니다.").build());
     }
 
     @Operation(

@@ -19,9 +19,16 @@ import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepos
 import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.example.hugmeexp.domain.user.entity.User;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,17 +40,23 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     private final MissionGroupMapper missionGroupMapper;
     private final UserMissionMapper userMissionMapper;
     private final UserMissionGroupMapper userMissionGroupMapper;
+    private final CacheManager cacheManager;
+
 
     @Override
+    @Cacheable(value = "allMissionGroups")
     public List<MissionGroupResponse> getAllMissionGroups() {
-        return missionGroupRepository.findAll()
+        return missionGroupRepository.findAllWithTeacher()
                 .stream()
                 .map(missionGroupMapper::toMissionGroupResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = {"myMissionGroups", "allMissionGroups"}, allEntries = true)
+    })
     public MissionGroupResponse createMissionGroup(MissionGroupRequest request, String username) {
         User teacher = userRepository.findByUsername(request.getTeacherUsername())
                 .orElseThrow(TeacherNotFoundException::new);
@@ -66,18 +79,28 @@ public class MissionGroupServiceImpl implements MissionGroupService {
                 .missionGroup(savedMissionGroup)
                 .build();
         userMissionGroupRepository.save(creatorMissionGroup);
+        var cache = cacheManager.getCache("missionGroupById");
+        if (cache != null) {
+            cache.evict(savedMissionGroup.getId());
+        }
         return missionGroupMapper.toMissionGroupResponse(savedMissionGroup);
     }
 
     @Override
-    public MissionGroupResponse getMissionById(Long id) {
-        return missionGroupRepository.findById(id)
+    @Cacheable(value = "missionGroupById", key = "#id")
+    public List<MissionGroupResponse> getMissionGroupById(Long id) {
+        MissionGroupResponse dto = missionGroupRepository.findByIdWithTeacher(id)
                 .map(missionGroupMapper::toMissionGroupResponse)
                 .orElseThrow(MissionGroupNotFoundException::new);
+        return new ArrayList<>(Arrays.asList(dto));
     }
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = {"myMissionGroups", "allMissionGroups"}, allEntries = true),
+            @CacheEvict(value = "missionGroupById", key = "#id")
+    })
     public MissionGroupResponse updateMissionGroup(Long id, MissionGroupRequest request) {
         MissionGroup missionGroup = missionGroupRepository.findById(id)
                 .orElseThrow(MissionGroupNotFoundException::new);
@@ -96,6 +119,12 @@ public class MissionGroupServiceImpl implements MissionGroupService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = {"myMissionGroups", "allMissionGroups"}, allEntries = true),
+            @CacheEvict(value = "missionGroupById", key = "#id"),
+            @CacheEvict(value = "usersInMissionGroup", key = "#id"),
+            @CacheEvict(value = "userMissionByUsernameAndMissionGroup", allEntries = true)
+    })
     public void deleteMissionGroup(Long id) {
         if (!missionGroupRepository.existsById(id)) {
             throw new MissionGroupNotFoundException();
@@ -105,8 +134,13 @@ public class MissionGroupServiceImpl implements MissionGroupService {
 
     @Override
     @Transactional
-    public void addUserToMissionGroup(Long userId, Long missionGroupId) {
-        User user = userRepository.findById(userId)
+    @Caching(evict = {
+            @CacheEvict(value = "myMissionGroups", key = "#username"),
+            @CacheEvict(value = "usersInMissionGroup", key = "#missionGroupId"),
+            @CacheEvict(value = "userMissionByUsernameAndMissionGroup", key = "#username + '_' + #missionGroupId"),
+    })
+    public void addUserToMissionGroup(String username, Long missionGroupId) {
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(UserNotFoundException::new);
         MissionGroup missionGroup = missionGroupRepository.findById(missionGroupId)
                 .orElseThrow(MissionGroupNotFoundException::new);
@@ -125,8 +159,13 @@ public class MissionGroupServiceImpl implements MissionGroupService {
 
     @Override
     @Transactional
-    public void removeUserFromMissionGroup(Long userId, Long missionGroupId) {
-        User user = userRepository.findById(userId)
+    @Caching(evict = {
+            @CacheEvict(value = "myMissionGroups", key = "#username"),
+            @CacheEvict(value = "usersInMissionGroup", key = "#missionGroupId"),
+            @CacheEvict(value = "userMissionByUsernameAndMissionGroup", key = "#username + '_' + #missionGroupId"),
+    })
+    public void removeUserFromMissionGroup(String username, Long missionGroupId) {
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(UserNotFoundException::new);
 
         MissionGroup missionGroup = missionGroupRepository.findById(missionGroupId)
@@ -140,6 +179,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     }
 
     @Override
+    @Cacheable(value = "userMissionByUsernameAndMissionGroup", key = "#username + '_' + #missionGroupId")
     public List<UserMissionResponse> findUserMissionByUsernameAndMissionGroup(String username, Long missionGroupId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(UserNotFoundException::new);
@@ -153,35 +193,35 @@ public class MissionGroupServiceImpl implements MissionGroupService {
         return userMissionRepository.findByUserAndUserMissionGroup(user, userMissionGroup)
                 .stream()
                 .map(userMissionMapper::toUserMissionResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Cacheable(value = "myMissionGroups", key = "#username")
     public List<UserMissionGroupResponse> getMyMissionGroups(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(UserNotFoundException::new);
 
-        List<UserMissionGroup> userMissionGroups = userMissionGroupRepository.findByUserId(user.getId());
+        List<UserMissionGroup> userMissionGroups = userMissionGroupRepository.findByUserIdWithTeacher(user.getId());
         return userMissionGroups
                 .stream()
                 .map(userMissionGroupMapper::toUserMissionGroupResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Cacheable(value = "usersInMissionGroup", key = "#missionGroupId")
     public List<UserProfileResponse> getUsersInMissionGroup(Long missionGroupId) {
         MissionGroup missionGroup = missionGroupRepository.findById(missionGroupId)
                 .orElseThrow(MissionGroupNotFoundException::new);
 
-        List<UserMissionGroup> userMissionGroups = userMissionGroupRepository.findAllByMissionGroup(missionGroup);
-        return userMissionGroups.stream()
-                .map(UserMissionGroup::getUser)
-                .distinct()
+        List<User> users = userMissionGroupRepository.findUsersByMissionGroup(missionGroup);
+        return users.stream()
                 .map(user -> new UserProfileResponse(
                         user.getPublicProfileImageUrl(),
                         user.getUsername(),
                         user.getName()
                 ))
-                .toList();
+                .collect(Collectors.toList());
     }
 }

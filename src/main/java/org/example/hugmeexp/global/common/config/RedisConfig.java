@@ -22,7 +22,7 @@ public class RedisConfig {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), 
+        objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(),
                 ObjectMapper.DefaultTyping.NON_FINAL);
 
         GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
@@ -37,19 +37,12 @@ public class RedisConfig {
         return template;
     }
 
-//    @Bean
-//    public RedisTemplate<String, String> stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-//        RedisTemplate<String, String> template = new RedisTemplate<>();
-//        template.setConnectionFactory(redisConnectionFactory);
-//
-//        // 문자열 직렬화 설정
-//        StringRedisSerializer serializer = new StringRedisSerializer();
-//        template.setKeySerializer(serializer);
-//        template.setValueSerializer(serializer);
-//        template.setHashKeySerializer(serializer);
-//        template.setHashValueSerializer(serializer);
-//
-//        template.afterPropertiesSet();
-//        return template;
-//    }
+    @Bean
+    public RedisTemplate<String, String> customStringRedisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, String> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new StringRedisSerializer());
+        return template;
+    }
 }

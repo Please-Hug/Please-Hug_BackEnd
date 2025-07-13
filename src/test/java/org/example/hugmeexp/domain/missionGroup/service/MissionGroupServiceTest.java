@@ -23,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cache.CacheManager;
 
 import java.util.List;
 import java.util.Optional;
@@ -58,6 +59,9 @@ class MissionGroupServiceTest {
     @Mock
     private UserMissionGroupMapper userMissionGroupMapper;
 
+    @Mock
+    private CacheManager cacheManager;
+
     @InjectMocks
     private MissionGroupServiceImpl missionGroupService;
 
@@ -89,7 +93,7 @@ class MissionGroupServiceTest {
                 .name("Group2")
                 .teacher(teacher2)
                 .build();
-        when(missionGroupRepository.findAll()).thenReturn(List.of(group1, group2));
+        when(missionGroupRepository.findAllWithTeacher()).thenReturn(List.of(group1, group2));
         when(missionGroupMapper.toMissionGroupResponse(group1)).thenReturn(response1);
         when(missionGroupMapper.toMissionGroupResponse(group2)).thenReturn(response2);
 
@@ -100,7 +104,7 @@ class MissionGroupServiceTest {
         assertEquals(2, result.size());
         assertEquals("Group1", result.get(0).getName());
         assertEquals("Group2", result.get(1).getName());
-        verify(missionGroupRepository, times(1)).findAll();
+        verify(missionGroupRepository, times(1)).findAllWithTeacher();
     }
 
     @Test
@@ -145,7 +149,7 @@ class MissionGroupServiceTest {
 
     @Test
     @DisplayName("ID로 미션 그룹을 조회한다 - 존재O")
-    void getMissionById_found() {
+    void getMissionGroupById_found() {
         // Given
         UserProfileResponse teacher = new UserProfileResponse(
                 "", "teacher1", "Teacher One");
@@ -159,11 +163,11 @@ class MissionGroupServiceTest {
                 .teacher(teacher)
                 .build();
 
-        when(missionGroupRepository.findById(id)).thenReturn(Optional.of(group));
+        when(missionGroupRepository.findByIdWithTeacher(id)).thenReturn(Optional.of(group));
         when(missionGroupMapper.toMissionGroupResponse(group)).thenReturn(expectedResponse);
 
         // When
-        MissionGroupResponse result = missionGroupService.getMissionById(id);
+        MissionGroupResponse result = missionGroupService.getMissionGroupById(id).get(0);
 
         // Then
         assertNotNull(result);
@@ -172,14 +176,14 @@ class MissionGroupServiceTest {
 
     @Test
     @DisplayName("ID로 미션 그룹을 조회한다 - 존재X")
-    void getMissionById_notFound() {
+    void getMissionGroupById_notFound() {
         // Given
         Long id = 999L;
-        when(missionGroupRepository.findById(id)).thenReturn(Optional.empty());
+        when(missionGroupRepository.findByIdWithTeacher(id)).thenReturn(Optional.empty());
 
         // When & Then
         MissionGroupNotFoundException exception = assertThrows(MissionGroupNotFoundException.class,
-                () -> missionGroupService.getMissionById(id));
+                () -> missionGroupService.getMissionGroupById(id));
 
         assertNotNull(exception);
     }
@@ -281,14 +285,14 @@ class MissionGroupServiceTest {
 
         User user = mock(User.class);
 
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
         when(missionGroupRepository.findById(SAMPLE_GROUP_ID)).thenReturn(Optional.of(missionGroup));
         // 아직 유저가 그룹에 속해있지 않음 (false 반환)
         when(userMissionGroupRepository.existsByUserAndMissionGroup(user, missionGroup)).thenReturn(false);
 
         // When
         // 예외가 발생하지 않아야 함
-        assertDoesNotThrow(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID));
+        assertDoesNotThrow(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID));
 
         // Then
         // UserMissionGroupRepository의 save가 한 번 호출되었는지 검증
@@ -299,10 +303,10 @@ class MissionGroupServiceTest {
     @DisplayName("존재하지 않는 유저를 그룹에 추가 시도 - 실패")
     void addUserToMissionGroup_UserNotFound_Fail() {
         // Given
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.empty());
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID))
+        assertThatThrownBy(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID))
                 .isInstanceOf(UserNotFoundException.class);
 
         // missionGroupRepository.findById 나 userMissionGroupRepository.save는 호출되면 안 됨
@@ -315,11 +319,11 @@ class MissionGroupServiceTest {
     void addUserToMissionGroup_GroupNotFound_Fail() {
         // Given
         User user = mock(User.class);
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
         when(missionGroupRepository.findById(SAMPLE_GROUP_ID)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID))
+        assertThatThrownBy(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID))
                 .isInstanceOf(MissionGroupNotFoundException.class);
 
         verify(userMissionGroupRepository, never()).save(any());
@@ -332,13 +336,13 @@ class MissionGroupServiceTest {
         User user = mock(User.class);
         MissionGroup missionGroup = MissionGroup.builder().id(SAMPLE_GROUP_ID).build();
 
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
         when(missionGroupRepository.findById(SAMPLE_GROUP_ID)).thenReturn(Optional.of(missionGroup));
         // 이미 유저가 그룹에 속해있다고 설정 (true 반환)
         when(userMissionGroupRepository.existsByUserAndMissionGroup(user, missionGroup)).thenReturn(true);
 
         // When & Then
-        assertThatThrownBy(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID))
+        assertThatThrownBy(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID))
                 .isInstanceOf(AlreadyExistsUserMissionGroupException.class);
 
         verify(userMissionGroupRepository, never()).save(any());
@@ -356,13 +360,13 @@ class MissionGroupServiceTest {
                 .missionGroup(missionGroup)
                 .build();
 
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
         when(missionGroupRepository.findById(SAMPLE_GROUP_ID)).thenReturn(Optional.of(missionGroup));
         when(userMissionGroupRepository.findByUserAndMissionGroup(user, missionGroup))
                 .thenReturn(Optional.of(userMissionGroup));
 
         // When
-        assertDoesNotThrow(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID));
+        assertDoesNotThrow(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID));
 
         // Then
         // userMissionGroupRepository의 delete가 정확한 객체로 호출되었는지 검증
@@ -373,10 +377,10 @@ class MissionGroupServiceTest {
     @DisplayName("존재하지 않는 유저를 그룹에서 제거 시도 - 실패")
     void removeUserFromMissionGroup_UserNotFound_Fail() {
         // Given
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.empty());
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID))
+        assertThatThrownBy(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID))
                 .isInstanceOf(UserNotFoundException.class);
 
         verify(userMissionGroupRepository, never()).delete(any());
@@ -387,11 +391,11 @@ class MissionGroupServiceTest {
     void removeUserFromMissionGroup_GroupNotFound_Fail() {
         // Given
         User user = mock(User.class);
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
         when(missionGroupRepository.findById(SAMPLE_GROUP_ID)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID))
+        assertThatThrownBy(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID))
                 .isInstanceOf(MissionGroupNotFoundException.class);
 
         verify(userMissionGroupRepository, never()).delete(any());
@@ -404,14 +408,14 @@ class MissionGroupServiceTest {
         User user = mock(User.class);
         MissionGroup missionGroup = MissionGroup.builder().id(SAMPLE_GROUP_ID).build();
 
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
         when(missionGroupRepository.findById(SAMPLE_GROUP_ID)).thenReturn(Optional.of(missionGroup));
         // 유저-그룹 관계가 존재하지 않음 (Optional.empty() 반환)
         when(userMissionGroupRepository.findByUserAndMissionGroup(user, missionGroup))
                 .thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID))
+        assertThatThrownBy(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID))
                 .isInstanceOf(NotExistsUserMissionGroupException.class);
 
         verify(userMissionGroupRepository, never()).delete(any());
@@ -504,8 +508,9 @@ class MissionGroupServiceTest {
     void getMyMissionGroups_Success() {
         // Given
         User user = mock(User.class);
+        when(user.getId()).thenReturn(1L);
         when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
-        when(userMissionGroupRepository.findByUserId(anyLong())).thenReturn(List.of(mock(UserMissionGroup.class)));
+        when(userMissionGroupRepository.findByUserIdWithTeacher(anyLong())).thenReturn(List.of(mock(UserMissionGroup.class)));
         when(userMissionGroupMapper.toUserMissionGroupResponse(any())).thenReturn(mock(UserMissionGroupResponse.class));
 
         // when
@@ -513,7 +518,7 @@ class MissionGroupServiceTest {
 
         // then
         assertThat(result).isNotEmpty();
-        verify(userMissionGroupRepository, times(1)).findByUserId(anyLong());
+        verify(userMissionGroupRepository, times(1)).findByUserIdWithTeacher(anyLong());
     }
 
     @Test
@@ -545,11 +550,8 @@ class MissionGroupServiceTest {
         when(user2.getName()).thenReturn("User Two");
         UserMissionGroup umg1 = mock(UserMissionGroup.class);
         UserMissionGroup umg2 = mock(UserMissionGroup.class);
-        when(umg1.getUser()).thenReturn(user1);
-        when(umg2.getUser()).thenReturn(user2);
-        List<UserMissionGroup> userMissionGroups = List.of(umg1, umg2);
         when(missionGroupRepository.findById(groupId)).thenReturn(Optional.of(mockGroup));
-        when(userMissionGroupRepository.findAllByMissionGroup(mockGroup)).thenReturn(userMissionGroups);
+        when(userMissionGroupRepository.findUsersByMissionGroup(mockGroup)).thenReturn(List.of(user1, user2));
 
         // When
         List<UserProfileResponse> result = missionGroupService.getUsersInMissionGroup(groupId);
@@ -563,7 +565,7 @@ class MissionGroupServiceTest {
         assertEquals("img1", result.get(0).getProfileImage());
         assertEquals("img2", result.get(1).getProfileImage());
         verify(missionGroupRepository, times(1)).findById(groupId);
-        verify(userMissionGroupRepository, times(1)).findAllByMissionGroup(mockGroup);
+        verify(userMissionGroupRepository, times(1)).findUsersByMissionGroup(mockGroup);
     }
 
     @Test

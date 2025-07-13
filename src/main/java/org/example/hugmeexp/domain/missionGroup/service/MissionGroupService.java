@@ -12,15 +12,15 @@ public interface MissionGroupService {
 
     MissionGroupResponse createMissionGroup(MissionGroupRequest request, String username);
 
-    MissionGroupResponse getMissionById(Long id);
+    List<MissionGroupResponse> getMissionGroupById(Long id);
 
     MissionGroupResponse updateMissionGroup(Long id, MissionGroupRequest request);
 
     void deleteMissionGroup(Long id);
 
-    void addUserToMissionGroup(Long userId, Long missionGroupId);
+    void addUserToMissionGroup(String username, Long missionGroupId);
 
-    void removeUserFromMissionGroup(Long userId, Long missionGroupId);
+    void removeUserFromMissionGroup(String username, Long missionGroupId);
 
     List<UserMissionResponse> findUserMissionByUsernameAndMissionGroup(String username, Long missionGroupId);
 
