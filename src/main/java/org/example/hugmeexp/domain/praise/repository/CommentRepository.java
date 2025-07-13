@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -22,6 +23,10 @@ public interface CommentRepository extends JpaRepository<PraiseComment, Long> {
     // 칭찬 게시물과 댓글 작성자 정보와 함께 조회 - 성능개선
     @Query("SELECT c FROM PraiseComment c JOIN FETCH c.commentWriter WHERE c.praise = :praise")
     List<PraiseComment> findWithWriterByPraise(@Param("praise") Praise praise);
+
+    // 성능 개선
+    @Query("SELECT c FROM PraiseComment c JOIN FETCH c.commentWriter WHERE c.praise IN :praises")
+    List<PraiseComment> findWithWriterByPraiseIn(List<Praise> praises);
 
     /* 해당 기간 내 칭찬 게시물 댓글 조회 */
     @Query("SELECT c FROM PraiseComment c " +
