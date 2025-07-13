@@ -116,7 +116,8 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = {"myMissionGroups", "allMissionGroups"}, allEntries = true),
-            @CacheEvict(value = "missionGroupById", key = "#id")
+            @CacheEvict(value = "missionGroupById", key = "#id"),
+            @CacheEvict(value = "usersInMissionGroup", key = "#id")
     })
     public void deleteMissionGroup(Long id) {
         if (!missionGroupRepository.existsById(id)) {
@@ -127,7 +128,10 @@ public class MissionGroupServiceImpl implements MissionGroupService {
 
     @Override
     @Transactional
-    @CacheEvict(value = "myMissionGroups", key = "#username")
+    @Caching(evict = {
+            @CacheEvict(value = "myMissionGroups", key = "#username"),
+            @CacheEvict(value = "usersInMissionGroup", key = "#missionGroupId"),
+    })
     public void addUserToMissionGroup(String username, Long missionGroupId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(UserNotFoundException::new);
@@ -148,7 +152,10 @@ public class MissionGroupServiceImpl implements MissionGroupService {
 
     @Override
     @Transactional
-    @CacheEvict(value = "myMissionGroups", key = "#username")
+    @Caching(evict = {
+            @CacheEvict(value = "myMissionGroups", key = "#username"),
+            @CacheEvict(value = "usersInMissionGroup", key = "#missionGroupId")
+    })
     public void removeUserFromMissionGroup(String username, Long missionGroupId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(UserNotFoundException::new);
@@ -194,6 +201,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     }
 
     @Override
+    @Cacheable(value = "usersInMissionGroup", key = "#missionGroupId")
     public List<UserProfileResponse> getUsersInMissionGroup(Long missionGroupId) {
         MissionGroup missionGroup = missionGroupRepository.findById(missionGroupId)
                 .orElseThrow(MissionGroupNotFoundException::new);
