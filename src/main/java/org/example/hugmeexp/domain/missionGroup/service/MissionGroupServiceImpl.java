@@ -85,7 +85,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     @Override
     @Cacheable(value = "missionGroupById", key = "#id")
     public MissionGroupResponse getMissionGroupById(Long id) {
-        return missionGroupRepository.findById(id)
+        return missionGroupRepository.findByIdWithTeacher(id)
                 .map(missionGroupMapper::toMissionGroupResponse)
                 .orElseThrow(MissionGroupNotFoundException::new);
     }
