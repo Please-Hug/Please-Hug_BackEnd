@@ -79,9 +79,10 @@ public class MissionGroupServiceImpl implements MissionGroupService {
                 .missionGroup(savedMissionGroup)
                 .build();
         userMissionGroupRepository.save(creatorMissionGroup);
-        try { // 생성 시점에서는 캐시가 없음. 다만 혹시 모를 캐시 존재 가능성에 대한 처리
-            cacheManager.getCache("missionGroupById").evict(savedMissionGroup.getId());
-        } catch (NullPointerException ignored) { }
+        var cache = cacheManager.getCache("missionGroupById");
+        if (cache != null) {
+            cache.evict(savedMissionGroup.getId());
+        }
         return missionGroupMapper.toMissionGroupResponse(savedMissionGroup);
     }
 

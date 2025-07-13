@@ -22,6 +22,6 @@ public interface UserMissionGroupRepository extends JpaRepository<UserMissionGro
     @Query("SELECT user FROM UserMissionGroup umg JOIN umg.user user WHERE umg.missionGroup = :missionGroup")
     List<User> findUsersByMissionGroup(MissionGroup missionGroup);
 
-    @Query("SELECT umg FROM UserMissionGroup umg JOIN FETCH umg.user WHERE umg.user.id = :id")
+    @Query("SELECT umg FROM UserMissionGroup umg JOIN FETCH umg.user JOIN FETCH umg.missionGroup mg JOIN FETCH mg.teacher WHERE umg.user.id = :id")
     List<UserMissionGroup> findByUserIdWithTeacher(Long id);
 }

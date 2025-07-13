@@ -92,9 +92,9 @@ public class UserMissionServiceImpl implements UserMissionService {
                 .build());
         userMission.setProgress(newProgress);
 
-        cacheService.evictUserCache(userMission.getUser().getUsername());
 
         userMissionRepository.save(userMission);
+        cacheService.evictUserCache(userMission.getUser().getUsername());
     }
 
     @Override
