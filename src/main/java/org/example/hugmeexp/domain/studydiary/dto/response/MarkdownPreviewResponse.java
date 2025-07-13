@@ -1,11 +1,15 @@
 package org.example.hugmeexp.domain.studydiary.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "마크다운 미리보기 응답")
 public class MarkdownPreviewResponse {
 

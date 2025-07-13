@@ -1,13 +1,17 @@
 package org.example.hugmeexp.domain.studydiary.dto.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.example.hugmeexp.domain.studydiary.entity.StudyDiaryComment;
 
 import java.time.LocalDateTime;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CommentDetailResponse {
 
     private Long id;
