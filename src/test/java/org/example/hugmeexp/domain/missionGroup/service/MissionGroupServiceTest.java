@@ -506,7 +506,7 @@ class MissionGroupServiceTest {
         User user = mock(User.class);
         when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
         when(userMissionGroupRepository.findByUserId(anyLong())).thenReturn(List.of(mock(UserMissionGroup.class)));
-        when(userMissionGroupMapper.toUserMissionGroupResponse(any())).thenReturn(mock(UserMissionGroupResponse.class));
+        when(userMissionGroupMapper.exceptUserAndTeacher(any())).thenReturn(mock(UserMissionGroupResponse.class));
 
         // when
         List<UserMissionGroupResponse> result = missionGroupService.getMyMissionGroups(SAMPLE_USERNAME);

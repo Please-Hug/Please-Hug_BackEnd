@@ -19,6 +19,8 @@ import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepos
 import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.example.hugmeexp.domain.user.entity.User;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -125,6 +127,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "myMissionGroups", allEntries = true)
     public void removeUserFromMissionGroup(Long userId, Long missionGroupId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
@@ -157,6 +160,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     }
 
     @Override
+    @Cacheable(value = "myMissionGroups", key = "#username")
     public List<UserMissionGroupResponse> getMyMissionGroups(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(UserNotFoundException::new);
@@ -164,7 +168,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
         List<UserMissionGroup> userMissionGroups = userMissionGroupRepository.findByUserId(user.getId());
         return userMissionGroups
                 .stream()
-                .map(userMissionGroupMapper::toUserMissionGroupResponse)
+                .map(userMissionGroupMapper::exceptUserAndTeacher)
                 .toList();
     }
 
