@@ -1,11 +1,13 @@
 package org.example.hugmeexp.global.common.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
 
 @Service
+@Slf4j
 public class CacheService {
 
     private final StringRedisTemplate redisTemplate;
@@ -39,7 +41,7 @@ public class CacheService {
                 redisTemplate.delete(keys);
             }
         } catch (Exception e) {
-            System.err.println("Error evicting cache for pattern " + pattern + ": " + e.getMessage());
+            log.error("Error while evicting cache for pattern {}: {}", pattern, e.getMessage());
         }
     }
 }
