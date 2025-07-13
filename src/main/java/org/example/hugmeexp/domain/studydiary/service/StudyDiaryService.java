@@ -134,28 +134,28 @@ public class StudyDiaryService {
         return studyDiaryFindAllResponsePage;
     }
 
-    public Page<StudyDiaryFindAllResponse> getWeeklyPopularStudyDiaries(Pageable pageable) {
-        // 이번 주 월요일~일요일 범위 계산
-        LocalDateTime startOfWeek = LocalDateTime.now().with(DayOfWeek.MONDAY).withHour(0).withMinute(0).withSecond(0);
-        LocalDateTime endOfWeek = startOfWeek.plusDays(6).withHour(23).withMinute(59).withSecond(59);
-
-        Page<StudyDiary> studyDiaries = studyDiaryRepository.findWeeklyPopularStudyDiaries(startOfWeek, endOfWeek, pageable);
-
-        //response로 전환
-        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {
-            return StudyDiaryFindAllResponse.builder()
-                    .id(studyDiary.getId())
-                    .name(studyDiary.getUser().getName())
-                    .title(studyDiary.getTitle())
-                    .content(studyDiary.getContent())
-                    .likeNum(studyDiary.getLikeCount())
-                    .commentNum(studyDiary.getComments().size())
-                    .createdAt(studyDiary.getCreatedAt())
-                    .build();
-        });
-
-        return studyDiaryFindAllResponsePage;
-    }
+//    public Page<StudyDiaryFindAllResponse> getWeeklyPopularStudyDiaries(Pageable pageable) {
+//        // 이번 주 월요일~일요일 범위 계산
+//        LocalDateTime startOfWeek = LocalDateTime.now().with(DayOfWeek.MONDAY).withHour(0).withMinute(0).withSecond(0);
+//        LocalDateTime endOfWeek = startOfWeek.plusDays(6).withHour(23).withMinute(59).withSecond(59);
+//
+//        List<StudyDiary> studyDiaries = studyDiaryRepository.findWeeklyPopularStudyDiaries(startOfWeek, endOfWeek);
+//
+//        //response로 전환
+//        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {
+//            return StudyDiaryFindAllResponse.builder()
+//                    .id(studyDiary.getId())
+//                    .name(studyDiary.getUser().getName())
+//                    .title(studyDiary.getTitle())
+//                    .content(studyDiary.getContent())
+//                    .likeNum(studyDiary.getLikeCount())
+//                    .commentNum(studyDiary.getComments().size())
+//                    .createdAt(studyDiary.getCreatedAt())
+//                    .build();
+//        });
+//
+//        return studyDiaryFindAllResponsePage;
+//    }
 
     public List<StudyDiaryFindAllResponse> getStudyDiaryDafts(Pageable pageable, UserDetails userDetails) {
         User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(UserNotFoundForStudyDiaryException::new);

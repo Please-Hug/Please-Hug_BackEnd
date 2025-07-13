@@ -9,6 +9,7 @@ import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryCreateReques
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryUpdateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.CommentCreateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryWeekStatusResponse;
+import org.example.hugmeexp.domain.studydiary.service.StudyDiaryRedisService;
 import org.example.hugmeexp.domain.studydiary.service.StudyDiaryService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 public class StudyDiaryController {
 
     private final StudyDiaryService studyDiaryService;
+    private final StudyDiaryRedisService studyDiaryRedisService;
 
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "배움일기 목록 조회")
@@ -73,7 +75,7 @@ public class StudyDiaryController {
             multiSort
         );
 
-        Object weeklyPopularStudyDiaries = studyDiaryService.getWeeklyPopularStudyDiaries(sortedPageable);
+        Object weeklyPopularStudyDiaries = studyDiaryRedisService.getCachedWeeklyPopularDiaries(pageable);
         return ResponseEntity.ok(Response.<Object>builder()
                 .message("일주일간 인기 배움일기를 성공적으로 조회했습니다.")
                 .data(weeklyPopularStudyDiaries)
