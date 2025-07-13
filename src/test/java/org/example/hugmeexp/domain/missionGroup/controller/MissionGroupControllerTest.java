@@ -156,7 +156,7 @@ class MissionGroupControllerTest {
                 .teacher(teacher)
                 .build();
         given(missionGroupService.getMissionGroupById(TEST_ID))
-                .willReturn(response);
+                .willReturn(List.of(response));
         // When && Then
         mockMvc.perform(get(BASE_URL + "/{id}", TEST_ID))
                 .andExpect(status().isOk())

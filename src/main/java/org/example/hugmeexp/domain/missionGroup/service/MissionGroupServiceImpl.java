@@ -25,7 +25,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +49,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
         return missionGroupRepository.findAllWithTeacher()
                 .stream()
                 .map(missionGroupMapper::toMissionGroupResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -84,10 +87,11 @@ public class MissionGroupServiceImpl implements MissionGroupService {
 
     @Override
     @Cacheable(value = "missionGroupById", key = "#id")
-    public MissionGroupResponse getMissionGroupById(Long id) {
-        return missionGroupRepository.findByIdWithTeacher(id)
+    public List<MissionGroupResponse> getMissionGroupById(Long id) {
+        MissionGroupResponse dto = missionGroupRepository.findByIdWithTeacher(id)
                 .map(missionGroupMapper::toMissionGroupResponse)
                 .orElseThrow(MissionGroupNotFoundException::new);
+        return new ArrayList<>(Arrays.asList(dto));
     }
 
     @Override
@@ -197,7 +201,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
         return userMissionGroups
                 .stream()
                 .map(userMissionGroupMapper::exceptUserAndTeacher)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -215,6 +219,6 @@ public class MissionGroupServiceImpl implements MissionGroupService {
                         user.getUsername(),
                         user.getName()
                 ))
-                .toList();
+                .collect(Collectors.toList());
     }
 }

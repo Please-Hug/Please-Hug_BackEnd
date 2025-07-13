@@ -89,7 +89,7 @@ class MissionGroupServiceTest {
                 .name("Group2")
                 .teacher(teacher2)
                 .build();
-        when(missionGroupRepository.findAll()).thenReturn(List.of(group1, group2));
+        when(missionGroupRepository.findAllWithTeacher()).thenReturn(List.of(group1, group2));
         when(missionGroupMapper.toMissionGroupResponse(group1)).thenReturn(response1);
         when(missionGroupMapper.toMissionGroupResponse(group2)).thenReturn(response2);
 
@@ -100,7 +100,7 @@ class MissionGroupServiceTest {
         assertEquals(2, result.size());
         assertEquals("Group1", result.get(0).getName());
         assertEquals("Group2", result.get(1).getName());
-        verify(missionGroupRepository, times(1)).findAll();
+        verify(missionGroupRepository, times(1)).findAllWithTeacher();
     }
 
     @Test
@@ -159,11 +159,11 @@ class MissionGroupServiceTest {
                 .teacher(teacher)
                 .build();
 
-        when(missionGroupRepository.findById(id)).thenReturn(Optional.of(group));
+        when(missionGroupRepository.findByIdWithTeacher(id)).thenReturn(Optional.of(group));
         when(missionGroupMapper.toMissionGroupResponse(group)).thenReturn(expectedResponse);
 
         // When
-        MissionGroupResponse result = missionGroupService.getMissionGroupById(id);
+        MissionGroupResponse result = missionGroupService.getMissionGroupById(id).get(0);
 
         // Then
         assertNotNull(result);
@@ -175,7 +175,7 @@ class MissionGroupServiceTest {
     void getMissionGroupById_notFound() {
         // Given
         Long id = 999L;
-        when(missionGroupRepository.findById(id)).thenReturn(Optional.empty());
+        when(missionGroupRepository.findByIdWithTeacher(id)).thenReturn(Optional.empty());
 
         // When & Then
         MissionGroupNotFoundException exception = assertThrows(MissionGroupNotFoundException.class,

@@ -10,7 +10,7 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class RedisSessionService
 {
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
     private static final String BLACKLIST_PREFIX = "blacklist:";
 
     // 블랙리스트에 토큰 추가 (토큰의 남은 유효시간만큼 블랙리스트에 보관)
