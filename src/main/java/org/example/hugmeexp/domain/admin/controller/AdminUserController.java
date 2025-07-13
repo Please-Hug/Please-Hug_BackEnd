@@ -1,4 +1,3 @@
-// src/main/java/org/example/hugmeexp/domain/admin/controller/AdminUserController.java
 package org.example.hugmeexp.domain.admin.controller;
 
 import org.example.hugmeexp.domain.admin.dto.request.RoleChangeRequest;
@@ -6,8 +5,6 @@ import org.example.hugmeexp.domain.admin.dto.response.AdminUserAllResponse;
 import org.example.hugmeexp.domain.admin.dto.response.AdminUserInfoResponse;
 import org.example.hugmeexp.domain.admin.service.AdminUserService;
 import org.example.hugmeexp.domain.user.dto.request.UserUpdateRequest;
-import org.example.hugmeexp.domain.user.dto.response.UserInfoResponse;
-import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
 import org.example.hugmeexp.global.common.response.Response;
 
 import io.swagger.v3.oas.annotations.Operation;

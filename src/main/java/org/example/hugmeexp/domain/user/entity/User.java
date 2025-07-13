@@ -118,11 +118,25 @@ public class User extends BaseEntity {
         this.point -= value;
     }
 
+    // 구름조각 직접 설정
+    public void setPoint(int point) {
+        if (point < 0) throw new InvalidValueException("포인트는 0 이상이어야 합니다.");
+        log.info("point set - user: {}({}) {} -> {}", this.username, this.name, this.point, point);
+        this.point = point;
+    }
+
     // 경험치 증가
     public void increaseExp(int value) {
         if(value <= 0) throw new InvalidValueException("양수만 요청할 수 있습니다.");
         log.info("exp increase - user: {}({}) {} -> {}", this.username, this.name, this.exp, this.exp + value);
         this.exp += value;
+    }
+
+    // 경험치 직접 설정
+    public void setExp(int exp) {
+        if (exp < 0) throw new InvalidValueException("경험치는 0 이상이어야 합니다.");
+        log.info("exp set - user: {}({}) {} -> {}", this.username, this.name, this.exp, exp);
+        this.exp = exp;
     }
 
     // 비밀번호 변경(서비스 계층에서 암호화된 패스워드가 넘어와야 함)
