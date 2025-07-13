@@ -13,6 +13,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.*;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 
 @Configuration
@@ -68,4 +69,26 @@ public class CacheConfig {
                 .cacheDefaults(config)
                 .build();
     }
+
+//    @Bean
+//    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        objectMapper.activateDefaultTyping(
+//                objectMapper.getPolymorphicTypeValidator(),
+//                ObjectMapper.DefaultTyping.NON_FINAL
+//        );
+//
+//        // 제네릭 컬렉션을 위한 타입 헬퍼 클래스 사용
+//        GenericJackson2JsonRedisSerializer serializer =
+//                new GenericJackson2JsonRedisSerializer(objectMapper);
+//
+//        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+//                .entryTtl(Duration.ofMinutes(30))
+//                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+//                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer));
+//
+//        return RedisCacheManager.builder(connectionFactory)
+//                .cacheDefaults(config)
+//                .build();
+//    }
 }
