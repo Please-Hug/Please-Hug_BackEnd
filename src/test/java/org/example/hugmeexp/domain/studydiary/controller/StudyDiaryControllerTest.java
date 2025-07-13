@@ -1,39 +1,7 @@
 package org.example.hugmeexp.domain.studydiary.controller;
 
-/*
- * ============================================================================
- * StudyDiary Controller Test Class
- * ============================================================================
- * 
- * 이 클래스는 StudyDiary 컨트롤러의 모든 엔드포인트를 테스트합니다.
- * 
- * 테스트 초보자를 위한 핵심 개념:
- * 
- * 1. 단위 테스트 (Unit Test)
- *    - 하나의 기능(메서드)을 독립적으로 테스트
- *    - 외부 의존성(데이터베이스, 네트워크 등)을 Mock으로 대체
- *    - 빠르고 안정적인 테스트 실행 가능
- * 
- * 2. Given-When-Then 패턴
- *    - Given: 테스트에 필요한 데이터와 상태 준비
- *    - When: 실제 테스트할 동작 실행
- *    - Then: 결과 검증 및 확인
- * 
- * 3. Mock 객체
- *    - 실제 객체를 대신하는 가짜 객체
- *    - 테스트에서 예상되는 동작을 미리 정의 가능
- *    - 외부 의존성 없이 독립적인 테스트 가능
- * 
- * 4. 테스트 어노테이션
- *    - @Test: 테스트 메서드 표시
- *    - @WebMvcTest: 웹 레이어만 테스트
- *    - @WithMockUser: 인증된 사용자로 테스트
- *    - @MockBean: Spring Boot에서 Mock 객체 생성
- * 
- * 5. 검증 방법
- *    - HTTP 상태 코드 검증 (200, 400, 401 등)
- *    - JSON 응답 내용 검증
- *    - Mock 객체 메서드 호출 검증
+/**
+ * StudyDiary 컨트롤러 테스트
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,6 +13,7 @@ import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryFindAllResp
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryMyHomeResponse;
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryWeekStatusResponse;
 import org.example.hugmeexp.domain.studydiary.service.StudyDiaryService;
+import org.example.hugmeexp.domain.studydiary.service.StudyDiaryRedisService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,93 +40,53 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * StudyDiary 컨트롤러 테스트 클래스
- * 
- * @WebMvcTest: Spring MVC 컨트롤러 레이어만 테스트하는 어노테이션
- *              - 웹 관련 설정만 로드하므로 빠르게 테스트 가능
- *              - 실제 서비스나 리포지토리는 로드하지 않음
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("StudyDiary 컨트롤러 테스트")
 class StudyDiaryControllerTest {
 
-    /**
-     * MockMvc: 실제 웹 서버를 띄우지 않고 HTTP 요청/응답을 시뮬레이션하는 도구
-     * - 컨트롤러의 메서드를 직접 호출하지 않고 HTTP 요청을 통해 테스트
-     * - 실제 HTTP 요청과 동일한 방식으로 테스트 가능
-     */
     @Autowired
     private MockMvc mockMvc;
 
-    /**
-     * ObjectMapper: Java 객체를 JSON으로, JSON을 Java 객체로 변환하는 도구
-     * - 테스트에서 요청 본문을 JSON 문자열로 변환할 때 사용
-     * - Spring Boot에서 기본 제공하는 Jackson 라이브러리의 객체
-     */
     @Autowired
     private ObjectMapper objectMapper;
 
-    /**
-     * @MockBean: Spring Boot 테스트에서 사용하는 Mock 객체 생성 어노테이션
-     * - 실제 서비스 구현체 대신 가짜 객체를 주입
-     * - 테스트에서 원하는 동작을 when().thenReturn()으로 정의 가능
-     * - 컨트롤러 로직만 테스트하고 서비스 로직은 테스트에서 제외
-     */
     @MockBean
     private StudyDiaryService studyDiaryService;
 
-    /**
-     * JWT 서비스도 Mock으로 처리 (보안 관련 의존성 해결)
-     */
+    @MockBean
+    private StudyDiaryRedisService studyDiaryRedisService;
 
-    /**
-     * 배움일기 목록 조회 테스트
-     * 
-     * @Test: JUnit 5에서 테스트 메서드임을 나타내는 어노테이션
-     * @DisplayName: 테스트 실행 시 표시될 이름 (한글로 작성 가능)
-     * @WithMockUser: 인증된 사용자로 테스트를 실행하는 어노테이션
-     *               - username을 지정하여 해당 사용자로 인증된 상태를 시뮬레이션
-     */
     @Test
     @DisplayName("GET /api/v1/studydiaries - 배움일기 목록 조회 성공")
     void getStudyDiaries_Success() throws Exception {
-        // given: 테스트에 필요한 데이터 준비 단계
-        // Mock 데이터 생성 - 실제 데이터베이스 대신 가짜 데이터 사용
+        // given
         List<StudyDiaryFindAllResponse> diaryList = Arrays.asList(
                 createMockStudyDiaryResponse(1L, "제목1", "testuser"),
                 createMockStudyDiaryResponse(2L, "제목2", "testuser2")
         );
-        // 페이징 처리된 결과를 시뮬레이션 (PageImpl: Page 인터페이스의 구현체)
         Page<StudyDiaryFindAllResponse> mockPage = new PageImpl<>(diaryList, PageRequest.of(0, 10), 2);
         
-        // when: Mock 객체의 동작 정의
-        // studyDiaryService.getStudyDiaries()가 호출되면 mockPage를 반환하도록 설정
-        // any(Pageable.class): 어떤 Pageable 객체가 와도 상관없다는 뜻
         when(studyDiaryService.getStudyDiaries(any(Pageable.class))).thenReturn(mockPage);
 
-        // when & then: 실제 테스트 실행 및 검증
-        mockMvc.perform(get("/api/v1/studydiaries")  // GET 요청 수행
-                        .with(user("testuser"))      // 인증된 사용자 추가
-                        .param("page", "0")           // 쿼리 파라미터 추가
+        // when & then
+        mockMvc.perform(get("/api/v1/studydiaries")
+                        .with(user("testuser"))
+                        .param("page", "0")
                         .param("size", "10")
                         .param("sort", "createdAt,DESC"))
-                .andDo(print())  // 요청/응답 정보를 콘솔에 출력 (디버깅용)
-                // 응답 검증 시작
-                .andExpect(status().isOk())  // HTTP 상태코드가 200(OK)인지 확인
-                .andExpect(jsonPath("$.message").value("배움일기 목록을 성공적으로 조회했습니다."))  // JSON 응답의 message 필드 확인
-                .andExpect(jsonPath("$.data.content").isArray())  // data.content가 배열인지 확인
-                .andExpect(jsonPath("$.data.content[0].title").value("제목1"));  // 첫 번째 항목의 제목 확인
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("배움일기 목록을 성공적으로 조회했습니다."))
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content[0].title").value("제목1"));
 
-        // verify: Mock 객체의 메서드가 예상대로 호출되었는지 검증
-        // studyDiaryService.getStudyDiaries()가 정확히 1번 호출되었는지 확인
         verify(studyDiaryService, times(1)).getStudyDiaries(any(Pageable.class));
     }
 
     @Test
-    @DisplayName("GET /api/v1/studydiaries/today/popular - 오늘 하루 인기 배움일기 조회 성공")
-    void getTodayPopularStudyDiaries_Success() throws Exception {
+    @DisplayName("GET /api/v1/studydiaries/weekly/popular - 일주일간 인기 배움일기 조회 성공")
+    void getWeeklyPopularStudyDiaries_Success() throws Exception {
         // given
         List<StudyDiaryFindAllResponse> popularDiaries = Arrays.asList(
                 createMockStudyDiaryResponse(1L, "인기글1", "author1", 100, 10),
@@ -165,17 +94,41 @@ class StudyDiaryControllerTest {
         );
         Page<StudyDiaryFindAllResponse> mockPage = new PageImpl<>(popularDiaries);
         
-        when(studyDiaryService.getTodayPopularStudyDiaries(any(Pageable.class))).thenReturn(mockPage);
+        when(studyDiaryRedisService.getCachedWeeklyPopularDiaries(any(Pageable.class))).thenReturn(mockPage);
 
         // when & then
-        mockMvc.perform(get("/api/v1/studydiaries/today/popular")
+        mockMvc.perform(get("/api/v1/studydiaries/weekly/popular")
                         .with(user("testuser")))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("오늘 하루 인기 배움일기를 성공적으로 조회했습니다."))
+                .andExpect(jsonPath("$.message").value("일주일간 인기 배움일기를 성공적으로 조회했습니다."))
                 .andExpect(jsonPath("$.data.content[0].likeNum").value(100));
 
-        verify(studyDiaryService, times(1)).getTodayPopularStudyDiaries(any(Pageable.class));
+        verify(studyDiaryRedisService, times(1)).getCachedWeeklyPopularDiaries(any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/studydiaries/user/{user-id} - 사용자 배움일기 목록 조회 성공")
+    void getUserStudyDiaries_Success() throws Exception {
+        // given
+        Long userId = 1L;
+        List<StudyDiaryFindAllResponse> userDiaries = Arrays.asList(
+                createMockStudyDiaryResponse(1L, "사용자 글 1", "testuser"),
+                createMockStudyDiaryResponse(2L, "사용자 글 2", "testuser")
+        );
+        
+        when(studyDiaryService.getUserStudyDiaries(eq(userId), any(Pageable.class))).thenReturn(userDiaries);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/studydiaries/user/{user-id}", userId)
+                        .with(user("testuser")))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("사용자 배움일기 목록을 성공적으로 조회했습니다."))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data[0].title").value("사용자 글 1"));
+
+        verify(studyDiaryService, times(1)).getUserStudyDiaries(eq(userId), any(Pageable.class));
     }
 
     @Test
@@ -223,67 +176,47 @@ class StudyDiaryControllerTest {
         verify(studyDiaryService, times(1)).getStudyDiary(diaryId);
     }
 
-    /**
-     * 배움일기 생성 테스트 (POST 요청)
-     * 
-     * POST 요청은 GET과 달리 요청 본문(body)에 데이터를 담아서 보냄
-     * JSON 형태로 데이터를 전송하고, CSRF 토큰도 함께 전송해야 함
-     */
     @Test
     @DisplayName("POST /api/v1/studydiaries - 배움일기 생성 성공")
     void createStudyDiary_Success() throws Exception {
-        // given: 테스트 데이터 준비
-        Long createdId = 1L;  // 생성된 배움일기의 ID (서비스에서 반환할 가짜 값)
+        // given
+        Long createdId = 1L;
         
-        // 요청 객체 생성 - 실제 사용자가 보낼 데이터와 동일한 형태
         StudyDiaryCreateRequest request = new StudyDiaryCreateRequest();
         request.setTitle("Spring Boot 학습 일기");
         request.setContent("# Spring Boot 학습 정리\\n\\n## 오늘 배운 내용");
 
-        // Mock 서비스가 createStudyDiary를 호출하면 createdId를 반환하도록 설정
-        // any(): 어떤 타입의 객체가 와도 상관없다는 Mockito의 ArgumentMatcher
         when(studyDiaryService.createStudyDiary(any(StudyDiaryCreateRequest.class), any())).thenReturn(createdId);
 
-        // when & then: POST 요청 실행 및 검증
-        mockMvc.perform(post("/api/v1/studydiaries")  // POST 요청 수행
-                        .with(user("testuser"))      // 인증된 사용자 추가
-                        .with(csrf())  // CSRF 토큰 추가 (Spring Security에서 요구)
-                        .contentType(MediaType.APPLICATION_JSON)  // 요청 본문이 JSON임을 명시
-                        .content(objectMapper.writeValueAsString(request)))  // Java 객체를 JSON 문자열로 변환하여 요청 본문에 추가
-                .andDo(print())  // 요청/응답 정보 출력
-                .andExpect(status().isOk())  // 200 상태 코드 확인
-                .andExpect(jsonPath("$.message").value("성공적으로 생성되었습니다."))  // 응답 메시지 확인
-                .andExpect(jsonPath("$.data").value(createdId));  // 생성된 ID 확인
+        // when & then
+        mockMvc.perform(post("/api/v1/studydiaries")
+                        .with(user("testuser"))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("성공적으로 생성되었습니다."))
+                .andExpect(jsonPath("$.data").value(createdId));
 
-        // 서비스 메서드가 정확히 1번 호출되었는지 검증
         verify(studyDiaryService, times(1)).createStudyDiary(any(StudyDiaryCreateRequest.class), any());
     }
 
-    /**
-     * 배움일기 생성 실패 테스트 - 검증 실패 케이스
-     * 
-     * 실제 운영에서 발생할 수 있는 잘못된 요청을 테스트
-     * 필수 필드가 누락된 경우 어떻게 처리되는지 확인
-     */
     @Test
     @DisplayName("POST /api/v1/studydiaries - 배움일기 생성 실패 (필수 필드 누락)")
     void createStudyDiary_Fail_MissingRequiredField() throws Exception {
-        // given: 잘못된 요청 데이터 준비
+        // given
         StudyDiaryCreateRequest invalidRequest = new StudyDiaryCreateRequest();
-        // title과 content를 설정하지 않음 (null 상태)
-        // @NotNull 어노테이션에 의해 검증 실패가 발생할 것임
 
-        // when & then: 잘못된 요청 실행 및 실패 검증
+        // when & then
         mockMvc.perform(post("/api/v1/studydiaries")
                         .with(user("testuser"))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andDo(print())
-                .andExpect(status().isBadRequest());  // 400 Bad Request 상태 코드 확인
+                .andExpect(status().isBadRequest());
 
-        // verify: 검증 실패로 인해 서비스 메서드가 호출되지 않았는지 확인
-        // never(): 메서드가 한 번도 호출되지 않았음을 검증하는 Mockito 메서드
         verify(studyDiaryService, never()).createStudyDiary(any(), any());
     }
 
@@ -523,40 +456,23 @@ class StudyDiaryControllerTest {
         verify(studyDiaryService, times(1)).getMyRecentStudyDiaries(any(), any(Pageable.class));
     }
 
-    /**
-     * 인증 실패 테스트
-     * 
-     * @WithMockUser 어노테이션을 사용하지 않으면 인증되지 않은 상태가 됨
-     * Spring Security가 적용된 엔드포인트에 인증 없이 접근할 때의 동작을 테스트
-     */
     @Test
     @DisplayName("GET /api/v1/studydiaries - 인증되지 않은 사용자 접근 시 실패")
     void getStudyDiaries_Unauthorized() throws Exception {
-        // when & then: 인증 없이 보호된 엔드포인트에 접근
+        // when & then
         mockMvc.perform(get("/api/v1/studydiaries"))
                 .andDo(print())
-                .andExpect(status().isUnauthorized());  // 401 Unauthorized 상태 코드 확인
+                .andExpect(status().isUnauthorized());
 
-        // 인증 실패로 인해 서비스 메서드가 호출되지 않았는지 확인
         verify(studyDiaryService, never()).getStudyDiaries(any());
     }
 
-    // ================= Helper Methods (헬퍼 메서드) =================
-    // 테스트에서 반복적으로 사용되는 Mock 데이터 생성 메서드들
-    // 코드 중복을 줄이고 테스트 가독성을 높이기 위해 분리
+    // Helper Methods
     
-    /**
-     * 기본 StudyDiaryFindAllResponse Mock 객체 생성
-     * 좋아요와 댓글 수는 0으로 기본 설정
-     */
     private StudyDiaryFindAllResponse createMockStudyDiaryResponse(Long id, String title, String name) {
         return createMockStudyDiaryResponse(id, title, name, 0, 0);
     }
 
-    /**
-     * StudyDiaryFindAllResponse Mock 객체 생성 (상세 버전)
-     * 좋아요 수와 댓글 수를 직접 지정 가능
-     */
     private StudyDiaryFindAllResponse createMockStudyDiaryResponse(Long id, String title, String name, int likeNum, int commentNum) {
         return StudyDiaryFindAllResponse.builder()
                 .id(id)
@@ -569,10 +485,6 @@ class StudyDiaryControllerTest {
                 .build();
     }
 
-    /**
-     * StudyDiaryDetailResponse Mock 객체 생성
-     * 상세 조회 테스트에서 사용
-     */
     private StudyDiaryDetailResponse createMockDetailResponse(Long id) {
         return StudyDiaryDetailResponse.builder()
                 .id(id)
@@ -586,10 +498,6 @@ class StudyDiaryControllerTest {
                 .build();
     }
 
-    /**
-     * StudyDiaryMyHomeResponse Mock 객체 생성
-     * 홈 화면용 응답 데이터 테스트에서 사용
-     */
     private StudyDiaryMyHomeResponse createMockMyHomeResponse(Long id, LocalDate date) {
         return StudyDiaryMyHomeResponse.builder()
                 .id(id)
