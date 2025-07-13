@@ -12,7 +12,7 @@ public interface MissionGroupService {
 
     MissionGroupResponse createMissionGroup(MissionGroupRequest request, String username);
 
-    MissionGroupResponse getMissionById(Long id);
+    MissionGroupResponse getMissionGroupById(Long id);
 
     MissionGroupResponse updateMissionGroup(Long id, MissionGroupRequest request);
 

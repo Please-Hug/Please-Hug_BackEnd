@@ -19,8 +19,10 @@ import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepos
 import org.example.hugmeexp.domain.user.dto.response.UserProfileResponse;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.example.hugmeexp.domain.user.entity.User;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,6 +37,8 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     private final MissionGroupMapper missionGroupMapper;
     private final UserMissionMapper userMissionMapper;
     private final UserMissionGroupMapper userMissionGroupMapper;
+    private final CacheManager cacheManager;
+
 
     @Override
     @Cacheable(value = "allMissionGroups")
@@ -47,7 +51,9 @@ public class MissionGroupServiceImpl implements MissionGroupService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"myMissionGroups", "allMissionGroups"}, allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = {"myMissionGroups", "allMissionGroups"}, allEntries = true)
+    })
     public MissionGroupResponse createMissionGroup(MissionGroupRequest request, String username) {
         User teacher = userRepository.findByUsername(request.getTeacherUsername())
                 .orElseThrow(TeacherNotFoundException::new);
@@ -70,11 +76,15 @@ public class MissionGroupServiceImpl implements MissionGroupService {
                 .missionGroup(savedMissionGroup)
                 .build();
         userMissionGroupRepository.save(creatorMissionGroup);
+        try { // 생성 시점에서는 캐시가 없음. 다만 혹시 모를 캐시 존재 가능성에 대한 처리
+            cacheManager.getCache("missionGroupById").evict(savedMissionGroup.getId());
+        } catch (Exception ignored) { }
         return missionGroupMapper.toMissionGroupResponse(savedMissionGroup);
     }
 
     @Override
-    public MissionGroupResponse getMissionById(Long id) {
+    @Cacheable(value = "missionGroupById", key = "#id")
+    public MissionGroupResponse getMissionGroupById(Long id) {
         return missionGroupRepository.findById(id)
                 .map(missionGroupMapper::toMissionGroupResponse)
                 .orElseThrow(MissionGroupNotFoundException::new);
@@ -82,7 +92,10 @@ public class MissionGroupServiceImpl implements MissionGroupService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"myMissionGroups", "allMissionGroups"}, allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = {"myMissionGroups", "allMissionGroups"}, allEntries = true),
+            @CacheEvict(value = "missionGroupById", key = "#id")
+    })
     public MissionGroupResponse updateMissionGroup(Long id, MissionGroupRequest request) {
         MissionGroup missionGroup = missionGroupRepository.findById(id)
                 .orElseThrow(MissionGroupNotFoundException::new);
@@ -101,7 +114,10 @@ public class MissionGroupServiceImpl implements MissionGroupService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"myMissionGroups", "allMissionGroups"}, allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = {"myMissionGroups", "allMissionGroups"}, allEntries = true),
+            @CacheEvict(value = "missionGroupById", key = "#id")
+    })
     public void deleteMissionGroup(Long id) {
         if (!missionGroupRepository.existsById(id)) {
             throw new MissionGroupNotFoundException();

@@ -145,7 +145,7 @@ class MissionGroupServiceTest {
 
     @Test
     @DisplayName("ID로 미션 그룹을 조회한다 - 존재O")
-    void getMissionById_found() {
+    void getMissionGroupById_found() {
         // Given
         UserProfileResponse teacher = new UserProfileResponse(
                 "", "teacher1", "Teacher One");
@@ -163,7 +163,7 @@ class MissionGroupServiceTest {
         when(missionGroupMapper.toMissionGroupResponse(group)).thenReturn(expectedResponse);
 
         // When
-        MissionGroupResponse result = missionGroupService.getMissionById(id);
+        MissionGroupResponse result = missionGroupService.getMissionGroupById(id);
 
         // Then
         assertNotNull(result);
@@ -172,14 +172,14 @@ class MissionGroupServiceTest {
 
     @Test
     @DisplayName("ID로 미션 그룹을 조회한다 - 존재X")
-    void getMissionById_notFound() {
+    void getMissionGroupById_notFound() {
         // Given
         Long id = 999L;
         when(missionGroupRepository.findById(id)).thenReturn(Optional.empty());
 
         // When & Then
         MissionGroupNotFoundException exception = assertThrows(MissionGroupNotFoundException.class,
-                () -> missionGroupService.getMissionById(id));
+                () -> missionGroupService.getMissionGroupById(id));
 
         assertNotNull(exception);
     }

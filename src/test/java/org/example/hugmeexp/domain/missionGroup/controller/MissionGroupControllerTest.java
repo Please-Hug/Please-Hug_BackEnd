@@ -155,7 +155,7 @@ class MissionGroupControllerTest {
                 .name("Test Group")
                 .teacher(teacher)
                 .build();
-        given(missionGroupService.getMissionById(TEST_ID))
+        given(missionGroupService.getMissionGroupById(TEST_ID))
                 .willReturn(response);
         // When && Then
         mockMvc.perform(get(BASE_URL + "/{id}", TEST_ID))
@@ -175,7 +175,7 @@ class MissionGroupControllerTest {
 //                .name("Test Group")
 //                .teacherId(100L)
 //                .build();
-        given(missionGroupService.getMissionById(nonExistentId))
+        given(missionGroupService.getMissionGroupById(nonExistentId))
                 .willThrow(new MissionGroupNotFoundException());
         // When && Then
         mockMvc.perform(get(BASE_URL + "/{id}", nonExistentId))

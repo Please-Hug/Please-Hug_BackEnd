@@ -128,7 +128,7 @@ public class MissionGroupController {
     )
     @GetMapping("/{id}")
     public ResponseEntity<Response<MissionGroupResponse>> getMissionGroup(@PathVariable Long id) {
-        return ResponseEntity.ok().body(Response.<MissionGroupResponse>builder().data(missionGroupService.getMissionById(id)).message("미션그룹 " + id + "를 가져왔습니다.").build());
+        return ResponseEntity.ok().body(Response.<MissionGroupResponse>builder().data(missionGroupService.getMissionGroupById(id)).message("미션그룹 " + id + "를 가져왔습니다.").build());
     }
 
     @Operation(
