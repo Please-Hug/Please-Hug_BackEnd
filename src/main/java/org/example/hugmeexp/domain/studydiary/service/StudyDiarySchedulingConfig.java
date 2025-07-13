@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.studydiary.service;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryFindAllResponse;
@@ -20,6 +21,11 @@ public class StudyDiarySchedulingConfig {
     private final StudyDiaryService studyDiaryService;
     private final StudyDiaryRepository studyDiaryRepository;
     private final StudyDiaryRedisService studyDiaryRedisService;
+
+    @PostConstruct
+    public void init() {
+        log.info("==StudyDiarySchedulingConfig== initialized");
+    }
 
     @Scheduled(fixedRate = 1800000) // 30분 = 1800000ms
     public void cacheTodayPopularStudyDiaries() {
