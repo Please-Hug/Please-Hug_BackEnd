@@ -66,7 +66,7 @@ public interface StudyDiaryRepository extends JpaRepository<StudyDiary, Long> {
                                                   Pageable pageable);
 
     // 이번 주 인기 일기 조회 (이번 주 작성된 글 중 좋아요 많은 순)
-    @Query("SELECT s FROM StudyDiary s WHERE s.isCreated = true AND s.createdAt BETWEEN :startOfWeek AND :endOfWeek ORDER BY s.likeCount DESC LIMIT 50")
+    @Query("SELECT s FROM StudyDiary s LEFT JOIN FETCH s.user LEFT JOIN FETCH s.comments WHERE s.isCreated = true AND s.createdAt BETWEEN :startOfWeek AND :endOfWeek ORDER BY s.likeCount DESC LIMIT 50")
     List<StudyDiary> findWeeklyPopularStudyDiaries(@Param("startOfWeek") LocalDateTime startOfWeek,
                                                    @Param("endOfWeek") LocalDateTime endOfWeek);
 
