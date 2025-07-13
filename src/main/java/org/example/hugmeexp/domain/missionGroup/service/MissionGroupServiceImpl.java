@@ -39,7 +39,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     @Override
     @Cacheable(value = "allMissionGroups")
     public List<MissionGroupResponse> getAllMissionGroups() {
-        return missionGroupRepository.findAll()
+        return missionGroupRepository.findAllWithTeacher()
                 .stream()
                 .map(missionGroupMapper::toMissionGroupResponse)
                 .toList();
