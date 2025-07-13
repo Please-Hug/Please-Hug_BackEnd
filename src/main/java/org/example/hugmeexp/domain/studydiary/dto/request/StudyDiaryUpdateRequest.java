@@ -14,8 +14,10 @@ public class StudyDiaryUpdateRequest {
     @Length(max = 100, message = "제목은 100자를 초과할 수 없습니다.")
     private String title;
 
-    @Schema(description = "수정할 배움일기 내용", example = "오늘은 Spring Boot의 고급 기능들에 대해 더 깊이 학습했습니다...", requiredMode = Schema.RequiredMode.REQUIRED, maxLength = 5000)
+    @Schema(description = "수정할 배움일기 내용 (Markdown 형식 지원)", 
+            example = "# Spring Boot 심화 학습\n\n## 수정된 내용\n\n- **AOP(Aspect-Oriented Programming)**: 횡단 관심사 분리\n- **Spring Security**: 인증과 권한 부여\n\n```java\n@EnableWebSecurity\npublic class SecurityConfig {\n    // 보안 설정\n}\n```\n\n> 심화 학습을 통해 더 깊이 이해하게 되었다.", 
+            requiredMode = Schema.RequiredMode.REQUIRED, maxLength = 10000)
     @NotNull(message = "내용은 공백일 수 없습니다.")
-    @Length(max = 5000, message = "내용은 5000자를 초과할 수 없습니다.")
+    @Length(max = 10000, message = "내용은 10000자를 초과할 수 없습니다.")
     private String content;
 } 

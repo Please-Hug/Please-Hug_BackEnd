@@ -1,14 +1,23 @@
-# 베이스 이미지로 테무린 JDK 17 사용
-FROM eclipse-temurin:17-jre
+FROM openjdk:17
 
-# 애플리케이션을 위한 작업 디렉토리 설정
-WORKDIR /application
+# 필요한 패키지 설치 (필요시)
+RUN microdnf install findutils
 
-# 빌드된 JAR 파일을 컨테이너로 복사
-COPY build/libs/*SNAPSHOT.jar goormexp.jar
+# 작업 디렉토리 설정
+WORKDIR /app
 
-# 상품 이미지들 컨테이너로 복사
+# 모든 파일 복사 (최신 소스 확실히 반영)
+COPY . /app
+
+# Gradle을 사용하여 빌드
+RUN chmod +x ./gradlew
+RUN ./gradlew clean build -x test --no-daemon
+
+# 환경 변수 설정
+ENV SPRING_PROFILES_ACTIVE=dev
+
+# 상품 이미지들 복사 (기존 설정 유지)
 COPY docker/images/ /application/product-images/
 
-# 애플리케이션 실행
-ENTRYPOINT ["java", "-jar", "/application/goormexp.jar"]
+# 애플리케이션 실행 - JAR 파일명을 프로젝트에 맞게 수정
+ENTRYPOINT ["java", "-jar", "/app/build/libs/hugmeEXP-0.0.1-SNAPSHOT.jar"]

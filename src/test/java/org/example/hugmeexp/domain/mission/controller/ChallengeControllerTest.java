@@ -1,8 +1,8 @@
 package org.example.hugmeexp.domain.mission.controller;
 
 import org.example.hugmeexp.domain.mission.dto.request.SubmissionUploadRequest;
+import org.example.hugmeexp.domain.mission.dto.response.UserMissionResponse;
 import org.example.hugmeexp.domain.mission.enums.UserMissionState;
-import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.domain.mission.service.SubmissionService;
 import org.example.hugmeexp.domain.mission.service.UserMissionService;
 import org.example.hugmeexp.global.common.exception.ExceptionController;
@@ -15,17 +15,28 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -48,6 +59,7 @@ class ChallengeControllerTest {
     void setup() {
         mockMvc = MockMvcBuilders.standaloneSetup(challengeController)
                 .setControllerAdvice(new ExceptionController())
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .build();
     }
 
@@ -172,5 +184,66 @@ class ChallengeControllerTest {
 
         // 서비스 메소드가 호출되지 않았는지 확인
         verify(submissionService, never()).submitChallenge(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("모든 챌린지 조회 성공 테스트")
+    void getAllChallenges_Success() throws Exception {
+        //given
+
+        UserDetails userDetails = User.withUsername("testUser")
+                .password("dummy")
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_LECTURER")))
+                .build();
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                userDetails.getPassword(),
+                userDetails.getAuthorities()
+        );
+
+        SecurityContext ctx = new SecurityContextImpl();
+        ctx.setAuthentication(auth);
+        SecurityContextHolder.setContext(ctx);
+
+        when(userMissionService.getAllUserMissionsByTeacher(eq("testUser")))
+                .thenReturn(Collections.emptyList());
+
+        //when
+        ResultActions resultActions = mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(BASE_URL)
+                        .principal(auth)
+                        .accept(MediaType.APPLICATION_JSON)
+        );
+
+        //then
+        resultActions.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("모든 챌린지를 성공적으로 가져왔습니다."))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data").isEmpty());
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    @DisplayName("챌린지 ID로 챌린지 조회 성공 테스트")
+    void getChallengeById_Success() throws Exception {
+        //given
+        when(userMissionService.getUserMissionByChallengeId(anyLong()))
+                .thenReturn(mock(UserMissionResponse.class));
+
+        //when
+        ResultActions resultActions = mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(BASE_URL + "/{challengeId}", 1L)
+                        .accept(MediaType.APPLICATION_JSON)
+        );
+
+        //then
+        resultActions.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("챌린지 1를 성공적으로 가져왔습니다."))
+                .andExpect(jsonPath("$.data").isMap())
+                .andDo(print());
     }
 }

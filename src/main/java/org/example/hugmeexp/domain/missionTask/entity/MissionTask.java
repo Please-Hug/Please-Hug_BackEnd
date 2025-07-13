@@ -27,4 +27,8 @@ public class MissionTask extends BaseEntity {
     @Setter
     @Column(name = "score", nullable = false)
     private int score; // 공수
+
+    @Setter
+    @Column(name = "tip", length = 511)
+    private String tip;
 }

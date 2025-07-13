@@ -22,6 +22,7 @@ import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -51,6 +52,7 @@ public class MissionController {
                             ))
             }
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<Response<List<MissionResponse>>> getAllMissions() {
         return ResponseEntity.ok(Response.<List<MissionResponse>>builder()
@@ -81,6 +83,7 @@ public class MissionController {
                     @ApiResponse(responseCode = "404", description = "미션 그룹이 존재하지 않음")
             }
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<Response<MissionResponse>> createMission(@Valid @RequestBody MissionRequest missionRequest) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -148,6 +151,7 @@ public class MissionController {
                     @ApiResponse(responseCode = "404", description = "미션을 찾을 수 없음")
             }
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Response<MissionResponse>> updateMission(@PathVariable Long id, @Valid @RequestBody MissionRequest missionRequest) {
         return ResponseEntity.ok(Response.<MissionResponse>builder()
@@ -172,6 +176,7 @@ public class MissionController {
                     @ApiResponse(responseCode = "404", description = "미션을 찾을 수 없음")
             }
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMission(@PathVariable Long id) {
         missionService.deleteMission(id);
@@ -204,6 +209,7 @@ public class MissionController {
                     @ApiResponse(responseCode = "404", description = "미션 또는 그룹을 찾을 수 없음")
             }
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/group")
     public ResponseEntity<Response<MissionResponse>> changeMissionGroup(@PathVariable Long id, @RequestParam Long missionGroupId) {
         return ResponseEntity.ok(Response.<MissionResponse>builder()
@@ -355,6 +361,7 @@ public class MissionController {
                             ))
             }
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{missionId}/tasks")
     public ResponseEntity<Response<Boolean>> addMissionTask(@PathVariable Long missionId, @Valid @RequestBody MissionTaskRequest request) {
         MissionTaskResponse response = missionTaskService.addMissionTask(missionId, request);

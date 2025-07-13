@@ -1,71 +1,44 @@
+# Application Service (goormexp)
+# CI/CD에서 코드 변경 시에만 재배포되는 서비스
+# 실행: docker-compose up -d
+# 
+# 사전 조건: Infrastructure 서비스들이 먼저 실행되어야 함
+# docker-compose -f docker-compose.infra.yml up -d
+
 services:
-  goormexp:
+  goormexp:  # 메인 애플리케이션 서비스 이름
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    image: goorm-exp
-    container_name: goormexp
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    environment:
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-      - DB_HOST=${DB_HOST}
-      - DB_NAME=${DB_NAME}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - REDIS_HOST=redis
-      - TZ=Asia/Seoul
-      - JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8
+      context: .  # 빌드 컨텍스트: 현재 디렉터리 (프로젝트 루트)
+      dockerfile: ./docker/Dockerfile  # 사용할 Dockerfile 경로
+    image: goorm-exp  # 빌드 후 생성될 이미지 이름 (태그)
+    container_name: goormexp  # 실행될 컨테이너 이름 (고유해야 함)
+    # depends_on 제거: infrastructure가 별도로 실행되므로 불필요
+    environment:  # 컨테이너 내부에서 사용할 환경 변수들
+      - SPRING_PROFILES_ACTIVE=dev
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ACCESS_TOKEN_EXPIRATION=${JWT_EXPIRATION:-1800000}  # 이름 변경
+      - JWT_REFRESH_TOKEN_EXPIRATION=${JWT_REFRESH_EXPIRATION:-86400000}  # 추가
+      - DB_HOST=${DB_HOST}  # 데이터베이스 호스트 주소
+      - DB_NAME=${DB_NAME}  # 데이터베이스 이름
+      - DB_USERNAME=${DB_USERNAME}  # 데이터베이스 사용자명
+      - DB_PASSWORD=${DB_PASSWORD}  # 데이터베이스 비밀번호
+      - REDIS_HOST=redis  # Redis 서버 주소 (컨테이너 이름으로 접근)
+      - TZ=Asia/Seoul  # 컨테이너 시간대 설정
+      - JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8  # JVM 옵션 (한글 인코딩 설정)
     ports:
-      - "8080:8080"
+      - "8080:8080"  # 포트 매핑: 호스트 8080 포트 -> 컨테이너 8080 포트
     networks:
-      - goorm-network
-    volumes:
-      - goorm-application-volume:/application
-      - /etc/localtime:/etc/localtime:ro
-      - /usr/share/zoneinfo/Asia/Seoul:/etc/timezone:ro
-
-  mysql:
-    image: mysql:8.4
-    container_name: mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    ports:
-      - "10001:3306"
-    volumes:
-      - goorm-db-volume:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./my.cnf:/etc/mysql/conf.d/my.cnf:ro
-    networks:
-      - goorm-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
-  redis:
-    image: redis
-    container_name: redis
-    ports:
-      - "10002:6379"
-    networks:
-      - goorm-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      retries: 10
+      - goorm-network  # 다른 컨테이너들과 통신을 위한 네트워크 연결
+    volumes:  # 볼륨 마운트 설정
+      - goorm-application-volume:/application  # 애플리케이션 데이터 영속화
+      - /etc/localtime:/etc/localtime:ro  # 호스트 시간 동기화 (읽기 전용)
+      - /usr/share/zoneinfo/Asia/Seoul:/etc/timezone:ro  # 한국 시간대 설정 (읽기 전용)
+    restart: unless-stopped  # 컨테이너 자동 재시작 정책 (수동 중지 제외)
 
 networks:
   goorm-network:
-    driver: bridge
+    name: goorm-network
+    external: true  # 외부에서 미리 생성된 네트워크 사용 (infra.yml에서 생성)
 
 volumes:
-  goorm-application-volume:
-  goorm-db-volume:
+  goorm-application-volume:  # 애플리케이션 데이터 영속화를 위한 Docker 볼륨 정의

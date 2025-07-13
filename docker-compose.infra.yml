@@ -1,0 +1,25 @@
+# Infrastructure Services (MySQL, Redis)
+# 한번 실행하고 계속 유지되는 서비스들
+# 실행: docker-compose -f docker-compose.infra.yml up -d
+
+services:
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "10002:6379"  # 호스트의 10002 포트를 컨테이너의 6379 포트(Redis 기본 포트)에 매핑
+    networks:
+      - goorm-network  # 사용자 정의 네트워크에 연결하여 다른 서비스들과 통신 가능
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]  # Redis 서버가 응답하는지 확인하는 헬스체크 명령
+      interval: 5s  # 5초마다 헬스체크 실행
+      retries: 10   # 헬스체크 실패 시 최대 10번 재시도
+    restart: unless-stopped  # 컨테이너 종료 시 자동 재시작 (수동 중지 제외)
+
+networks:
+  goorm-network:
+    name: goorm-network
+    driver: bridge  # 브리지 네트워크 드라이버 사용 (기본값, 컨테이너 간 통신 가능)
+
+volumes:
+  goorm-db-volume:  # 데이터 영속성을 위한 Docker 볼륨 정의 (현재 Redis에서는 미사용) 

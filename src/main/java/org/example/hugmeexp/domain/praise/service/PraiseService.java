@@ -2,6 +2,7 @@ package org.example.hugmeexp.domain.praise.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.notification.service.NotificationService;
 import org.example.hugmeexp.domain.praise.dto.*;
 import org.example.hugmeexp.domain.praise.entity.*;
 import org.example.hugmeexp.domain.praise.enums.PraiseType;
@@ -38,6 +39,7 @@ public class PraiseService {
     private final PraiseReceiverRepository praiseReceiverRepository;
     private final CommentEmojiReactionRepository commentEmojiReactionRepository;
     private final CommentService commentService;
+    private final NotificationService notificationService;
 
 
     /* 칭찬 생성 */
@@ -64,10 +66,18 @@ public class PraiseService {
                 .toList();
         praiseReceiverRepository.saveAll(praiseReceivers);
 
+        // 알림 전송 시 자기 자신에게 보낸 칭찬은 제외
+        for (User receiver : receiverUsers) {
+            if (!receiver.getId().equals(sender.getId())) {
+                notificationService.sendPraiseNotification(receiver, saved.getId());
+            }
+        }
+
         List<UserProfileResponse> commentPro = Collections.emptyList();
+        List<EmojiReactionGroupDTO> emojis = Collections.emptyList();
 
         // Entity -> DTO
-        return PraiseResponseDTO.from(saved, praiseReceivers, 0L, null, commentPro);
+        return PraiseResponseDTO.from(saved, praiseReceivers, 0L, emojis, commentPro);
 
 
     }
@@ -77,7 +87,6 @@ public class PraiseService {
 
         LocalDateTime startDateTime = startDate.atStartOfDay();    // 2025-06-01 00:00:00
         LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);    // 2025-06-18 23:59:59.999
-
         List<Praise> praiseList;
 
         if(me){
@@ -100,7 +109,6 @@ public class PraiseService {
         // 칭찬 받는 사람 리스트 매핑
         Map<Long, List<PraiseReceiver>> receiverMap = praiseReceiverRepository.findByPraiseIn(praiseList).stream()
                 .collect(Collectors.groupingBy(pr -> pr.getPraise().getId()));
-
 
         return praiseList.stream()
                 .map(praise -> {

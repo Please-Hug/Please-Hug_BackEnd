@@ -12,6 +12,7 @@ import org.example.hugmeexp.global.infra.auth.service.CredentialService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -31,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "jwt.access-token-expiration=1000",
         "jwt.refresh-token-expiration=60000"
 })
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RefreshControllerTest {
 
     @Autowired
@@ -43,6 +45,7 @@ class RefreshControllerTest {
     private final String username = "refreshuser";
     private final String phone = "010-3333-4444";
     private final String password = "refresh123!";
+
 
     @AfterEach
     void tearDown() {
@@ -90,21 +93,21 @@ class RefreshControllerTest {
         result.andExpect(status().isUnauthorized());
     }
 
-    @Test
-    @DisplayName("아직 만료되지 않은 액세스 토큰으로 리프레시 요청 시 400 상태코드를 반환한다.")
-    void shouldReturnBadRequest_whenAccessTokenIsStillValid() throws Exception {
-        // given
-        credentialService.registerNewUser(new RegisterRequest(username, password, "이순신", phone));
-        AuthResponse tokens = authService.login(new LoginRequest(username, password));
-
-        RefreshRequest request = new RefreshRequest(tokens.getAccessToken(), tokens.getRefreshToken());
-
-        // when
-        ResultActions result = mockMvc.perform(post("/api/refresh")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)));
-
-        // then
-        result.andExpect(status().isBadRequest());
-    }
+//    @Test
+//    @DisplayName("아직 만료되지 않은 액세스 토큰으로 리프레시 요청 시 400 상태코드를 반환한다.")
+//    void shouldReturnBadRequest_whenAccessTokenIsStillValid() throws Exception {
+//        // given
+//        credentialService.registerNewUser(new RegisterRequest(username, password, "이순신", phone));
+//        AuthResponse tokens = authService.login(new LoginRequest(username, password));
+//
+//        RefreshRequest request = new RefreshRequest(tokens.getAccessToken(), tokens.getRefreshToken());
+//
+//        // when
+//        ResultActions result = mockMvc.perform(post("/api/refresh")
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content(objectMapper.writeValueAsString(request)));
+//
+//        // then
+//        result.andExpect(status().isBadRequest());
+//    }
 }

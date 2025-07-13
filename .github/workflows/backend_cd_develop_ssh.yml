@@ -1,0 +1,44 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Github Actions IP
+        id: ip
+        uses: haythem/public-ip@v1.2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Add Github Actions IP to Security group
+        run: |
+          aws ec2 authorize-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
+
+      - name: SSH Commands
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ec2-43-201-109-130.ap-northeast-2.compute.amazonaws.com
+          username: ec2-user
+          key: ${{ secrets.AWS_SSH_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            cd /home/ec2-user/hugme/backend/Please-Hug_BackEnd
+            git pull origin develop
+            docker-compose -f docker-compose.yml down
+            docker-compose -f docker-compose.yml up -d
+
+      - name: Remove Github Actions IP From Security Group
+        run: |
+          aws ec2 revoke-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32

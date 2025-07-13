@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -109,6 +110,70 @@ public class SubmissionServiceTest {
             File savedFile = new File(tempDir.toString(), savedSubmission.getFileName());
             assertThat(savedFile).exists();
             assertThat(savedFile).hasContent(content);
+        }
+    }
+
+    @Test
+    @DisplayName("챌린지 제출 파일이 비어있는 경우 - 실패")
+    void submitChallenge_FileIsEmpty() {
+        // Given
+        Long userMissionId = 1L;
+        String originalFileName = "test-image.png";
+        String content = "";
+
+        try (MockedStatic<FileUploadUtils> mockedStatic = Mockito.mockStatic(FileUploadUtils.class)) {
+            FileUploadType fileUploadType = FileUploadType.MISSION_UPLOADS;
+            mockedStatic.when(() -> FileUploadUtils.getUploadPath(fileUploadType))
+                    .thenReturn(tempDir);
+            mockedStatic.when(() -> FileUploadUtils.getSafeFileName(originalFileName))
+                    .thenReturn(originalFileName);
+
+            UserMission userMission = UserMission.builder().id(userMissionId).build();
+            SubmissionUploadRequest request = new SubmissionUploadRequest("제출 제목", "제출 내용");
+            MultipartFile file = new MockMultipartFile("file", originalFileName, "image/png", content.getBytes());
+            Submission submission = Submission.builder().build();
+
+            when(userMissionRepository.findById(userMissionId)).thenReturn(Optional.of(userMission));
+            when(userMissionSubmissionRepository.existsByUserMission(userMission)).thenReturn(false);
+            when(userMissionSubmissionMapper.toEntity(request)).thenReturn(submission);
+
+            // When & Then
+            assertThatThrownBy(() -> submissionService.submitChallenge(userMissionId, request, file))
+                    .isInstanceOf(SubmissionFileUploadException.class)
+                    .hasMessage("파일이 비어있거나 존재하지 않습니다.");
+
+        }
+    }
+
+    @Test
+    @DisplayName("챌린지 제출 파일의 확장자가 없는 경우 - 실패")
+    void submitChallenge_NoExtension() {
+        // Given
+        Long userMissionId = 1L;
+        String originalFileName = "test-image";
+        String content = "123456";
+
+        try (MockedStatic<FileUploadUtils> mockedStatic = Mockito.mockStatic(FileUploadUtils.class)) {
+            FileUploadType fileUploadType = FileUploadType.MISSION_UPLOADS;
+            mockedStatic.when(() -> FileUploadUtils.getUploadPath(fileUploadType))
+                    .thenReturn(tempDir);
+            mockedStatic.when(() -> FileUploadUtils.getSafeFileName(originalFileName))
+                    .thenReturn(originalFileName);
+
+            UserMission userMission = UserMission.builder().id(userMissionId).build();
+            SubmissionUploadRequest request = new SubmissionUploadRequest("제출 제목", "제출 내용");
+            MultipartFile file = new MockMultipartFile("file", originalFileName, "image/png", content.getBytes());
+            Submission submission = Submission.builder().build();
+
+            when(userMissionRepository.findById(userMissionId)).thenReturn(Optional.of(userMission));
+            when(userMissionSubmissionRepository.existsByUserMission(userMission)).thenReturn(false);
+            when(userMissionSubmissionMapper.toEntity(request)).thenReturn(submission);
+
+            // When & Then
+            assertThatThrownBy(() -> submissionService.submitChallenge(userMissionId, request, file),
+                    "파일 확장자가 없습니다.")
+                    .isInstanceOf(SubmissionFileUploadException.class);
+
         }
     }
 

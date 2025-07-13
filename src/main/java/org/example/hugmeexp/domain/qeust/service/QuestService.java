@@ -13,6 +13,7 @@ import org.example.hugmeexp.domain.qeust.validator.QuestValidator;
 import org.example.hugmeexp.domain.qeust.validator.QuestValidatorFactory;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.example.hugmeexp.domain.user.service.UserService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ public class QuestService {
 
     private final UserQuestRepository userQuestRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     private final QuestValidatorFactory questValidatorFactory;
     private final UserQuestMapper userQuestMapper;
@@ -65,9 +67,8 @@ public class QuestService {
         // 퀘스트 완료 후 응답 DTO로 변환하여 반환 및 사용자의 포인트 증가
         userQuest.complete();
         User completeUser = userQuest.getUser();
-        completeUser.increasePoint(50);
-        completeUser.increaseExp(10);
-        userRepository.save(completeUser);
+        userService.increasePoint(completeUser, 50);
+        userService.increaseExp(completeUser, 10);
         UserQuest savedUserQuest = userQuestRepository.save(userQuest);
         return userQuestMapper.toResponse(savedUserQuest);
     }

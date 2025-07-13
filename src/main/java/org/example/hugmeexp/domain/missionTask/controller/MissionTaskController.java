@@ -16,6 +16,7 @@ import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +43,7 @@ public class MissionTaskController {
                     @ApiResponse(responseCode = "404", description = "미션 태스크를 찾을 수 없음")
             }
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{missionTaskId}")
     public ResponseEntity<Void> deleteMissionTask(@PathVariable Long missionTaskId) {
         missionTaskService.deleteMissionTask(missionTaskId);
@@ -79,6 +81,7 @@ public class MissionTaskController {
                     @ApiResponse(responseCode = "404", description = "미션 태스크를 찾을 수 없음")
             }
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{missionTaskId}")
     public ResponseEntity<Response<Boolean>> updateMissionTask(@PathVariable Long missionTaskId, @Valid @RequestBody MissionTaskRequest request) {
         missionTaskService.updateMissionTask(missionTaskId, request);

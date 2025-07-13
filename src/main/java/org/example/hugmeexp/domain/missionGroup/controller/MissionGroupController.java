@@ -21,6 +21,7 @@ import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -50,6 +51,7 @@ public class MissionGroupController {
                     )
             }
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<Response<List<MissionGroupResponse>>> getMissionGroups() {
         List<MissionGroupResponse> missionGroups = missionGroupService.getAllMissionGroups();
@@ -101,9 +103,10 @@ public class MissionGroupController {
                     @ApiResponse(responseCode = "404", description = "강사 정보를 찾을 수 없음")
             }
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<Response<MissionGroupResponse>> createMissionGroup(@Valid @RequestBody MissionGroupRequest request) {
-        return ResponseEntity.status(201).body(Response.<MissionGroupResponse>builder().data(missionGroupService.createMissionGroup(request)).message("미션 그룹을 생성하였습니다.").build());
+    public ResponseEntity<Response<MissionGroupResponse>> createMissionGroup(@Valid @RequestBody MissionGroupRequest request, @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.status(201).body(Response.<MissionGroupResponse>builder().data(missionGroupService.createMissionGroup(request, user.getUsername())).message("미션 그룹을 생성하였습니다.").build());
     }
 
     @Operation(
@@ -155,6 +158,7 @@ public class MissionGroupController {
                     @ApiResponse(responseCode = "404", description = "강사 정보를 찾을 수 없음")
             }
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Response<MissionGroupResponse>> updateMissionGroup(@PathVariable Long id, @Valid @RequestBody MissionGroupRequest request) {
         return ResponseEntity.ok().body(Response.<MissionGroupResponse>builder().data(missionGroupService.updateMissionGroup(id, request)).message("미션그룹 " + id + "를 업데이트 하였습니다.").build());
@@ -178,6 +182,7 @@ public class MissionGroupController {
                     @ApiResponse(responseCode = "404", description = "미션 그룹을 찾을 수 없음")
             }
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMissionGroup(@PathVariable Long id) {
         missionGroupService.deleteMissionGroup(id);
@@ -254,6 +259,7 @@ public class MissionGroupController {
                     @ApiResponse(responseCode = "404", description = "미션 그룹 또는 사용자 없음")
             }
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{missionGroupId}/users/{userId}")
     public ResponseEntity<Response<Void>> addUserToMissionGroup(@PathVariable Long missionGroupId,
                                                                 @PathVariable Long userId) {
@@ -282,6 +288,7 @@ public class MissionGroupController {
                     @ApiResponse(responseCode = "404", description = "미션 그룹 또는 사용자 없음")
             }
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{missionGroupId}/users/{userId}")
     public ResponseEntity<Response<Void>> removeUserFromMissionGroup(@PathVariable Long missionGroupId,
                                                                      @PathVariable Long userId) {

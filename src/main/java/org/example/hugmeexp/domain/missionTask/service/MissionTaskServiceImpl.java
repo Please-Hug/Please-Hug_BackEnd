@@ -38,28 +38,20 @@ public class MissionTaskServiceImpl implements MissionTaskService {
 
     @Override
     public List<MissionTaskResponse> findByMissionId(Long missionId) {
-        return missionTaskRepository.findByMissionId(missionId)
-                .stream()
-                .map(missionTaskMapper::toMissionTaskResponse)
-                .toList();
+        return missionTaskRepository.findByMissionId(missionId).stream().map(missionTaskMapper::toMissionTaskResponse).toList();
     }
 
     @Override
     public List<UserMissionTaskResponse> findUserMissionTasksByUsernameAndMissionId(String username, Long missionId) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(UserNotFoundException::new);
+        User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
 
-        Mission mission = missionRepository.findById(missionId)
-                .orElseThrow(MissionNotFoundException::new);
+        Mission mission = missionRepository.findById(missionId).orElseThrow(MissionNotFoundException::new);
 
-        UserMission userMission = userMissionRepository.findByUserAndMission(user, mission)
-                .orElseThrow(UserMissionNotFoundException::new);
+        UserMission userMission = userMissionRepository.findByUserAndMission(user, mission).orElseThrow(UserMissionNotFoundException::new);
 
         List<UserMissionTask> userMissionTasks = userMissionTaskRepository.findByUserMission(userMission);
 
-        return userMissionTasks.stream()
-                .map(missionTaskMapper::toUserMissionTaskResponse)
-                .toList();
+        return userMissionTasks.stream().map(missionTaskMapper::toUserMissionTaskResponse).toList();
     }
 
     @Override
@@ -83,33 +75,26 @@ public class MissionTaskServiceImpl implements MissionTaskService {
     @Override
     @Transactional
     public void updateMissionTask(Long missionTaskId, MissionTaskRequest request) {
-        MissionTask existingMissionTask = missionTaskRepository.findById(missionTaskId)
-                .orElseThrow(MissionTaskNotFoundException::new);
+        MissionTask existingMissionTask = missionTaskRepository.findById(missionTaskId).orElseThrow(MissionTaskNotFoundException::new);
 
         existingMissionTask.setName(request.getName());
         existingMissionTask.setScore(request.getScore());
+        existingMissionTask.setTip(request.getTip());
     }
 
     @Transactional
     @Override
     public void changeUserMissionTaskState(String username, Long missionTaskId, TaskState state) {
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(UserNotFoundException::new);
-        MissionTask missionTask = missionTaskRepository.findById(missionTaskId)
-                .orElseThrow(MissionTaskNotFoundException::new);
+        User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
+        MissionTask missionTask = missionTaskRepository.findById(missionTaskId).orElseThrow(MissionTaskNotFoundException::new);
 
-        UserMission userMission = userMissionRepository.findByUserAndMission(user, missionTask.getMission())
-                .orElseThrow(UserMissionNotFoundException::new);
+        UserMission userMission = userMissionRepository.findByUserAndMission(user, missionTask.getMission()).orElseThrow(UserMissionNotFoundException::new);
 
         Optional<UserMissionTask> userMissionTask = userMissionTaskRepository.findByUserMission_UserAndMissionTask(user, missionTask);
 
         if (userMissionTask.isEmpty()) {
-            userMissionTaskRepository.save(UserMissionTask.builder()
-                    .userMission(userMission)
-                    .missionTask(missionTask)
-                    .state(state)
-                    .build());
+            userMissionTaskRepository.save(UserMissionTask.builder().userMission(userMission).missionTask(missionTask).state(state).build());
         } else {
             UserMissionTask existingUserMissionTask = userMissionTask.get();
             existingUserMissionTask.setState(state);
