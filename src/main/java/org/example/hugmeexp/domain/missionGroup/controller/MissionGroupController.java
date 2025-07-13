@@ -260,11 +260,11 @@ public class MissionGroupController {
             }
     )
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/{missionGroupId}/users/{userId}")
+    @PostMapping("/{missionGroupId}/users/{username}")
     public ResponseEntity<Response<Void>> addUserToMissionGroup(@PathVariable Long missionGroupId,
-                                                                @PathVariable Long userId) {
-        missionGroupService.addUserToMissionGroup(userId, missionGroupId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(Response.<Void>builder().message("사용자 " + userId + "를 미션 그룹 " + missionGroupId + "에 추가하였습니다.").build());
+                                                                @PathVariable String username) {
+        missionGroupService.addUserToMissionGroup(username, missionGroupId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Response.<Void>builder().message("사용자 " + username + "를 미션 그룹 " + missionGroupId + "에 추가하였습니다.").build());
     }
 
     @Operation(
@@ -289,11 +289,11 @@ public class MissionGroupController {
             }
     )
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{missionGroupId}/users/{userId}")
+    @DeleteMapping("/{missionGroupId}/users/{username}")
     public ResponseEntity<Response<Void>> removeUserFromMissionGroup(@PathVariable Long missionGroupId,
-                                                                     @PathVariable Long userId) {
-        missionGroupService.removeUserFromMissionGroup(userId, missionGroupId);
-        return ResponseEntity.ok().body(Response.<Void>builder().message("사용자 " + userId + "를 미션 그룹 " + missionGroupId + "에서 제거하였습니다.").build());
+                                                                     @PathVariable String username) {
+        missionGroupService.removeUserFromMissionGroup(username, missionGroupId);
+        return ResponseEntity.ok().body(Response.<Void>builder().message("사용자 " + username + "를 미션 그룹 " + missionGroupId + "에서 제거하였습니다.").build());
     }
 
     @Operation(

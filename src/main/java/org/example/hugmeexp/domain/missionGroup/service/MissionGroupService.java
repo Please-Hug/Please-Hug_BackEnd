@@ -18,9 +18,9 @@ public interface MissionGroupService {
 
     void deleteMissionGroup(Long id);
 
-    void addUserToMissionGroup(Long userId, Long missionGroupId);
+    void addUserToMissionGroup(String username, Long missionGroupId);
 
-    void removeUserFromMissionGroup(Long userId, Long missionGroupId);
+    void removeUserFromMissionGroup(String username, Long missionGroupId);
 
     List<UserMissionResponse> findUserMissionByUsernameAndMissionGroup(String username, Long missionGroupId);
 

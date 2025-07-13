@@ -281,14 +281,14 @@ class MissionGroupServiceTest {
 
         User user = mock(User.class);
 
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
         when(missionGroupRepository.findById(SAMPLE_GROUP_ID)).thenReturn(Optional.of(missionGroup));
         // 아직 유저가 그룹에 속해있지 않음 (false 반환)
         when(userMissionGroupRepository.existsByUserAndMissionGroup(user, missionGroup)).thenReturn(false);
 
         // When
         // 예외가 발생하지 않아야 함
-        assertDoesNotThrow(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID));
+        assertDoesNotThrow(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID));
 
         // Then
         // UserMissionGroupRepository의 save가 한 번 호출되었는지 검증
@@ -299,10 +299,10 @@ class MissionGroupServiceTest {
     @DisplayName("존재하지 않는 유저를 그룹에 추가 시도 - 실패")
     void addUserToMissionGroup_UserNotFound_Fail() {
         // Given
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.empty());
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID))
+        assertThatThrownBy(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID))
                 .isInstanceOf(UserNotFoundException.class);
 
         // missionGroupRepository.findById 나 userMissionGroupRepository.save는 호출되면 안 됨
@@ -315,11 +315,11 @@ class MissionGroupServiceTest {
     void addUserToMissionGroup_GroupNotFound_Fail() {
         // Given
         User user = mock(User.class);
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
         when(missionGroupRepository.findById(SAMPLE_GROUP_ID)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID))
+        assertThatThrownBy(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID))
                 .isInstanceOf(MissionGroupNotFoundException.class);
 
         verify(userMissionGroupRepository, never()).save(any());
@@ -332,13 +332,13 @@ class MissionGroupServiceTest {
         User user = mock(User.class);
         MissionGroup missionGroup = MissionGroup.builder().id(SAMPLE_GROUP_ID).build();
 
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
         when(missionGroupRepository.findById(SAMPLE_GROUP_ID)).thenReturn(Optional.of(missionGroup));
         // 이미 유저가 그룹에 속해있다고 설정 (true 반환)
         when(userMissionGroupRepository.existsByUserAndMissionGroup(user, missionGroup)).thenReturn(true);
 
         // When & Then
-        assertThatThrownBy(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID))
+        assertThatThrownBy(() -> missionGroupService.addUserToMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID))
                 .isInstanceOf(AlreadyExistsUserMissionGroupException.class);
 
         verify(userMissionGroupRepository, never()).save(any());
@@ -356,13 +356,13 @@ class MissionGroupServiceTest {
                 .missionGroup(missionGroup)
                 .build();
 
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
         when(missionGroupRepository.findById(SAMPLE_GROUP_ID)).thenReturn(Optional.of(missionGroup));
         when(userMissionGroupRepository.findByUserAndMissionGroup(user, missionGroup))
                 .thenReturn(Optional.of(userMissionGroup));
 
         // When
-        assertDoesNotThrow(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID));
+        assertDoesNotThrow(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID));
 
         // Then
         // userMissionGroupRepository의 delete가 정확한 객체로 호출되었는지 검증
@@ -373,10 +373,10 @@ class MissionGroupServiceTest {
     @DisplayName("존재하지 않는 유저를 그룹에서 제거 시도 - 실패")
     void removeUserFromMissionGroup_UserNotFound_Fail() {
         // Given
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.empty());
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID))
+        assertThatThrownBy(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID))
                 .isInstanceOf(UserNotFoundException.class);
 
         verify(userMissionGroupRepository, never()).delete(any());
@@ -387,11 +387,11 @@ class MissionGroupServiceTest {
     void removeUserFromMissionGroup_GroupNotFound_Fail() {
         // Given
         User user = mock(User.class);
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
         when(missionGroupRepository.findById(SAMPLE_GROUP_ID)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID))
+        assertThatThrownBy(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID))
                 .isInstanceOf(MissionGroupNotFoundException.class);
 
         verify(userMissionGroupRepository, never()).delete(any());
@@ -404,14 +404,14 @@ class MissionGroupServiceTest {
         User user = mock(User.class);
         MissionGroup missionGroup = MissionGroup.builder().id(SAMPLE_GROUP_ID).build();
 
-        when(userRepository.findById(SAMPLE_USER_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
         when(missionGroupRepository.findById(SAMPLE_GROUP_ID)).thenReturn(Optional.of(missionGroup));
         // 유저-그룹 관계가 존재하지 않음 (Optional.empty() 반환)
         when(userMissionGroupRepository.findByUserAndMissionGroup(user, missionGroup))
                 .thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USER_ID, SAMPLE_GROUP_ID))
+        assertThatThrownBy(() -> missionGroupService.removeUserFromMissionGroup(SAMPLE_USERNAME, SAMPLE_GROUP_ID))
                 .isInstanceOf(NotExistsUserMissionGroupException.class);
 
         verify(userMissionGroupRepository, never()).delete(any());
