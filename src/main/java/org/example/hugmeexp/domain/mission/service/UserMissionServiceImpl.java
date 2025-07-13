@@ -23,6 +23,7 @@ import org.example.hugmeexp.domain.missionGroup.exception.UserNotFoundException;
 import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.example.hugmeexp.global.common.service.CacheService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -40,6 +41,8 @@ public class UserMissionServiceImpl implements UserMissionService {
     private final UserMissionMapper userMissionMapper;
     private final UserMissionStateLogRepository userMissionStateLogRepository;
     private final UserMissionStateLogMapper userMissionStateLogMapper;
+
+    private final CacheService cacheService;
 
 
     @Override
@@ -72,13 +75,15 @@ public class UserMissionServiceImpl implements UserMissionService {
                 .nextState(UserMissionState.NOT_STARTED)
                 .build());
 
+        cacheService.evictUserCache(username);
+
         return userMissionMapper.toUserMissionResponse(userMissionRepository.save(userMission));
     }
 
     @Override
     @Transactional
     public void changeUserMissionState(Long userMissionId, UserMissionState newProgress) {
-        UserMission userMission = userMissionRepository.findById(userMissionId)
+        UserMission userMission = userMissionRepository.findByIdWithUser(userMissionId)
                 .orElseThrow(UserMissionNotFoundException::new);
         userMissionStateLogRepository.save(UserMissionStateLog.builder()
                 .userMission(userMission)
@@ -86,6 +91,8 @@ public class UserMissionServiceImpl implements UserMissionService {
                 .nextState(newProgress)
                 .build());
         userMission.setProgress(newProgress);
+
+        cacheService.evictUserCache(userMission.getUser().getUsername());
 
         userMissionRepository.save(userMission);
     }

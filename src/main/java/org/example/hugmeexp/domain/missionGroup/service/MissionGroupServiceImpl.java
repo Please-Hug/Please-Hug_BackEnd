@@ -121,7 +121,8 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     @Caching(evict = {
             @CacheEvict(value = {"myMissionGroups", "allMissionGroups"}, allEntries = true),
             @CacheEvict(value = "missionGroupById", key = "#id"),
-            @CacheEvict(value = "usersInMissionGroup", key = "#id")
+            @CacheEvict(value = "usersInMissionGroup", key = "#id"),
+            @CacheEvict(value = "userMissionByUsernameAndMissionGroup", allEntries = true)
     })
     public void deleteMissionGroup(Long id) {
         if (!missionGroupRepository.existsById(id)) {
@@ -135,6 +136,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     @Caching(evict = {
             @CacheEvict(value = "myMissionGroups", key = "#username"),
             @CacheEvict(value = "usersInMissionGroup", key = "#missionGroupId"),
+            @CacheEvict(value = "userMissionByUsernameAndMissionGroup", key = "#username + '_' + #missionGroupId"),
     })
     public void addUserToMissionGroup(String username, Long missionGroupId) {
         User user = userRepository.findByUsername(username)
@@ -158,7 +160,8 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = "myMissionGroups", key = "#username"),
-            @CacheEvict(value = "usersInMissionGroup", key = "#missionGroupId")
+            @CacheEvict(value = "usersInMissionGroup", key = "#missionGroupId"),
+            @CacheEvict(value = "userMissionByUsernameAndMissionGroup", key = "#username + '_' + #missionGroupId"),
     })
     public void removeUserFromMissionGroup(String username, Long missionGroupId) {
         User user = userRepository.findByUsername(username)
@@ -175,6 +178,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
     }
 
     @Override
+    @Cacheable(value = "userMissionByUsernameAndMissionGroup", key = "#username + '_' + #missionGroupId")
     public List<UserMissionResponse> findUserMissionByUsernameAndMissionGroup(String username, Long missionGroupId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(UserNotFoundException::new);
@@ -188,7 +192,7 @@ public class MissionGroupServiceImpl implements MissionGroupService {
         return userMissionRepository.findByUserAndUserMissionGroup(user, userMissionGroup)
                 .stream()
                 .map(userMissionMapper::toUserMissionResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -210,10 +214,8 @@ public class MissionGroupServiceImpl implements MissionGroupService {
         MissionGroup missionGroup = missionGroupRepository.findById(missionGroupId)
                 .orElseThrow(MissionGroupNotFoundException::new);
 
-        List<UserMissionGroup> userMissionGroups = userMissionGroupRepository.findAllByMissionGroup(missionGroup);
-        return userMissionGroups.stream()
-                .map(UserMissionGroup::getUser)
-                .distinct()
+        List<User> users = userMissionGroupRepository.findUsersByMissionGroup(missionGroup);
+        return users.stream()
                 .map(user -> new UserProfileResponse(
                         user.getPublicProfileImageUrl(),
                         user.getUsername(),
