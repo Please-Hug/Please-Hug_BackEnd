@@ -19,7 +19,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -225,7 +224,7 @@ class CommentServiceTest {
         commentList.add(PraiseComment.builder().id(2L).build());
 
         // mock 설정
-        when(commentRepository.findByPraise(praise)).thenReturn(commentList);
+        when(commentRepository.findWithWriterByPraise(praise)).thenReturn(commentList);
 
         // when
         List<PraiseComment> result = commentService.getCommentsByPraise(praise);
@@ -235,6 +234,6 @@ class CommentServiceTest {
         assertEquals(2, result.size(), "댓글 목록 크기가 일치해야 합니다");
 
         // 메서드 호출 검증
-        verify(commentRepository).findByPraise(praise);
+        verify(commentRepository).findWithWriterByPraise(praise);
     }
 }

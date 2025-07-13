@@ -21,8 +21,15 @@ public interface CommentEmojiReactionRepository extends JpaRepository<CommentEmo
     /* 이모지 중복 되는지 확인 */
     boolean existsByCommentAndReactorWriterAndEmoji(PraiseComment comment, User reactorWriter, String emoji);
 
-    @Query("SELECT r FROM CommentEmojiReaction r WHERE r.comment.praise = :praise")
-    List<CommentEmojiReaction> findByPraise(Praise praise);
+//    @Query("SELECT r FROM CommentEmojiReaction r WHERE r.comment.praise = :praise")
+//    List<CommentEmojiReaction> findByPraise(Praise praise);
+
+    // 칭찬 게시물과 댓글 작성자 정보와 함께 조회 - 성능개선
+    @Query("SELECT r FROM CommentEmojiReaction r " +
+            "JOIN FETCH r.reactorWriter " +
+            "JOIN r.comment c " +
+            "WHERE c.praise = :praise")
+    List<CommentEmojiReaction> findWithReactorByPraise(Praise praise);
 
     void deleteByComment(PraiseComment comment);
 

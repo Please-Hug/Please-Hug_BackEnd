@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.attendance.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -28,6 +29,7 @@ public class AttendanceStatusResponse {
 
     @Schema(description = "오늘 날짜 (yyyy-MM-dd)")
     @NotNull
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate today;
 
     // 정적 팩토리 메서드

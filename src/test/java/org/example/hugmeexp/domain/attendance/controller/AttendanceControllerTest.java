@@ -6,17 +6,30 @@ import org.example.hugmeexp.domain.attendance.dto.AttendanceStatusResponse;
 import org.example.hugmeexp.domain.attendance.exception.AttendanceAlreadyCheckedException;
 import org.example.hugmeexp.domain.attendance.exception.AttendanceUserNotFoundException;
 import org.example.hugmeexp.domain.attendance.service.AttendanceService;
+import org.example.hugmeexp.global.common.exception.ExceptionController;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.when;
@@ -24,18 +37,27 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@ExtendWith(MockitoExtension.class)
 @DisplayName("AttendanceController 테스트")
 class AttendanceControllerTest {
 
     private static final String BASE_URL = "/api/v1/attendance";
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private AttendanceService attendanceService;
+
+    @InjectMocks
+    private AttendanceController attendanceController;
+
+    @BeforeEach
+    void setup() {
+        mockMvc = MockMvcBuilders.standaloneSetup(attendanceController)
+                .setControllerAdvice(new ExceptionController())
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                .build();
+    }
 
     @Test
     @DisplayName("POST /check - 성공")
@@ -45,8 +67,25 @@ class AttendanceControllerTest {
                 .attend(true).exp(31).point(1).build();
         when(attendanceService.checkAttendance(username)).thenReturn(dto);
 
+        // UserDetails + Authentication 준비
+        UserDetails userDetails = User.withUsername(username)
+                .password("dummy")
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
+                .build();
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                userDetails.getPassword(),
+                userDetails.getAuthorities()
+        );
+
+        // SecurityContextHolder 에도 넣어줘야 @AuthenticationPrincipal 바인딩이 된다.
+        SecurityContext ctx = new SecurityContextImpl();
+        ctx.setAuthentication(auth);
+        SecurityContextHolder.setContext(ctx);
+
         mockMvc.perform(post(BASE_URL + "/check")
-                        .with(user(username))
+                        .principal(auth)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.attend").value(true))
@@ -64,8 +103,25 @@ class AttendanceControllerTest {
         AttendanceStatusResponse dto = AttendanceStatusResponse.of(statusList, 1, today);
         when(attendanceService.getAttendanceStatus(username)).thenReturn(dto);
 
+        // UserDetails + Authentication 준비
+        UserDetails userDetails = User.withUsername(username)
+                .password("dummy")
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
+                .build();
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                userDetails.getPassword(),
+                userDetails.getAuthorities()
+        );
+
+        // SecurityContextHolder 에도 넣어줘야 @AuthenticationPrincipal 바인딩이 된다.
+        SecurityContext ctx = new SecurityContextImpl();
+        ctx.setAuthentication(auth);
+        SecurityContextHolder.setContext(ctx);
+
         mockMvc.perform(get(BASE_URL + "/status")
-                        .with(user(username))
+                        .principal(auth)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.attendanceStatus.length()").value(7))
@@ -85,8 +141,25 @@ class AttendanceControllerTest {
         );
         when(attendanceService.getAllAttendanceDates(username)).thenReturn(dates);
 
+        // UserDetails + Authentication 준비
+        UserDetails userDetails = User.withUsername(username)
+                .password("dummy")
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
+                .build();
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                userDetails.getPassword(),
+                userDetails.getAuthorities()
+        );
+
+        // SecurityContextHolder 에도 넣어줘야 @AuthenticationPrincipal 바인딩이 된다.
+        SecurityContext ctx = new SecurityContextImpl();
+        ctx.setAuthentication(auth);
+        SecurityContextHolder.setContext(ctx);
+
         mockMvc.perform(get(BASE_URL + "/dates")
-                        .with(user(username))
+                        .principal(auth)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 // 반환된 LocalDate들이 문자열로 직렬화됩니다.
@@ -103,8 +176,25 @@ class AttendanceControllerTest {
         when(attendanceService.checkAttendance(username))
                 .thenThrow(new AttendanceAlreadyCheckedException());
 
+        // UserDetails + Authentication 준비
+        UserDetails userDetails = User.withUsername(username)
+                .password("dummy")
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
+                .build();
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                userDetails.getPassword(),
+                userDetails.getAuthorities()
+        );
+
+        // SecurityContextHolder 에도 넣어줘야 @AuthenticationPrincipal 바인딩이 된다.
+        SecurityContext ctx = new SecurityContextImpl();
+        ctx.setAuthentication(auth);
+        SecurityContextHolder.setContext(ctx);
+
         mockMvc.perform(post(BASE_URL + "/check")
-                        .with(user(username))
+                        .principal(auth)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict());
     }
@@ -116,8 +206,25 @@ class AttendanceControllerTest {
         when(attendanceService.getAttendanceStatus(username))
                 .thenThrow(new AttendanceUserNotFoundException());
 
+        // UserDetails + Authentication 준비
+        UserDetails userDetails = User.withUsername(username)
+                .password("dummy")
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
+                .build();
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                userDetails.getPassword(),
+                userDetails.getAuthorities()
+        );
+
+        // SecurityContextHolder 에도 넣어줘야 @AuthenticationPrincipal 바인딩이 된다.
+        SecurityContext ctx = new SecurityContextImpl();
+        ctx.setAuthentication(auth);
+        SecurityContextHolder.setContext(ctx);
+
         mockMvc.perform(get(BASE_URL + "/status")
-                        .with(user(username))
+                        .principal(auth)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
@@ -129,8 +236,25 @@ class AttendanceControllerTest {
         when(attendanceService.getAllAttendanceDates(username))
                 .thenThrow(new AttendanceUserNotFoundException());
 
+        // UserDetails + Authentication 준비
+        UserDetails userDetails = User.withUsername(username)
+                .password("dummy")
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
+                .build();
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                userDetails.getPassword(),
+                userDetails.getAuthorities()
+        );
+
+        // SecurityContextHolder 에도 넣어줘야 @AuthenticationPrincipal 바인딩이 된다.
+        SecurityContext ctx = new SecurityContextImpl();
+        ctx.setAuthentication(auth);
+        SecurityContextHolder.setContext(ctx);
+
         mockMvc.perform(get(BASE_URL + "/dates")
-                        .with(user(username))
+                        .principal(auth)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
