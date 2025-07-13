@@ -30,6 +30,10 @@ public class StudyDiaryRedisService {
 
     // 캐싱 로직
     public void cacheWeeklyPopularDiaries(List<StudyDiaryFindAllResponse> diaries) {
+        if (diaries == null || diaries.isEmpty()) {
+            log.info("다이어리가 비어있어 캐싱을 건너뜁니다");
+            return;
+        }
         //저장 방법은 크게 3개로 나뉨 : 전체 리스트 직렬화, Redis 리스트, Sorted Set
         //여기서는 Sorted Set을 활용
         String key = WEEKLY_POPULAR_KEY;
