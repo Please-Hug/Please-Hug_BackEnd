@@ -33,9 +33,13 @@ public class CacheService {
 
     // 패턴과 일치하는 모든 키 삭제
     private void evictCacheByPattern(String pattern) {
-        Set<String> keys = redisTemplate.keys(pattern);
-        if (!keys.isEmpty()) {
-            redisTemplate.delete(keys);
+        try {
+            Set<String> keys = redisTemplate.keys(pattern);
+            if (!keys.isEmpty()) {
+                redisTemplate.delete(keys);
+            }
+        } catch (Exception e) {
+            System.err.println("Error evicting cache for pattern " + pattern + ": " + e.getMessage());
         }
     }
 }

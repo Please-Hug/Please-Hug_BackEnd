@@ -504,16 +504,17 @@ class MissionGroupServiceTest {
     void getMyMissionGroups_Success() {
         // Given
         User user = mock(User.class);
+        when(user.getId()).thenReturn(1L);
         when(userRepository.findByUsername(SAMPLE_USERNAME)).thenReturn(Optional.of(user));
-        when(userMissionGroupRepository.findByUserId(anyLong())).thenReturn(List.of(mock(UserMissionGroup.class)));
-        when(userMissionGroupMapper.exceptUserAndTeacher(any())).thenReturn(mock(UserMissionGroupResponse.class));
+        when(userMissionGroupRepository.findByUserIdWithTeacher(anyLong())).thenReturn(List.of(mock(UserMissionGroup.class)));
+        when(userMissionGroupMapper.toUserMissionGroupResponse(any())).thenReturn(mock(UserMissionGroupResponse.class));
 
         // when
         List<UserMissionGroupResponse> result = missionGroupService.getMyMissionGroups(SAMPLE_USERNAME);
 
         // then
         assertThat(result).isNotEmpty();
-        verify(userMissionGroupRepository, times(1)).findByUserId(anyLong());
+        verify(userMissionGroupRepository, times(1)).findByUserIdWithTeacher(anyLong());
     }
 
     @Test
@@ -545,11 +546,8 @@ class MissionGroupServiceTest {
         when(user2.getName()).thenReturn("User Two");
         UserMissionGroup umg1 = mock(UserMissionGroup.class);
         UserMissionGroup umg2 = mock(UserMissionGroup.class);
-        when(umg1.getUser()).thenReturn(user1);
-        when(umg2.getUser()).thenReturn(user2);
-        List<UserMissionGroup> userMissionGroups = List.of(umg1, umg2);
         when(missionGroupRepository.findById(groupId)).thenReturn(Optional.of(mockGroup));
-        when(userMissionGroupRepository.findAllByMissionGroup(mockGroup)).thenReturn(userMissionGroups);
+        when(userMissionGroupRepository.findUsersByMissionGroup(mockGroup)).thenReturn(List.of(user1, user2));
 
         // When
         List<UserProfileResponse> result = missionGroupService.getUsersInMissionGroup(groupId);
@@ -563,7 +561,7 @@ class MissionGroupServiceTest {
         assertEquals("img1", result.get(0).getProfileImage());
         assertEquals("img2", result.get(1).getProfileImage());
         verify(missionGroupRepository, times(1)).findById(groupId);
-        verify(userMissionGroupRepository, times(1)).findAllByMissionGroup(mockGroup);
+        verify(userMissionGroupRepository, times(1)).findUsersByMissionGroup(mockGroup);
     }
 
     @Test
