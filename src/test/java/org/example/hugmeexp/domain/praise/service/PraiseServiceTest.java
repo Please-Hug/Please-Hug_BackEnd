@@ -298,20 +298,13 @@ public class PraiseServiceTest {
         when(praiseReceiverRepository.findByPraiseIn(anyList()))
                 .thenReturn(testData.juneReceivers);
 
-        // 댓글 수 조회
-        for (Praise praise : testData.junePraises) {
-            when(commentRepository.countByPraise(praise)).thenReturn(1L);
-        }
+        // 댓글 조회 - 성능 개선된 방식으로 모든 댓글을 한 번에 조회
+        when(commentRepository.findWithWriterByPraiseIn(anyList()))
+                .thenReturn(testData.juneComments);
 
         // 이모지 반응 조회 (이 테스트에서는 필요 없음)
         when(praiseEmojiReactionRepository.findByPraise(any(Praise.class)))
                 .thenReturn(List.of());
-
-        // 댓글 조회
-        for (int i = 0; i < testData.junePraises.size(); i++) {
-            when(commentService.getCommentsByPraise(testData.junePraises.get(i)))
-                    .thenReturn(List.of(testData.juneComments.get(i)));
-        }
     }
 
     @Test
@@ -361,7 +354,7 @@ public class PraiseServiceTest {
                 .thenReturn(List.of(testData.juneReceivers.get(1))); // juneReceiver1 (내가 받은 칭찬)
 
         // 내가 보낸 칭찬 (6월)
-        when(praiseRepository.findBySenderAndCreatedAtBetween(
+        when(praiseRepository.findWithSenderBySenderAndCreatedAtBetween(
                 eq(currentUser),
                 eq(startDate.atStartOfDay()),
                 eq(endDate.atTime(LocalTime.MAX))))
@@ -371,17 +364,14 @@ public class PraiseServiceTest {
         when(praiseReceiverRepository.findByPraiseIn(anyList()))
                 .thenReturn(List.of(testData.juneReceivers.get(0), testData.juneReceivers.get(1))); // 내가 보낸 칭찬의 수신자, 내가 받은 칭찬
 
-        // 댓글 수 조회
-        when(commentRepository.countByPraise(testData.junePraises.get(0))).thenReturn(1L);
-        when(commentRepository.countByPraise(testData.junePraises.get(1))).thenReturn(1L);
+        // 댓글 조회 - 성능 개선된 방식으로 모든 댓글을 한 번에 조회
+        List<PraiseComment> relatedComments = List.of(testData.juneComments.get(0), testData.juneComments.get(1));
+        when(commentRepository.findWithWriterByPraiseIn(anyList()))
+                .thenReturn(relatedComments);
 
         // 이모지 반응 조회 (이 테스트에서는 필요 없음)
         when(praiseEmojiReactionRepository.findByPraise(any(Praise.class)))
                 .thenReturn(List.of());
-
-        // 댓글 조회
-        when(commentService.getCommentsByPraise(testData.junePraises.get(0))).thenReturn(List.of(testData.juneComments.get(0)));
-        when(commentService.getCommentsByPraise(testData.junePraises.get(1))).thenReturn(List.of(testData.juneComments.get(1)));
     }
 
     @Test
@@ -399,7 +389,7 @@ public class PraiseServiceTest {
                 eq(endDate.atTime(LocalTime.MAX))))
                 .thenReturn(List.of()); // 빈 리스트 반환
 
-        when(praiseRepository.findBySenderAndCreatedAtBetween(
+        when(praiseRepository.findWithSenderBySenderAndCreatedAtBetween(
                 eq(currentUser),
                 eq(startDate.atStartOfDay()),
                 eq(endDate.atTime(LocalTime.MAX))))
@@ -507,7 +497,7 @@ public class PraiseServiceTest {
                 .thenReturn(List.of(testData.juneReceivers.get(1))); // 내가 받은 칭찬
 
         // 내가 보낸 칭찬 중에서, 보낸 사람 이름 또는 받은 사람에 keyword가 포함된 것 조회
-        when(praiseRepository.findMySentPraiseWithKeyword(
+        when(praiseRepository.findMySentPraiseWithKeywordWithSender(
                 eq(currentUser),
                 eq(startDate.atStartOfDay()),
                 eq(endDate.atTime(LocalTime.MAX)),
@@ -518,17 +508,13 @@ public class PraiseServiceTest {
         when(praiseReceiverRepository.findByPraiseIn(anyList()))
                 .thenReturn(List.of(testData.juneReceivers.get(0), testData.juneReceivers.get(1))); // 내가 보낸 칭찬의 수신자, 내가 받은 칭찬
 
-        // 댓글 수 조회
-        when(commentRepository.countByPraise(testData.junePraises.get(0))).thenReturn(1L);
-        when(commentRepository.countByPraise(testData.junePraises.get(1))).thenReturn(1L);
+        // 댓글 정보 한 번에 가져오기 - searchByKeywordAndDate 메서드에서 사용됨
+        when(commentRepository.findWithWriterByPraiseIn(anyList()))
+                .thenReturn(List.of(testData.juneComments.get(0), testData.juneComments.get(1)));
 
         // 이모지 반응 조회 (이 테스트에서는 필요 없음)
         when(praiseEmojiReactionRepository.findByPraise(any(Praise.class)))
                 .thenReturn(List.of());
-
-        // 댓글 조회
-        when(commentService.getCommentsByPraise(testData.junePraises.get(0))).thenReturn(List.of(testData.juneComments.get(0)));
-        when(commentService.getCommentsByPraise(testData.junePraises.get(1))).thenReturn(List.of(testData.juneComments.get(1)));
     }
 
     @Test
@@ -548,7 +534,7 @@ public class PraiseServiceTest {
                 eq(keyword)))
                 .thenReturn(List.of()); // 빈 리스트 반환
 
-        when(praiseRepository.findMySentPraiseWithKeyword(
+        when(praiseRepository.findMySentPraiseWithKeywordWithSender(
                 eq(currentUser),
                 eq(startDate.atStartOfDay()),
                 eq(endDate.atTime(LocalTime.MAX)),
