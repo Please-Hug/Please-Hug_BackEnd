@@ -6,8 +6,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 
-import java.util.List;
-
 @Mapper(componentModel = "spring",
 uses = {MissionGroupMapper.class})
 public interface UserMissionGroupMapper {
@@ -15,4 +13,10 @@ public interface UserMissionGroupMapper {
             @Mapping(target = "user", ignore = true),
     })
     UserMissionGroupResponse toUserMissionGroupResponse(UserMissionGroup userMissionGroup);
+
+    @Mappings({
+            @Mapping(target = "user", ignore = true),
+            @Mapping(target = "missionGroup.teacher", ignore = true)
+    })
+    UserMissionGroupResponse exceptUserAndTeacher(UserMissionGroup userMissionGroup);
 }

@@ -8,6 +8,7 @@ import org.example.hugmeexp.domain.mission.enums.UserMissionState;
 import org.example.hugmeexp.domain.mission.service.MissionService;
 import org.example.hugmeexp.domain.missionGroup.dto.request.MissionGroupRequest;
 import org.example.hugmeexp.domain.missionGroup.dto.response.MissionGroupResponse;
+import org.example.hugmeexp.domain.missionGroup.dto.response.UserMissionGroupResponse;
 import org.example.hugmeexp.domain.missionGroup.exception.AlreadyExistsUserMissionGroupException;
 import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
 import org.example.hugmeexp.domain.missionGroup.exception.NotExistsUserMissionGroupException;
@@ -36,6 +37,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -55,7 +57,7 @@ class MissionGroupControllerTest {
 
     @Mock
     private MissionGroupService missionGroupService;
-    
+
     @Mock
     private MissionService missionService;
 
@@ -64,6 +66,7 @@ class MissionGroupControllerTest {
 
     private final Long TEST_USER_ID = 5L;
     private final Long TEST_GROUP_ID = 10L;
+    private final String TEST_USERNAME = "testUser";
 
 
     @BeforeEach
@@ -132,8 +135,8 @@ class MissionGroupControllerTest {
                 .willReturn(response);
         // When && Then
         mockMvc.perform(post(BASE_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.id").value(TEST_ID))
                 .andExpect(jsonPath("$.data.name").value("New Group"));
@@ -152,8 +155,8 @@ class MissionGroupControllerTest {
                 .name("Test Group")
                 .teacher(teacher)
                 .build();
-        given(missionGroupService.getMissionById(TEST_ID))
-                .willReturn(response);
+        given(missionGroupService.getMissionGroupById(TEST_ID))
+                .willReturn(List.of(response));
         // When && Then
         mockMvc.perform(get(BASE_URL + "/{id}", TEST_ID))
                 .andExpect(status().isOk())
@@ -172,7 +175,7 @@ class MissionGroupControllerTest {
 //                .name("Test Group")
 //                .teacherId(100L)
 //                .build();
-        given(missionGroupService.getMissionById(nonExistentId))
+        given(missionGroupService.getMissionGroupById(nonExistentId))
                 .willThrow(new MissionGroupNotFoundException());
         // When && Then
         mockMvc.perform(get(BASE_URL + "/{id}", nonExistentId))
@@ -287,15 +290,15 @@ class MissionGroupControllerTest {
     void addUserToMissionGroup_Success() throws Exception {
         // Given
         // void를 반환하는 서비스 메소드는 doNothing()으로 모킹합니다.
-        doNothing().when(missionGroupService).addUserToMissionGroup(TEST_USER_ID, TEST_GROUP_ID);
+        doNothing().when(missionGroupService).addUserToMissionGroup(TEST_USERNAME, TEST_GROUP_ID);
 
         // When & Then
-        mockMvc.perform(post(BASE_URL + "/{missionGroupId}/users/{userId}", TEST_GROUP_ID, TEST_USER_ID))
+        mockMvc.perform(post(BASE_URL + "/{missionGroupId}/users/{username}", TEST_GROUP_ID, TEST_USERNAME))
                 .andExpect(status().isCreated())
                 .andDo(print());
 
         // missionGroupService의 addUserToMissionGroup이 정확한 인자와 함께 1번 호출되었는지 검증
-        verify(missionGroupService).addUserToMissionGroup(TEST_USER_ID, TEST_GROUP_ID);
+        verify(missionGroupService).addUserToMissionGroup(TEST_USERNAME, TEST_GROUP_ID);
     }
 
     @Test
@@ -304,10 +307,10 @@ class MissionGroupControllerTest {
         // Given
         // 서비스가 AlreadyExistsUserMissionGroupException 예외를 던지도록 모킹합니다.
         doThrow(new AlreadyExistsUserMissionGroupException())
-                .when(missionGroupService).addUserToMissionGroup(TEST_USER_ID, TEST_GROUP_ID);
+                .when(missionGroupService).addUserToMissionGroup(TEST_USERNAME, TEST_GROUP_ID);
 
         // When & Then
-        mockMvc.perform(post(BASE_URL + "/{missionGroupId}/users/{userId}", TEST_GROUP_ID, TEST_USER_ID))
+        mockMvc.perform(post(BASE_URL + "/{missionGroupId}/users/{username}", TEST_GROUP_ID, TEST_USERNAME))
                 .andExpect(status().isConflict()) // ExceptionController가 409 Conflict로 변환한다고 가정
                 .andDo(print());
     }
@@ -317,10 +320,10 @@ class MissionGroupControllerTest {
     void addUserToMissionGroup_UserNotFound_Fail() throws Exception {
         // Given
         doThrow(new UserNotFoundException())
-                .when(missionGroupService).addUserToMissionGroup(TEST_USER_ID, TEST_GROUP_ID);
+                .when(missionGroupService).addUserToMissionGroup(TEST_USERNAME, TEST_GROUP_ID);
 
         // When & Then
-        mockMvc.perform(post(BASE_URL + "/{missionGroupId}/users/{userId}", TEST_GROUP_ID, TEST_USER_ID))
+        mockMvc.perform(post(BASE_URL + "/{missionGroupId}/users/{username}", TEST_GROUP_ID, TEST_USERNAME))
                 .andExpect(status().isNotFound()) // ExceptionController가 404 Not Found로 변환한다고 가정
                 .andDo(print());
     }
@@ -329,15 +332,15 @@ class MissionGroupControllerTest {
     @DisplayName("미션 그룹에서 사용자 제거 - 성공")
     void removeUserFromMissionGroup_Success() throws Exception {
         // Given
-        doNothing().when(missionGroupService).removeUserFromMissionGroup(TEST_USER_ID, TEST_GROUP_ID);
+        doNothing().when(missionGroupService).removeUserFromMissionGroup(TEST_USERNAME, TEST_GROUP_ID);
 
         // When & Then
-        mockMvc.perform(delete(BASE_URL + "/{missionGroupId}/users/{userId}", TEST_GROUP_ID, TEST_USER_ID))
+        mockMvc.perform(delete(BASE_URL + "/{missionGroupId}/users/{username}", TEST_GROUP_ID, TEST_USERNAME))
                 .andExpect(status().isOk())
                 .andDo(print());
 
         // missionGroupService의 removeUserFromMissionGroup이 정확한 인자와 함께 1번 호출되었는지 검증
-        verify(missionGroupService).removeUserFromMissionGroup(TEST_USER_ID, TEST_GROUP_ID);
+        verify(missionGroupService).removeUserFromMissionGroup(TEST_USERNAME, TEST_GROUP_ID);
     }
 
     @Test
@@ -346,10 +349,10 @@ class MissionGroupControllerTest {
         // Given
         // 서비스가 NotExistsUserMissionGroupException 예외를 던지도록 모킹합니다.
         doThrow(new NotExistsUserMissionGroupException())
-                .when(missionGroupService).removeUserFromMissionGroup(TEST_USER_ID, TEST_GROUP_ID);
+                .when(missionGroupService).removeUserFromMissionGroup(TEST_USERNAME, TEST_GROUP_ID);
 
         // When & Then
-        mockMvc.perform(delete(BASE_URL + "/{missionGroupId}/users/{userId}", TEST_GROUP_ID, TEST_USER_ID))
+        mockMvc.perform(delete(BASE_URL + "/{missionGroupId}/users/{username}", TEST_GROUP_ID, TEST_USERNAME))
                 .andExpect(status().isNotFound()) // ExceptionController가 404 Not Found로 변환한다고 가정
                 .andDo(print());
     }
@@ -359,10 +362,10 @@ class MissionGroupControllerTest {
     void removeUserFromMissionGroup_GroupNotFound_Fail() throws Exception {
         // Given
         doThrow(new MissionGroupNotFoundException())
-                .when(missionGroupService).removeUserFromMissionGroup(TEST_USER_ID, TEST_GROUP_ID);
+                .when(missionGroupService).removeUserFromMissionGroup(TEST_USERNAME, TEST_GROUP_ID);
 
         // When & Then
-        mockMvc.perform(delete(BASE_URL + "/{missionGroupId}/users/{userId}", TEST_GROUP_ID, TEST_USER_ID))
+        mockMvc.perform(delete(BASE_URL + "/{missionGroupId}/users/{username}", TEST_GROUP_ID, TEST_USERNAME))
                 .andExpect(status().isNotFound()) // ExceptionController가 404 Not Found로 변환한다고 가정
                 .andDo(print());
     }
@@ -411,5 +414,48 @@ class MissionGroupControllerTest {
 
         // 테스트 후 정리
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    @DisplayName("유저 미션 그룹 조회 - 성공")
+    void getMissionGroup() throws Exception {
+        // Given
+        String username = "testUser";
+        UserDetails userDetails = User.withUsername(username)
+                .password("dummy")
+                .authorities(new SimpleGrantedAuthority("ROLE_USER"))
+                .build();
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails, userDetails.getPassword(), userDetails.getAuthorities());
+
+        SecurityContext ctx = new SecurityContextImpl();
+        ctx.setAuthentication(auth);
+        SecurityContextHolder.setContext(ctx);
+
+        when(missionGroupService.getMyMissionGroups(username)).thenReturn(List.of(mock(UserMissionGroupResponse.class)));
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/my")
+                        .principal(auth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("미션 그룹 목록을 성공적으로 가져왔습니다."))
+                .andDo(print());
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    @DisplayName("미션 그룹에 속한 사용자 목록 조회 - 성공")
+    void getUsersInMissionGroup() throws Exception {
+        // Given
+        Long missionGroupId = 1L;
+
+        when(missionGroupService.getUsersInMissionGroup(missionGroupId))
+                .thenReturn(List.of(mock(UserProfileResponse.class)));
+
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/{missionGroupId}/users", missionGroupId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("미션 그룹 " + missionGroupId + "의 사용자 목록을 가져왔습니다."))
+                .andDo(print());
     }
 }

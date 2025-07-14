@@ -11,6 +11,7 @@ import org.example.hugmeexp.domain.studydiary.dto.request.CommentCreateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.MarkdownPreviewRequest;
 import org.example.hugmeexp.domain.studydiary.dto.response.MarkdownPreviewResponse;
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryWeekStatusResponse;
+import org.example.hugmeexp.domain.studydiary.service.StudyDiaryRedisService;
 import org.example.hugmeexp.domain.studydiary.service.StudyDiaryService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 public class StudyDiaryController {
 
     private final StudyDiaryService studyDiaryService;
+    private final StudyDiaryRedisService studyDiaryRedisService;
 
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "배움일기 목록 조회")
@@ -51,8 +53,8 @@ public class StudyDiaryController {
     }
 
     @SecurityRequirement(name = "JWT")
-    @Operation(summary = "오늘 하루 인기 배움일기 조회")
-    @GetMapping("/today/popular")
+    @Operation(summary = "일주일간 인기 배움일기 조회")
+    @GetMapping("/weekly/popular")
     public ResponseEntity<Response<Object>> getTodayPopularStudyDiaries(
             @PageableDefault(
                 size = 10,              // 기본 페이지 크기
@@ -75,10 +77,10 @@ public class StudyDiaryController {
             multiSort
         );
 
-        Object todayPopularStudyDiaries = studyDiaryService.getTodayPopularStudyDiaries(sortedPageable);
+        Object weeklyPopularStudyDiaries = studyDiaryRedisService.getCachedWeeklyPopularDiaries(pageable);
         return ResponseEntity.ok(Response.<Object>builder()
-                .message("오늘 하루 인기 배움일기를 성공적으로 조회했습니다.")
-                .data(todayPopularStudyDiaries)
+                .message("일주일간 인기 배움일기를 성공적으로 조회했습니다.")
+                .data(weeklyPopularStudyDiaries)
                 .build());
     }
 

@@ -19,6 +19,7 @@ import org.example.hugmeexp.domain.missionGroup.exception.UserNotFoundException;
 import org.example.hugmeexp.domain.missionGroup.repository.UserMissionGroupRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.example.hugmeexp.global.common.service.CacheService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,6 +55,9 @@ class UserMissionServiceTest {
 
     @Mock
     private UserMissionMapper userMissionMapper;
+
+    @Mock
+    private CacheService cacheService;
 
     @Mock
     private UserMissionStateLogMapper userMissionStateLogMapper;
@@ -174,9 +178,10 @@ class UserMissionServiceTest {
         UserMission existing = UserMission.builder()
                 .id(userMissionId)
                 .progress(UserMissionState.NOT_STARTED)
+                .user(mock(User.class))
                 .build();
 
-        when(userMissionRepository.findById(userMissionId))
+        when(userMissionRepository.findByIdWithUser(userMissionId))
                 .thenReturn(Optional.of(existing));
         when(userMissionStateLogRepository.save(any()))
                 .thenReturn(mock(UserMissionStateLog.class));
@@ -195,7 +200,7 @@ class UserMissionServiceTest {
     @Test
     @DisplayName("존재하지 않는 UserMission 상태 변경 시 UserMissionNotFoundException 발생")
     void changeUserMissionState_NotFound() {
-        when(userMissionRepository.findById(999L))
+        when(userMissionRepository.findByIdWithUser(999L))
                 .thenReturn(Optional.empty());
 
         assertThrows(UserMissionNotFoundException.class,

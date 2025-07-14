@@ -11,9 +11,14 @@ import org.example.hugmeexp.domain.mission.repository.*;
 import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
 import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
 import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepository;
+import org.example.hugmeexp.global.common.service.CacheService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,8 +26,15 @@ public class MissionServiceImpl implements MissionService {
     private final MissionRepository missionRepository;
     private final MissionGroupRepository missionGroupRepository;
     private final MissionMapper missionMapper;
+
+    private final CacheService cacheService;
     @Override
     @Transactional
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "missionsByMissionGroupId", key = "#missionRequest.getMissionGroupId()"),
+            }
+    )
     public MissionResponse createMission(MissionRequest missionRequest) {
         Mission mission = missionMapper.toEntity(missionRequest);
 
@@ -54,6 +66,11 @@ public class MissionServiceImpl implements MissionService {
 
     @Override
     @Transactional
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "missionsByMissionGroupId", key = "#missionRequest.getMissionGroupId()"),
+            }
+    )
     public MissionResponse updateMission(Long id, MissionRequest missionRequest) {
         Mission mission = missionRepository.findById(id)
                 .orElseThrow(MissionNotFoundException::new);
@@ -78,12 +95,17 @@ public class MissionServiceImpl implements MissionService {
     public void deleteMission(Long id) {
         Mission mission = missionRepository.findById(id)
                 .orElseThrow(MissionNotFoundException::new);
-
+        cacheService.evictMissionByMissionGroupCache(mission.getMissionGroup().getId());
         missionRepository.delete(mission);
     }
 
     @Override
     @Transactional
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "missionsByMissionGroupId", key = "#missionGroupId")
+            }
+    )
     public MissionResponse changeMissionGroup(Long id, Long missionGroupId) {
         Mission mission = missionRepository.findById(id)
                 .orElseThrow(MissionNotFoundException::new);
@@ -100,6 +122,7 @@ public class MissionServiceImpl implements MissionService {
     }
 
     @Override
+    @Cacheable(value = "missionsByMissionGroupId", key = "#missionGroupId")
     public List<MissionResponse> getMissionsByMissionGroupId(Long missionGroupId) {
         MissionGroup missionGroup = missionGroupRepository.findById(missionGroupId)
                 .orElseThrow(MissionGroupNotFoundException::new);
@@ -108,6 +131,6 @@ public class MissionServiceImpl implements MissionService {
 
         return missions.stream()
                 .map(missionMapper::toMissionResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 }

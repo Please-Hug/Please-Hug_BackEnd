@@ -14,6 +14,7 @@ public class UserResponseMapper {
                 user.getName(),
                 user.getDescription(),
                 user.getPhoneNumber(),
+                user.getRole(),
                 level,
                 nextLevelTotalExp,
                 user.getExp(),
@@ -21,7 +22,7 @@ public class UserResponseMapper {
         );
     }
 
-    // UserProfileResponse DTO 리턴
+    // AdminUserAllResponse DTO 리턴
     public static UserProfileResponse toUserProfileResponse(User user) {
         return new UserProfileResponse(
                 user.getPublicProfileImageUrl(),

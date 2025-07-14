@@ -1,4 +1,4 @@
-package org.example.hugmeexp.domain.bookmark.dto;
+package org.example.hugmeexp.domain.bookmark.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;

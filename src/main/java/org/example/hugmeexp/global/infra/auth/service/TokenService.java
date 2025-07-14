@@ -7,7 +7,7 @@ import org.example.hugmeexp.global.infra.auth.dto.response.AuthResponse;
 import org.example.hugmeexp.global.infra.auth.exception.InvalidRefreshTokenException;
 import org.example.hugmeexp.global.infra.auth.exception.TokenReuseDetectedException;
 import org.example.hugmeexp.global.infra.auth.jwt.JwtTokenProvider;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -18,7 +18,7 @@ import java.time.Duration;
 public class TokenService
 {
     private final RedisSessionService redisSessionService;
-    private final StringRedisTemplate redisTemplate;
+    private final RedisTemplate redisTemplate;
     private final JwtTokenProvider jwtTokenProvider;
 
     // 리프레시 토큰 저장
@@ -53,7 +53,7 @@ public class TokenService
 
     // 리프레시 토큰 조회
     public String getRefreshToken(String username) {
-        return redisTemplate.opsForValue().get("refresh:" + username);
+        return (String) redisTemplate.opsForValue().get("refresh:" + username);
     }
 
     // 토큰 검증

@@ -96,7 +96,7 @@ public class PraiseService {
             List<Praise> receivedPraises = received.stream().map(PraiseReceiver::getPraise).distinct().toList();
 
             // 내가 보낸 칭찬
-            List<Praise> sent = praiseRepository.findBySenderAndCreatedAtBetween(currentUser,startDateTime,endDateTime);
+            List<Praise> sent = praiseRepository.findWithSenderBySenderAndCreatedAtBetween(currentUser,startDateTime,endDateTime);
 
             // 둘을 합치고 중복 제거
             praiseList = Stream.concat(receivedPraises.stream(),sent.stream()).distinct().toList();
@@ -110,9 +110,15 @@ public class PraiseService {
         Map<Long, List<PraiseReceiver>> receiverMap = praiseReceiverRepository.findByPraiseIn(praiseList).stream()
                 .collect(Collectors.groupingBy(pr -> pr.getPraise().getId()));
 
+        List<PraiseComment> allComments = commentRepository.findWithWriterByPraiseIn(praiseList);
+        Map<Long, List<PraiseComment>> commentMap = allComments.stream()
+                .collect(Collectors.groupingBy(comment -> comment.getPraise().getId()));
+
         return praiseList.stream()
                 .map(praise -> {
-                    long commentCount = commentRepository.countByPraise(praise);
+//                    long commentCount = commentRepository.countByPraise(praise);
+                    long commentCount = commentMap.getOrDefault(praise.getId(), List.of()).size();
+
                     List<PraiseEmojiReaction> reactions = praiseEmojiReactionRepository.findByPraise(praise);
 
                     // 이모지 그룹핑
@@ -124,9 +130,9 @@ public class PraiseService {
 
                     List<PraiseReceiver> receivers = receiverMap.getOrDefault(praise.getId(),List.of());
 
-                    List<PraiseComment> comments = commentRepository.findByPraise(praise);
+//                    List<PraiseComment> comments = commentService.getCommentsByPraise(praise);
 
-                    List<UserProfileResponse> commentProfiles = comments.stream()
+                    List<UserProfileResponse> commentProfiles = commentMap.getOrDefault(praise.getId(),List.of()).stream()
                             .map(c -> {
                                 User user = c.getCommentWriter();
                                 String url = user.getPublicProfileImageUrl();
@@ -140,66 +146,59 @@ public class PraiseService {
 
     /* 날짜 조회 + 나와 관련된 칭찬 조건 + keyword 조건 */
     public List<PraiseResponseDTO> searchByKeywordAndDate(LocalDate startDate, LocalDate endDate, User currentUser, boolean me, String keyword) {
-
-        LocalDateTime startDateTime = startDate.atStartOfDay();    // 2025-06-01 00:00:00
-        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);    // 2025-06-18 23:59:59.999
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
 
         List<Praise> praiseList;
 
-        if(me){
-            // 내가 받은 칭찬 중에서, 보낸 사람 이름 또는 받은 사람에 keyword 가 포함된 칭찬 조회
-            List<PraiseReceiver> received = praiseReceiverRepository.findRelatedPraiseByReceiverWithKeyword(currentUser, startDateTime,endDateTime,keyword);
-            // 여러 명에게 칭찬 보냈을 경우 중복되어 보이는 칭찬 중복 제거
+        if (me) {
+            List<PraiseReceiver> received = praiseReceiverRepository.findRelatedPraiseByReceiverWithKeyword(currentUser, startDateTime, endDateTime, keyword);
             List<Praise> receivedPraises = received.stream()
                     .map(PraiseReceiver::getPraise)
                     .distinct()
                     .toList();
 
-            // 내가 보낸 칭찬 중에서, 보낸 사람 이름 또는 받은 사람에 keyword 가 포함된 것 조회
-            List<Praise> sent = praiseRepository.findMySentPraiseWithKeyword(currentUser,startDateTime,endDateTime,keyword);
+            List<Praise> sent = praiseRepository.findMySentPraiseWithKeywordWithSender(currentUser, startDateTime, endDateTime, keyword);
 
-            // 둘을 합치고 중복 제거
-            praiseList = Stream.concat(receivedPraises.stream(),sent.stream())
+            praiseList = Stream.concat(receivedPraises.stream(), sent.stream())
                     .distinct()
                     .toList();
-
-        }else {
-            // 전체 칭찬 조회
-            praiseList = praiseRepository.findAllPraisesBySenderOrReceiverNameContaining(startDateTime, endDateTime, keyword);
+        } else {
+            praiseList = praiseRepository.findALlPraisesWithSenderBySenderOrReceiverNameContaining(startDateTime, endDateTime, keyword);
         }
 
-        // 칭찬 받는 사람 리스트 매핑
+        // 칭찬 받는 사람 매핑
         Map<Long, List<PraiseReceiver>> receiverMap = praiseReceiverRepository.findByPraiseIn(praiseList).stream()
                 .collect(Collectors.groupingBy(pr -> pr.getPraise().getId()));
 
+        // 댓글 정보 한 번에 가져와서 매핑
+        List<PraiseComment> allComments = commentRepository.findWithWriterByPraiseIn(praiseList);
+        Map<Long, List<PraiseComment>> commentMap = allComments.stream()
+                .collect(Collectors.groupingBy(c -> c.getPraise().getId()));
+
         return praiseList.stream()
                 .map(praise -> {
-                    long commentCount = commentRepository.countByPraise(praise);
+                    long commentCount = commentMap.getOrDefault(praise.getId(), List.of()).size();
 
                     List<PraiseEmojiReaction> reactions = praiseEmojiReactionRepository.findByPraise(praise);
-
                     Map<String, List<PraiseEmojiReaction>> grouped = reactions.stream()
                             .collect(Collectors.groupingBy(PraiseEmojiReaction::getEmoji));
-
                     List<EmojiReactionGroupDTO> emojiGroups = grouped.entrySet().stream()
                             .map(entry -> EmojiReactionGroupDTO.from(entry.getKey(), entry.getValue()))
                             .toList();
 
-
-                    List<PraiseReceiver> receivers = receiverMap.getOrDefault(praise.getId(),List.of());
-
-                    List<PraiseComment> comments = commentRepository.findByPraise(praise);
-                    List<UserProfileResponse> commentProfiles = comments.stream()
+                    List<PraiseReceiver> receivers = receiverMap.getOrDefault(praise.getId(), List.of());
+                    List<UserProfileResponse> commentProfiles = commentMap.getOrDefault(praise.getId(), List.of()).stream()
                             .map(c -> {
                                 User user = c.getCommentWriter();
                                 String url = user.getPublicProfileImageUrl();
                                 return new UserProfileResponse(url, user.getUsername(), user.getName());
                             }).toList();
 
-                    return PraiseResponseDTO.from(praise,receivers,commentCount,emojiGroups,commentProfiles);
+                    return PraiseResponseDTO.from(praise, receivers, commentCount, emojiGroups, commentProfiles);
                 }).collect(Collectors.toList());
-
     }
+
 
 
     /* 칭찬 반응 좋은 칭찬글 */
@@ -311,7 +310,10 @@ public class PraiseService {
     public PraiseDetailResponseDTO getPraiseDetail(Long praiseId) {
 
         // 칭찬 엔티티 조회
-        Praise praise = praiseRepository.findById(praiseId).orElseThrow(() -> new PraiseNotFoundException());
+//        Praise praise = praiseRepository.findById(praiseId).orElseThrow(() -> new PraiseNotFoundException());
+
+        // 칭찬 작성자 정보 조회
+        Praise praise = praiseRepository.findWithSenderById(praiseId).orElseThrow(PraiseNotFoundException::new);
 
         // 칭찬 받은 사람 리스트 조회
         List<PraiseReceiver> receiverList = praiseReceiverRepository.findByPraise(praise);
@@ -329,7 +331,7 @@ public class PraiseService {
                 .map(entry -> EmojiReactionGroupDTO.from(entry.getKey(), entry.getValue()))
                 .toList();
 
-        List<CommentEmojiReaction> commentReactions = commentEmojiReactionRepository.findByPraise(praise);
+        List<CommentEmojiReaction> commentReactions = commentEmojiReactionRepository.findWithReactorByPraise(praise);
 
         // 댓글 별 이모지 반응 수 조회
         Map<Long, Map<String, List<ReactionUserDTO>>> commentEmojiMap = commentReactions.stream()

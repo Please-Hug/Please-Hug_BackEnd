@@ -16,8 +16,16 @@ public interface CommentRepository extends JpaRepository<PraiseComment, Long> {
     /* 해당 칭찬에 달린 댓글 수 조회 */
     long countByPraise(Praise praise);
 
-    /* 해당 칭찬에 달린 댓글 전체 목록 조회 */
-    List<PraiseComment> findByPraise(Praise praise);
+//    /* 해당 칭찬에 달린 댓글 전체 목록 조회 */
+//    List<PraiseComment> findByPraise(Praise praise);
+
+    // 칭찬 게시물과 댓글 작성자 정보와 함께 조회 - 성능개선
+    @Query("SELECT c FROM PraiseComment c JOIN FETCH c.commentWriter WHERE c.praise = :praise")
+    List<PraiseComment> findWithWriterByPraise(@Param("praise") Praise praise);
+
+    // 성능 개선
+    @Query("SELECT c FROM PraiseComment c JOIN FETCH c.commentWriter WHERE c.praise IN :praises")
+    List<PraiseComment> findWithWriterByPraiseIn(List<Praise> praises);
 
     /* 해당 기간 내 칭찬 게시물 댓글 조회 */
     @Query("SELECT c FROM PraiseComment c " +

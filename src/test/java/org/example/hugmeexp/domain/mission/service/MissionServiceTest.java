@@ -10,6 +10,7 @@ import org.example.hugmeexp.domain.mission.repository.*;
 import org.example.hugmeexp.domain.missionGroup.entity.MissionGroup;
 import org.example.hugmeexp.domain.missionGroup.exception.MissionGroupNotFoundException;
 import org.example.hugmeexp.domain.missionGroup.repository.MissionGroupRepository;
+import org.example.hugmeexp.global.common.service.CacheService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +38,9 @@ class MissionServiceTest {
 
     @Mock
     private MissionMapper missionMapper;
+
+    @Mock
+    private CacheService cacheService;
 
     @InjectMocks
     private MissionServiceImpl missionService;
@@ -206,7 +210,9 @@ class MissionServiceTest {
     @DisplayName("미션을 정상적으로 삭제한다 - 성공")
     void deleteMission_Success() {
         // Given
-        Mission mission = Mission.builder().id(SAMPLE_ID).build();
+        MissionGroup missionGroup = MissionGroup.builder().id(SAMPLE_ID).build();
+        Mission mission = Mission.builder().id(SAMPLE_ID).missionGroup(missionGroup).build();
+
         when(missionRepository.findById(SAMPLE_ID)).thenReturn(Optional.of(mission));
 
         // When

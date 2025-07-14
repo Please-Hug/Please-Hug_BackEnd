@@ -2,10 +2,11 @@ package org.example.hugmeexp.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.domain.user.dto.request.ChangeRoleRequest;
+import org.example.hugmeexp.domain.notification.service.NotificationService;
 import org.example.hugmeexp.domain.user.dto.request.UserUpdateRequest;
 import org.example.hugmeexp.domain.user.dto.response.ProfileImageResponse;
 import org.example.hugmeexp.domain.user.dto.response.UserInfoResponse;
+import org.example.hugmeexp.domain.user.dto.response.UserRankResponse;
 import org.example.hugmeexp.domain.user.exception.*;
 import org.example.hugmeexp.domain.user.mapper.UserResponseMapper;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
@@ -25,6 +26,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     private static final int MAX_LEVEL = 50;
     private static final int MAX_EXP = 122_500;
@@ -56,19 +58,28 @@ public class UserService {
         return userRepository.findByPhoneNumber(phoneNumber);
     }
 
-    // UserRole 변경
-    @Transactional
-    public void changeUserRole(ChangeRoleRequest request) {
-        User findUser = findByUsername(request.getUsername());
-        findUser.changeRole(request.getRole());
-        log.info("User role changed successfully - user: {}({}) / role: {}", findUser.getUsername(), findUser.getName(), findUser.getRole());
-    }
-
     // 경험치 증가
     @Transactional
     public void increaseExp(User user, int value) {
+        log.info("increaseExp 진입 = user:{}, value: {}", user.getUsername(), value );
         User findUser = findById(user.getId());
-        findUser.increaseExp(value);
+
+        int oldLevel = calculateLevel(findUser.getExp());// 변경 전 레벨
+
+        findUser.increaseExp(value);    // 경험치 증가
+        int newLevel = calculateLevel(findUser.getExp());    // 변경 후 레벨
+
+        if(newLevel > oldLevel) {
+            notificationService.sendLevelUpNotification(findUser, newLevel, findUser.getId()); // 알림 전송
+            userRepository.save(findUser);
+        }
+    }
+
+    // 경험치 직접 설정
+    @Transactional
+    public void setExp(User user, int exp) {
+        User findUser = findById(user.getId());
+        findUser.setExp(exp);
     }
 
     // 구름조각 증가
@@ -83,6 +94,13 @@ public class UserService {
     public void decreasePoint(User user, int value) {
         User findUser = findById(user.getId());
         findUser.decreasePoint(value);
+    }
+
+    // 구름조각 직접 설정
+    @Transactional
+    public void setPoint(User user, int point) {
+        User findUser = findById(user.getId());
+        findUser.setPoint(point);
     }
 
     // User 종합 정보 조회
@@ -110,6 +128,17 @@ public class UserService {
         // User 업데이트 및 결과 리턴
         findUser.updateUserInfo(request.getName(), request.getDescription(), request.getPhoneNumber());
 
+        // 경험치 직접 설정 (요청된 경우)
+        if (request.getExp() != null) {
+            findUser.setExp(request.getExp());
+        }
+
+        // 포인트 직접 설정 (요청된 경우)
+        if (request.getPoint() != null) {
+            findUser.setPoint(request.getPoint());
+        }
+
+        // 결과 리턴
         int level = calculateLevel(findUser.getExp());
         int nextLevelTotalExp = getNextLevelTotalExp(findUser.getExp());
         return UserResponseMapper.toUserInfoResponse(findUser, level, nextLevelTotalExp);
@@ -173,6 +202,17 @@ public class UserService {
     public void deleteByUsername(String username){
         long deletedCount = userRepository.deleteByUsername(username);
         if(deletedCount == 0) throw new UserNotFoundException();
+    }
+
+    public List<UserRankResponse> getUserRankings() {
+        List<User> users = userRepository.findAllByOrderByExpDesc();
+        return users.stream()
+                .map(user -> {
+                    int level = calculateLevel(user.getExp());
+                    int rank = users.indexOf(user) + 1; // 1부터 시작하는 랭킹
+                    return UserRankResponse.from(user, rank, level);
+                })
+                .toList();
     }
 
     // 프로필 이미지 확장자 추출

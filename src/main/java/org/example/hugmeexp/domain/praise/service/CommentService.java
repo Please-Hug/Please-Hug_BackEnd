@@ -61,7 +61,12 @@ public class CommentService {
     }
 
     /* 댓글 조회 */
+//    public List<PraiseComment> getCommentsByPraise(Praise praise){
+//        return commentRepository.findByPraise(praise);
+//    }
+
+    // 댓글 조회 - 성능 개선
     public List<PraiseComment> getCommentsByPraise(Praise praise){
-        return commentRepository.findByPraise(praise);
+        return commentRepository.findWithWriterByPraise(praise);
     }
 }

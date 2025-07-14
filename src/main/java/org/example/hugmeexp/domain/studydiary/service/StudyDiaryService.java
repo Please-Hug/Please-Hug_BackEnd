@@ -3,6 +3,7 @@ package org.example.hugmeexp.domain.studydiary.service;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.notification.service.NotificationService;
 import org.example.hugmeexp.domain.studydiary.dto.request.CommentCreateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryCreateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryUpdateRequest;
@@ -24,6 +25,7 @@ import org.example.hugmeexp.domain.studydiary.repository.StudyDiaryRepository;
 import org.example.hugmeexp.domain.studydiary.repository.StudyDiaryLikeRepository;
 import org.example.hugmeexp.domain.studydiary.entity.StudyDiaryLike;
 import org.example.hugmeexp.domain.user.entity.User;
+import org.example.hugmeexp.domain.user.enums.UserRole;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +49,7 @@ public class StudyDiaryService {
     private final StudyDiaryRepository studyDiaryRepository;
     private final StudyDiaryCommentRepository studyDiaryCommentRepository;
     private final StudyDiaryLikeRepository studyDiaryLikeRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public Long createStudyDiary(StudyDiaryCreateRequest createRequest, UserDetails userDetails){
@@ -88,7 +91,20 @@ public class StudyDiaryService {
         StudyDiary studyDiary = studyDiaryRepository.findById(id)
                 .orElseThrow(StudyDiaryNotFoundException::new);
 
-        checkUser(user, studyDiary);
+        try {
+            checkUser(user, studyDiary);
+        } catch (UnauthorizedAccessException e) {
+            checkAdmin(user);
+        }
+        // 댓글 알림 삭제
+        List<StudyDiaryComment> comments = studyDiaryCommentRepository.findByStudyDiary(studyDiary);
+        for(StudyDiaryComment comment : comments){
+            // 알림 제거 추가
+            notificationService.deleteDiaryCommentNotification(user, comment.getId());
+        }
+
+        // 알림 제거 추가
+        notificationService.deleteAllByDiaryId(studyDiary.getUser(),studyDiary.getId());
 
         studyDiaryRepository.delete(studyDiary);
     }
@@ -135,6 +151,29 @@ public class StudyDiaryService {
 
         return studyDiaryFindAllResponsePage;
     }
+
+//    public Page<StudyDiaryFindAllResponse> getWeeklyPopularStudyDiaries(Pageable pageable) {
+//        // 이번 주 월요일~일요일 범위 계산
+//        LocalDateTime startOfWeek = LocalDateTime.now().with(DayOfWeek.MONDAY).withHour(0).withMinute(0).withSecond(0);
+//        LocalDateTime endOfWeek = startOfWeek.plusDays(6).withHour(23).withMinute(59).withSecond(59);
+//
+//        List<StudyDiary> studyDiaries = studyDiaryRepository.findWeeklyPopularStudyDiaries(startOfWeek, endOfWeek);
+//
+//        //response로 전환
+//        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {
+//            return StudyDiaryFindAllResponse.builder()
+//                    .id(studyDiary.getId())
+//                    .name(studyDiary.getUser().getName())
+//                    .title(studyDiary.getTitle())
+//                    .content(studyDiary.getContent())
+//                    .likeNum(studyDiary.getLikeCount())
+//                    .commentNum(studyDiary.getComments().size())
+//                    .createdAt(studyDiary.getCreatedAt())
+//                    .build();
+//        });
+//
+//        return studyDiaryFindAllResponsePage;
+//    }
 
     public List<StudyDiaryFindAllResponse> getStudyDiaryDafts(Pageable pageable, UserDetails userDetails) {
         User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(UserNotFoundForStudyDiaryException::new);
@@ -399,6 +438,16 @@ public class StudyDiaryService {
                 .content(request.getContent())
                 .build();
         studyDiaryCommentRepository.save(comment);
+
+        // 알림 전송: 댓글 작성자가 글 작성자와 다를 경우에만 알림 전송
+        if(!studyDiary.getUser().getId().equals(user.getId())) {
+            notificationService.sendDiaryCommentNotification(
+                    studyDiary.getUser(),// 글 작성자
+                    studyDiary.getTitle(), // 글 제목
+                    comment.getId() // 댓글 ID
+            );
+        }
+
         return comment.getId();
     }
 
@@ -415,9 +464,16 @@ public class StudyDiaryService {
         StudyDiaryComment comment = studyDiaryCommentRepository.findById(commentId)
                 .orElseThrow(CommentNotFoundException::new);
 
-        if(!user.getId().equals(comment.getUser().getId())){
-            throw new UnauthorizedAccessException();
+        try {
+            if(!user.getId().equals(comment.getUser().getId())){
+                throw new UnauthorizedAccessException();
+            }
+        } catch (UnauthorizedAccessException e) {
+            checkAdmin(user);
         }
+
+        // 알림 제거 추가
+        notificationService.deleteDiaryCommentNotification(studyDiary.getUser(), commentId);
 
         studyDiaryCommentRepository.delete(comment);
     }
@@ -439,16 +495,39 @@ public class StudyDiaryService {
 
         if (existingLike.isPresent()) {
 //            log.info("Like {}", existingLike.get().getId());
+
+            // 알림 제거 추가
+            if(!studyDiary.getUser().getId().equals(user.getId())){
+                notificationService.deleteDiaryLikeNotification(studyDiary.getUser(), studyDiary.getId());
+            }
+
             // 좋아요 취소
             return studyDiary.deleteLike(user.getId());
         } else {
-            return studyDiary.addLike(user);
+            // 좋아요 추가
+            int likeCount = studyDiary.addLike(user);
+
+            // 알림 전송: 좋아요를 누른 사용자가 글 작성자와 다를 경우에만 알림 전송
+            if (!studyDiary.getUser().getId().equals(user.getId())){
+                notificationService.sendDiaryLikeNotification(
+                        studyDiary.getUser(), // 글 작성자
+                        studyDiary.getTitle(), // 글 제목
+                        studyDiary.getId() // 배움일기 ID
+                );
+            }
+            return likeCount;
         }
         //return 값으로 최신 좋아요 갯수
     }
 
     private void checkUser(User user, StudyDiary studyDiary) {
         if(!user.getId().equals(studyDiary.getUser().getId())){
+            throw new UnauthorizedAccessException();
+        }
+    }
+
+    private void checkAdmin(User user) {
+        if (!user.getRole().equals(UserRole.ADMIN)) {
             throw new UnauthorizedAccessException();
         }
     }
