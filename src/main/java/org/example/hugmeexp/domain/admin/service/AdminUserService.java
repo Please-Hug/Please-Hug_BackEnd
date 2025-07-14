@@ -27,7 +27,7 @@ public class AdminUserService {
 
     /** 1) 회원 목록 페이징 조회 */
     @Transactional(readOnly = true)
-    @Cacheable(value = "adminUserList", key = "#pageable.pageNumber + '_' + #pageable.pageSize + '_' + #pageable.sort.toString()")
+    @Cacheable(value = "adminUserList", key = "#pageable.pageNumber + '::' + #pageable.pageSize + '::' + #pageable.sort.toString()")
     public Page<AdminUserAllResponse> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable)
                 .map(AdminUserResponseMapper::toProfileResponse);
