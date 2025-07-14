@@ -84,7 +84,7 @@ public class AttendanceService {
     private int calculateContinuousDays(User user, LocalDate today) {
         LocalDate userSince = Optional.ofNullable(user.getCreatedAt())
                 .map(LocalDateTime::toLocalDate)
-                .orElse(today);
+                .orElseThrow(() -> new IllegalStateException("User creation date is null for user: " + user.getUsername()));
 
         Set<LocalDate> allDates = attendanceRepository
                 .findByUser_UsernameAndAttendanceDateBetween(user.getUsername(), userSince, today)
@@ -105,7 +105,7 @@ public class AttendanceService {
 
     // 출석 체크
     @Transactional
-    @CacheEvict(value = {"attendanceStatus", "continuousDays", "allAttendanceDates"}, key = "#username")
+    @CacheEvict(value = {"attendanceStatus", "allAttendanceDates"}, key = "#username")
     public AttendanceCheckResponse checkAttendance (String username) {
 
         LocalDate today = LocalDate.now();
