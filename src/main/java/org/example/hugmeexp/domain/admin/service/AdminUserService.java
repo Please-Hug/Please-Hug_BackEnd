@@ -9,6 +9,9 @@ import org.example.hugmeexp.domain.user.dto.response.UserInfoResponse;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.service.UserService;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,7 @@ public class AdminUserService {
 
     /** 1) 회원 목록 페이징 조회 */
     @Transactional(readOnly = true)
+    @Cacheable(value = "adminUserList", key = "#pageable.pageNumber + '_' + #pageable.pageSize + '_' + #pageable.sort.toString()")
     public Page<AdminUserAllResponse> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable)
                 .map(AdminUserResponseMapper::toProfileResponse);
@@ -31,6 +35,7 @@ public class AdminUserService {
 
     /** 2) 단일 회원 상세 조회 */
     @Transactional(readOnly = true)
+    @Cacheable(value = "adminUserInfo", key = "#username")
     public AdminUserInfoResponse getUserByAdmin(String username) {
         User u = userService.findByUsername(username);
         UserInfoResponse base = userService.getUserInfoResponse(u);
@@ -39,6 +44,11 @@ public class AdminUserService {
 
     /** 3) 회원 정보 수정 */
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "adminUserInfo", key = "#username"),
+            @CacheEvict(value = "adminUserList", allEntries = true),
+            @CacheEvict(value = "userInfo", key = "#username") // UserService 캐시도 무효화
+    })
     public AdminUserInfoResponse updateUserByAdmin(String username, UserUpdateRequest req) {
         User u = userService.findByUsername(username);
         UserInfoResponse updatedBase = userService.updateUserInfo(u, req);
@@ -47,6 +57,13 @@ public class AdminUserService {
 
     /** 4) 회원 삭제 */
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "adminUserInfo", key = "#username"),
+            @CacheEvict(value = "adminUserList", allEntries = true),
+            @CacheEvict(value = "userInfo", key = "#username"),
+            @CacheEvict(value = "attendanceStatus", key = "#username"),
+            @CacheEvict(value = "attendanceDates", key = "#username")
+    })
     public AdminUserInfoResponse deleteUserByAdmin(String username) {
         User u = userService.findByUsername(username);
         UserInfoResponse deletedBase = userService.getUserInfoResponse(u);
@@ -57,6 +74,11 @@ public class AdminUserService {
 
     /** 5) 권한 변경 */
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "adminUserInfo", key = "#username"),
+            @CacheEvict(value = "adminUserList", allEntries = true),
+            @CacheEvict(value = "userInfo", key = "#username") // UserService 캐시도 무효화
+    })
     public AdminUserInfoResponse changeUserRole(String username, RoleChangeRequest req) {
         User u = userService.findByUsername(username);
         u.changeRole(req.getRole());
