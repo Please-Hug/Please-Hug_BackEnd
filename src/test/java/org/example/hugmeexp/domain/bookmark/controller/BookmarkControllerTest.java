@@ -6,27 +6,19 @@ import org.example.hugmeexp.domain.bookmark.dto.response.BookmarkResponse;
 import org.example.hugmeexp.domain.bookmark.exception.BookmarkNotFoundException;
 import org.example.hugmeexp.domain.bookmark.exception.BookmarkUserNotFoundException;
 import org.example.hugmeexp.domain.bookmark.service.BookmarkService;
-import org.example.hugmeexp.global.common.exception.ExceptionController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContextImpl;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,44 +30,37 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@SpringBootTest
+@AutoConfigureMockMvc
 @ExtendWith(MockitoExtension.class)
 @DisplayName("BookmarkController 테스트")
 class BookmarkControllerTest {
 
     private static final String BASE_URL = "/api/v1/bookmark";
 
+    @Autowired
     private MockMvc mockMvc;
 
-    @Mock
+    @MockBean
     private BookmarkService bookmarkService;
 
-    @InjectMocks
-    private BookmarkController bookmarkController;
-
+    @Autowired
     private ObjectMapper objectMapper;
+
     private BookmarkRequest validRequest;
     private List<BookmarkResponse> bookmarkResponses;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(bookmarkController)
-                .setControllerAdvice(new ExceptionController())
-                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
-                .build();
-
-        objectMapper = new ObjectMapper();
-
-        // 유효한 요청 객체 생성
         validRequest = BookmarkRequest.builder()
                 .title("테스트 북마크")
                 .link("https://example.com")
                 .build();
 
-        // 테스트용 응답 객체 생성
         bookmarkResponses = Arrays.asList(
                 BookmarkResponse.builder()
                         .id(1L)
@@ -90,40 +75,19 @@ class BookmarkControllerTest {
         );
     }
 
-    private Authentication createAuthentication(String username) {
-        UserDetails userDetails = User.withUsername(username)
-                .password("dummy")
-                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
-                .build();
-
-        Authentication auth = new UsernamePasswordAuthenticationToken(
-                userDetails,
-                userDetails.getPassword(),
-                userDetails.getAuthorities()
-        );
-
-        SecurityContext ctx = new SecurityContextImpl();
-        ctx.setAuthentication(auth);
-        SecurityContextHolder.setContext(ctx);
-
-        return auth;
-    }
-
     @Nested
     @DisplayName("북마크 조회 API 테스트")
     class GetBookmarksTest {
 
         @Test
         @DisplayName("정상적으로 북마크 목록을 조회한다")
+        @WithMockUser(username = "testuser")
         void getBookmarks_Success() throws Exception {
             // Given
-            String username = "testuser";
-            given(bookmarkService.getBookmarks(username)).willReturn(bookmarkResponses);
-            Authentication auth = createAuthentication(username);
+            given(bookmarkService.getBookmarks("testuser")).willReturn(bookmarkResponses);
 
             // When & Then
             mockMvc.perform(get(BASE_URL)
-                            .principal(auth)
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.length()").value(2))
@@ -133,15 +97,13 @@ class BookmarkControllerTest {
 
         @Test
         @DisplayName("빈 북마크 목록을 정상적으로 조회한다")
+        @WithMockUser(username = "testuser")
         void getBookmarks_EmptyList() throws Exception {
             // Given
-            String username = "testuser";
-            given(bookmarkService.getBookmarks(username)).willReturn(Collections.emptyList());
-            Authentication auth = createAuthentication(username);
+            given(bookmarkService.getBookmarks("testuser")).willReturn(Collections.emptyList());
 
             // When & Then
             mockMvc.perform(get(BASE_URL)
-                            .principal(auth)
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.length()").value(0))
@@ -155,15 +117,14 @@ class BookmarkControllerTest {
 
         @Test
         @DisplayName("정상적으로 북마크를 생성한다")
+        @WithMockUser(username = "testuser")
         void createBookmark_Success() throws Exception {
             // Given
-            String username = "testuser";
             doNothing().when(bookmarkService).createBookmark(anyString(), any(BookmarkRequest.class));
-            Authentication auth = createAuthentication(username);
 
             // When & Then
             mockMvc.perform(post(BASE_URL)
-                            .principal(auth)
+                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isOk())
@@ -172,68 +133,90 @@ class BookmarkControllerTest {
 
         @Test
         @DisplayName("사용자를 찾을 수 없을 때 예외가 발생한다")
+        @WithMockUser(username = "testuser")
         void createBookmark_UserNotFound() throws Exception {
             // Given
-            String username = "testuser";
             doThrow(new BookmarkUserNotFoundException()).when(bookmarkService)
                     .createBookmark(anyString(), any(BookmarkRequest.class));
-            Authentication auth = createAuthentication(username);
 
             // When & Then
             mockMvc.perform(post(BASE_URL)
-                            .principal(auth)
+                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isNotFound());
         }
 
         @Test
-        @DisplayName("빈 제목으로 북마크 생성 시 서비스에서 검증")
+        @DisplayName("빈 제목으로 북마크 생성 시 400 에러")
+        @WithMockUser(username = "testuser")
         void createBookmark_EmptyTitle() throws Exception {
             // Given
-            String username = "testuser";
             BookmarkRequest emptyTitleRequest = BookmarkRequest.builder()
                     .title("")
                     .link("https://example.com")
                     .build();
 
-            // 서비스에서 검증 로직이 있다면 예외를 던지도록 설정
-            doThrow(new IllegalArgumentException("북마크 제목은 필수입니다"))
-                    .when(bookmarkService).createBookmark(anyString(), any(BookmarkRequest.class));
-
-            Authentication auth = createAuthentication(username);
-
             // When & Then
             mockMvc.perform(post(BASE_URL)
-                            .principal(auth)
+                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(emptyTitleRequest)))
-                    .andExpect(status().isInternalServerError());
-            // 원래라면 400 에러 띄워야 하지만, 시간부족으로 일단 500 에러 띄우고 에러 메시지만 잘 보내는 것으로 해두었습니다.
+                    .andExpect(status().isBadRequest());
         }
 
         @Test
-        @DisplayName("빈 링크로 북마크 생성 시 서비스에서 검증")
+        @DisplayName("null 제목으로 북마크 생성 시 400 에러")
+        @WithMockUser(username = "testuser")
+        void createBookmark_NullTitle() throws Exception {
+            // Given
+            BookmarkRequest nullTitleRequest = BookmarkRequest.builder()
+                    .title(null)
+                    .link("https://example.com")
+                    .build();
+
+            // When & Then
+            mockMvc.perform(post(BASE_URL)
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(nullTitleRequest)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("빈 링크로 북마크 생성 시 400 에러")
+        @WithMockUser(username = "testuser")
         void createBookmark_EmptyLink() throws Exception {
             // Given
-            String username = "testuser";
             BookmarkRequest emptyLinkRequest = BookmarkRequest.builder()
                     .title("테스트 북마크")
                     .link("")
                     .build();
 
-            // 서비스에서 검증 로직이 있다면 예외를 던지도록 설정
-            doThrow(new IllegalArgumentException("북마크 링크는 필수입니다"))
-                    .when(bookmarkService).createBookmark(anyString(), any(BookmarkRequest.class));
+            // When & Then
+            mockMvc.perform(post(BASE_URL)
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(emptyLinkRequest)))
+                    .andExpect(status().isBadRequest());
+        }
 
-            Authentication auth = createAuthentication(username);
+        @Test
+        @DisplayName("null 링크로 북마크 생성 시 400 에러")
+        @WithMockUser(username = "testuser")
+        void createBookmark_NullLink() throws Exception {
+            // Given
+            BookmarkRequest nullLinkRequest = BookmarkRequest.builder()
+                    .title("테스트 북마크")
+                    .link(null)
+                    .build();
 
             // When & Then
             mockMvc.perform(post(BASE_URL)
-                            .principal(auth)
+                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(emptyLinkRequest)))
-                    .andExpect(status().isInternalServerError());
+                            .content(objectMapper.writeValueAsString(nullLinkRequest)))
+                    .andExpect(status().isBadRequest());
         }
     }
 
@@ -243,16 +226,15 @@ class BookmarkControllerTest {
 
         @Test
         @DisplayName("정상적으로 북마크를 수정한다")
+        @WithMockUser(username = "testuser")
         void updateBookmark_Success() throws Exception {
             // Given
-            String username = "testuser";
             Long bookmarkId = 1L;
             doNothing().when(bookmarkService).updateBookmark(anyString(), anyLong(), any(BookmarkRequest.class));
-            Authentication auth = createAuthentication(username);
 
             // When & Then
             mockMvc.perform(put(BASE_URL + "/" + bookmarkId)
-                            .principal(auth)
+                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isOk())
@@ -261,45 +243,57 @@ class BookmarkControllerTest {
 
         @Test
         @DisplayName("존재하지 않는 북마크 수정 시 404 반환")
+        @WithMockUser(username = "testuser")
         void updateBookmark_NotFound() throws Exception {
             // Given
-            String username = "testuser";
             Long bookmarkId = 999L;
             doThrow(new BookmarkNotFoundException()).when(bookmarkService)
                     .updateBookmark(anyString(), anyLong(), any(BookmarkRequest.class));
-            Authentication auth = createAuthentication(username);
 
             // When & Then
             mockMvc.perform(put(BASE_URL + "/" + bookmarkId)
-                            .principal(auth)
+                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isNotFound());
         }
 
         @Test
-        @DisplayName("빈 제목으로 북마크 수정 시 서비스에서 검증")
+        @DisplayName("빈 제목으로 북마크 수정 시 400 에러")
+        @WithMockUser(username = "testuser")
         void updateBookmark_EmptyTitle() throws Exception {
             // Given
-            String username = "testuser";
             Long bookmarkId = 1L;
             BookmarkRequest emptyTitleRequest = BookmarkRequest.builder()
                     .title("")
                     .link("https://example.com")
                     .build();
 
-            // 서비스에서 이미 검증 로직이 있음
-            doThrow(new IllegalArgumentException("북마크 제목은 필수입니다"))
-                    .when(bookmarkService).updateBookmark(anyString(), anyLong(), any(BookmarkRequest.class));
+            // When & Then
+            mockMvc.perform(put(BASE_URL + "/" + bookmarkId)
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(emptyTitleRequest)))
+                    .andExpect(status().isBadRequest());
+        }
 
-            Authentication auth = createAuthentication(username);
+        @Test
+        @DisplayName("빈 링크로 북마크 수정 시 400 에러")
+        @WithMockUser(username = "testuser")
+        void updateBookmark_EmptyLink() throws Exception {
+            // Given
+            Long bookmarkId = 1L;
+            BookmarkRequest emptyLinkRequest = BookmarkRequest.builder()
+                    .title("테스트 북마크")
+                    .link("")
+                    .build();
 
             // When & Then
             mockMvc.perform(put(BASE_URL + "/" + bookmarkId)
-                            .principal(auth)
+                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(emptyTitleRequest)))
-                    .andExpect(status().isInternalServerError());
+                            .content(objectMapper.writeValueAsString(emptyLinkRequest)))
+                    .andExpect(status().isBadRequest());
         }
     }
 
@@ -309,33 +303,31 @@ class BookmarkControllerTest {
 
         @Test
         @DisplayName("정상적으로 북마크를 삭제한다")
+        @WithMockUser(username = "testuser")
         void deleteBookmark_Success() throws Exception {
             // Given
-            String username = "testuser";
             Long bookmarkId = 1L;
             doNothing().when(bookmarkService).deleteBookmark(anyString(), anyLong());
-            Authentication auth = createAuthentication(username);
 
             // When & Then
             mockMvc.perform(delete(BASE_URL + "/" + bookmarkId)
-                            .principal(auth))
+                            .with(csrf()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value("북마크를 삭제했습니다."));
         }
 
         @Test
         @DisplayName("존재하지 않는 북마크 삭제 시 404 반환")
+        @WithMockUser(username = "testuser")
         void deleteBookmark_NotFound() throws Exception {
             // Given
-            String username = "testuser";
             Long bookmarkId = 999L;
             doThrow(new BookmarkNotFoundException()).when(bookmarkService)
                     .deleteBookmark(anyString(), anyLong());
-            Authentication auth = createAuthentication(username);
 
             // When & Then
             mockMvc.perform(delete(BASE_URL + "/" + bookmarkId)
-                            .principal(auth))
+                            .with(csrf()))
                     .andExpect(status().isNotFound());
         }
     }

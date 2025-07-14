@@ -38,12 +38,6 @@ public class BookmarkService {
     @Transactional
     @CacheEvict(value = "userBookmarks", key = "'bookmark::' + #username")
     public void createBookmark(String username, BookmarkRequest req) {
-        if (req.getTitle() == null || req.getTitle().trim().isEmpty()) {
-            throw new IllegalArgumentException("북마크 제목은 필수입니다");
-        }
-        if (req.getLink() == null || req.getLink().trim().isEmpty()) {
-            throw new IllegalArgumentException("북마크 링크는 필수입니다");
-        }
         User user = userRepository.findByUsername(username)
                 .orElseThrow(BookmarkUserNotFoundException::new);
 
@@ -60,10 +54,6 @@ public class BookmarkService {
     @Transactional
     @CacheEvict(value = "userBookmarks", key = "'bookmark::' + #username")
     public void updateBookmark(String username, Long id, BookmarkRequest req) {
-        if (req.getTitle() == null || req.getTitle().trim().isEmpty()) {
-            throw new IllegalArgumentException("북마크 제목은 필수입니다");}
-        if (req.getLink() == null || req.getLink().trim().isEmpty()) {
-            throw new IllegalArgumentException("북마크 링크는 필수입니다");}
         Bookmark b = bookmarkRepository
                 .findByIdAndUser_Username(id, username)
                 .orElseThrow(BookmarkNotFoundException::new);
