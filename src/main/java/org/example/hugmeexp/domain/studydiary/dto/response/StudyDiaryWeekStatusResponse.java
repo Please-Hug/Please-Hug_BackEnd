@@ -1,10 +1,14 @@
 package org.example.hugmeexp.domain.studydiary.dto.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class StudyDiaryWeekStatusResponse {
     private boolean sunday;
     private boolean monday;
