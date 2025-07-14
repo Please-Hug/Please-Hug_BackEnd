@@ -1,4 +1,3 @@
-// src/test/java/org/example/hugmeexp/domain/attendance/service/AttendanceServiceTest.java
 package org.example.hugmeexp.domain.attendance.service;
 
 import org.example.hugmeexp.domain.attendance.dto.AttendanceCheckResponse;
@@ -20,7 +19,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -47,7 +45,6 @@ class AttendanceServiceTest {
     private final String username = "testUser";
 
     @Nested @DisplayName("getAllAttendanceDates 테스트")
-    // 유저 한명의 모든 출석 날짜를 조회
     class GetAllAttendanceDates {
 
         @Test @DisplayName("유저 없음 예외 처리 → AttendanceUserNotFoundException")
@@ -60,7 +57,6 @@ class AttendanceServiceTest {
 
         @Test @DisplayName("유효한 유저 → 날짜 리스트 List<LocalDate> 반환")
         void success() {
-            // User 생성은 mock으로만, getUsername() 스텁은 제거
             User user = mock(User.class);
             when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
@@ -76,7 +72,6 @@ class AttendanceServiceTest {
     }
 
     @Nested @DisplayName("getAttendanceStatus 테스트")
-    // 주간(일요일~토요일) 출석 현황과 연속 출석일 수를 조회
     class GetAttendanceStatus {
 
         @Test @DisplayName("유저 없음 예외 처리→ AttendanceUserNotFoundException")
@@ -90,12 +85,15 @@ class AttendanceServiceTest {
         @Test @DisplayName("출석 기록 존재 → 올바른 상태 반환")
         void success() {
             User user = mock(User.class);
+            when(user.getUsername()).thenReturn(username);
+            when(user.getCreatedAt()).thenReturn(LocalDateTime.now().minusDays(10));
             when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
             LocalDate today = LocalDate.now();
             LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
             LocalDate weekEnd = weekStart.plusDays(6);
 
+            // 주간 기록 스텁
             List<Attendance> weekRecords = List.of(
                     Attendance.of(user, weekStart.plusDays(1)),
                     Attendance.of(user, weekStart.plusDays(3))
@@ -104,40 +102,50 @@ class AttendanceServiceTest {
                     .findByUser_UsernameAndAttendanceDateBetween(username, weekStart, weekEnd))
                     .thenReturn(weekRecords);
 
-            LocalDate oneMonthAgo = today.minusDays(29);
-            List<Attendance> monthRecords = List.of(
+            // 연속 출석일 계산용 스텁 (가입일부터 오늘까지)
+            LocalDate userSince = user.getCreatedAt().toLocalDate();
+            List<Attendance> allRecords = List.of(
                     Attendance.of(user, today),
                     Attendance.of(user, today.minusDays(1))
             );
             when(attendanceRepository
-                    .findByUser_UsernameAndAttendanceDateBetween(username, oneMonthAgo, today))
-                    .thenReturn(monthRecords);
+                    .findByUser_UsernameAndAttendanceDateBetween(username, userSince, today))
+                    .thenReturn(allRecords);
 
             AttendanceStatusResponse resp = attendanceService.getAttendanceStatus(username);
 
-            assertEquals(7, resp.getAttendanceStatus().size()); // attendanceStatus의 리스트 크기가 7인지
-            assertEquals(2, resp.getContinuousDay()); // 연속 출석일 수가 2인지
-            assertEquals(today, resp.getToday()); // 오늘 날짜가 맞는지
+            assertEquals(7, resp.getAttendanceStatus().size());
+            assertEquals(2, resp.getContinuousDay());
+            assertEquals(today, resp.getToday());
         }
 
         @Test @DisplayName("연속 출석일 경계선 테스트: 연속 30일 출석 시 continuousDay == 30")
         void consecutiveThirtyDays() {
+            // MockedStatic 밖에서 필요한 날짜들을 미리 계산
             LocalDate fakeToday = LocalDate.of(2025, 6, 30);
+            LocalDate userCreatedDate = LocalDate.of(2025, 5, 1); // 60일 전
+            LocalDate weekStart = LocalDate.of(2025, 6, 29); // 일요일
+            LocalDate weekEnd = LocalDate.of(2025, 7, 5); // 토요일
+
             try (MockedStatic<LocalDate> md = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
                 md.when(LocalDate::now).thenReturn(fakeToday);
 
                 User user = mock(User.class);
+                when(user.getUsername()).thenReturn(username);
+                when(user.getCreatedAt()).thenReturn(userCreatedDate.atStartOfDay());
                 when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
-                // 한 번만 모든 조회(가입일~오늘) 호출 stub
+                // 주간 기록 스텁
+                when(attendanceRepository
+                        .findByUser_UsernameAndAttendanceDateBetween(username, weekStart, weekEnd))
+                        .thenReturn(List.of());
+
+                // 연속 출석일 계산용 스텁 - 30일 연속 출석 기록 생성
                 List<Attendance> stubs = IntStream.rangeClosed(0, 29)
-                        .mapToObj(i -> Attendance.of(user, fakeToday.minusDays(i)))
+                        .mapToObj(i -> Attendance.of(user, LocalDate.of(2025, 6, 30).minusDays(i)))
                         .collect(Collectors.toList());
                 when(attendanceRepository
-                        .findByUser_UsernameAndAttendanceDateBetween(
-                                eq(username),
-                                any(LocalDate.class),
-                                any(LocalDate.class)))
+                        .findByUser_UsernameAndAttendanceDateBetween(username, userCreatedDate, fakeToday))
                         .thenReturn(stubs);
 
                 AttendanceStatusResponse resp = attendanceService.getAttendanceStatus(username);
@@ -147,21 +155,31 @@ class AttendanceServiceTest {
 
         @Test @DisplayName("연속 출석일 경계선 테스트: 연속 365일 출석 시 continuousDay == 365")
         void consecutiveYearDays() {
+            // MockedStatic 밖에서 필요한 날짜들을 미리 계산
             LocalDate fakeToday = LocalDate.of(2025, 12, 31);
+            LocalDate userCreatedDate = LocalDate.of(2024, 11, 26); // 400일 전
+            LocalDate weekStart = LocalDate.of(2025, 12, 28); // 일요일
+            LocalDate weekEnd = LocalDate.of(2026, 1, 3); // 토요일
+
             try (MockedStatic<LocalDate> md = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
                 md.when(LocalDate::now).thenReturn(fakeToday);
 
                 User user = mock(User.class);
+                when(user.getUsername()).thenReturn(username);
+                when(user.getCreatedAt()).thenReturn(userCreatedDate.atStartOfDay());
                 when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
+                // 주간 기록 스텁
+                when(attendanceRepository
+                        .findByUser_UsernameAndAttendanceDateBetween(username, weekStart, weekEnd))
+                        .thenReturn(List.of());
+
+                // 연속 출석일 계산용 스텁 - 365일 연속 출석 기록 생성
                 List<Attendance> stubs = IntStream.rangeClosed(0, 364)
-                        .mapToObj(i -> Attendance.of(user, fakeToday.minusDays(i)))
+                        .mapToObj(i -> Attendance.of(user, LocalDate.of(2025, 12, 31).minusDays(i)))
                         .collect(Collectors.toList());
                 when(attendanceRepository
-                        .findByUser_UsernameAndAttendanceDateBetween(
-                                eq(username),
-                                any(LocalDate.class),
-                                any(LocalDate.class)))
+                        .findByUser_UsernameAndAttendanceDateBetween(username, userCreatedDate, fakeToday))
                         .thenReturn(stubs);
 
                 AttendanceStatusResponse resp = attendanceService.getAttendanceStatus(username);
@@ -172,33 +190,34 @@ class AttendanceServiceTest {
         @Test
         @DisplayName("월 경계선(2월 28일→3월 1일) 연속 출석 계산")
         void consecutiveAcrossMonthBoundary() {
+            // MockedStatic 밖에서 필요한 날짜들을 미리 계산
             LocalDate fakeToday = LocalDate.of(2025, 3, 1);
+            LocalDate userCreatedDate = LocalDate.of(2025, 1, 30); // 30일 전
+            LocalDate weekStart = LocalDate.of(2025, 2, 23); // 일요일
+            LocalDate weekEnd = LocalDate.of(2025, 3, 1); // 토요일
+            LocalDate feb28 = LocalDate.of(2025, 2, 28);
+
             try (MockedStatic<LocalDate> mdl = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
                 mdl.when(LocalDate::now).thenReturn(fakeToday);
 
                 User user = mock(User.class);
+                when(user.getUsername()).thenReturn(username);
+                when(user.getCreatedAt()).thenReturn(userCreatedDate.atStartOfDay());
                 when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
-                // 주간 기록: 모든 인자 매처 사용
+                // 주간 기록 스텁
                 when(attendanceRepository
-                        .findByUser_UsernameAndAttendanceDateBetween(
-                                eq(username),
-                                any(LocalDate.class),
-                                any(LocalDate.class)))
+                        .findByUser_UsernameAndAttendanceDateBetween(username, weekStart, weekEnd))
                         .thenReturn(List.of());
 
-                // 월간 기록: 모든 인자 매처 사용
-                LocalDate start = fakeToday.minusDays(29);
-                List<Attendance> monthRec = List.of(
-                        Attendance.of(user, fakeToday.minusDays(1)),
-                        Attendance.of(user, fakeToday)
+                // 연속 출석일 계산용 스텁
+                List<Attendance> allRecords = List.of(
+                        Attendance.of(user, feb28), // 2월 28일
+                        Attendance.of(user, fakeToday) // 3월 1일
                 );
                 when(attendanceRepository
-                        .findByUser_UsernameAndAttendanceDateBetween(
-                                eq(username),
-                                eq(start),
-                                eq(fakeToday)))
-                        .thenReturn(monthRec);
+                        .findByUser_UsernameAndAttendanceDateBetween(username, userCreatedDate, fakeToday))
+                        .thenReturn(allRecords);
 
                 AttendanceStatusResponse resp = attendanceService.getAttendanceStatus(username);
                 assertEquals(2, resp.getContinuousDay(),
@@ -209,33 +228,34 @@ class AttendanceServiceTest {
         @Test
         @DisplayName("연도 경계선(12월 31일→1월 1일) 연속 출석 계산")
         void consecutiveAcrossYearBoundary() {
+            // MockedStatic 밖에서 필요한 날짜들을 미리 계산
             LocalDate fakeToday = LocalDate.of(2025, 1, 1);
+            LocalDate userCreatedDate = LocalDate.of(2024, 12, 2); // 30일 전
+            LocalDate weekStart = LocalDate.of(2024, 12, 29); // 일요일
+            LocalDate weekEnd = LocalDate.of(2025, 1, 4); // 토요일
+            LocalDate dec31 = LocalDate.of(2024, 12, 31);
+
             try (MockedStatic<LocalDate> mdl = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
                 mdl.when(LocalDate::now).thenReturn(fakeToday);
 
                 User user = mock(User.class);
+                when(user.getUsername()).thenReturn(username);
+                when(user.getCreatedAt()).thenReturn(userCreatedDate.atStartOfDay());
                 when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
-                // 주간 기록: 모든 인자 매처 사용
+                // 주간 기록 스텁
                 when(attendanceRepository
-                        .findByUser_UsernameAndAttendanceDateBetween(
-                                eq(username),
-                                any(LocalDate.class),
-                                any(LocalDate.class)))
+                        .findByUser_UsernameAndAttendanceDateBetween(username, weekStart, weekEnd))
                         .thenReturn(List.of());
 
-                // 월간 기록: 모든 인자 매처 사용
-                LocalDate start = fakeToday.minusDays(29);
-                List<Attendance> monthRec = List.of(
-                        Attendance.of(user, fakeToday.minusDays(1)),
-                        Attendance.of(user, fakeToday)
+                // 연속 출석일 계산용 스텁
+                List<Attendance> allRecords = List.of(
+                        Attendance.of(user, dec31), // 12월 31일
+                        Attendance.of(user, fakeToday) // 1월 1일
                 );
                 when(attendanceRepository
-                        .findByUser_UsernameAndAttendanceDateBetween(
-                                eq(username),
-                                eq(start),
-                                eq(fakeToday)))
-                        .thenReturn(monthRec);
+                        .findByUser_UsernameAndAttendanceDateBetween(username, userCreatedDate, fakeToday))
+                        .thenReturn(allRecords);
 
                 AttendanceStatusResponse resp = attendanceService.getAttendanceStatus(username);
                 assertEquals(2, resp.getContinuousDay(),
@@ -245,7 +265,6 @@ class AttendanceServiceTest {
     }
 
     @Nested @DisplayName("checkAttendance")
-    // 출석 체크 기능
     class CheckAttendance {
 
         @Test @DisplayName("유저 없음 예외 처리 → AttendanceUserNotFoundException")
@@ -260,7 +279,6 @@ class AttendanceServiceTest {
         void alreadyChecked() {
             User user = mock(User.class);
             when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
-            // 모든 인자에 matcher 사용 (eq + any)
             when(attendanceRepository.existsByUser_UsernameAndAttendanceDate(eq(username), any(LocalDate.class)))
                     .thenReturn(true);
 
@@ -284,6 +302,19 @@ class AttendanceServiceTest {
             assertEquals(1, resp.getPoint());
             verify(userService).increaseExp(user, 31);
             verify(userService).increasePoint(user, 1);
+        }
+
+        @Test @DisplayName("동시성 예외 처리 → DataIntegrityViolationException")
+        void concurrencyException() {
+            User user = mock(User.class);
+            when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+            when(attendanceRepository.existsByUser_UsernameAndAttendanceDate(eq(username), any(LocalDate.class)))
+                    .thenReturn(false);
+            when(attendanceRepository.save(any(Attendance.class)))
+                    .thenThrow(new DataIntegrityViolationException("Duplicate entry"));
+
+            assertThrows(AttendanceAlreadyCheckedException.class,
+                    () -> attendanceService.checkAttendance(username));
         }
     }
 }
