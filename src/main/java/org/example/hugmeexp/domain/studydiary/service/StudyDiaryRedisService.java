@@ -65,11 +65,9 @@ public class StudyDiaryRedisService {
         if (totalElements == null || totalElements == 0) {
             return Page.empty(pageable);
         }
-        
         // 페이지 계산
-        long start = pageable.getOffset() * 10;
-        long end = Math.min((start + 1) * 9,  totalElements);  //start부터 10개 or 전체 항목 갯수(max)
-        
+        long start = pageable.getOffset();
+        long end = Math.min(start + 9,  totalElements);  //start부터 10개 or 전체 항목 갯수(max)
         // 해당 범위의 데이터 조회 (높은 점수부터)
         //LinkedHashSet return(Set인데 순서보장)
         Set<Object> results = redisTemplate.opsForZSet()
@@ -84,7 +82,6 @@ public class StudyDiaryRedisService {
         List<StudyDiaryFindAllResponse> content = results.stream()
                 .map(obj -> objectMapper.convertValue(obj, StudyDiaryFindAllResponse.class))
                 .toList();
-        
         // Page 객체 생성
         return new PageImpl<>(content, pageable, totalElements);
     }
